@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LLM Dump</title> 
+  <title>LLM Dump</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
@@ -110,10 +110,15 @@
     
     .assistant-response {
       margin: 0 0 20px 0;
-      padding: 0;
+      padding: 16px 20px;
       position: relative;
       word-wrap: break-word;
-      width: 100%;
+      max-width: 85%;
+      background: rgba(30, 41, 59, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 18px;
+      border-bottom-left-radius: 4px;
       animation: fadeIn 0.3s ease-out;
     }
     
@@ -149,6 +154,11 @@
       gap: 4px;
       opacity: 0;
       transition: opacity 0.2s;
+      z-index: 10;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 6px;
+      padding: 4px;
     }
     
     .user-bubble:hover .message-actions,
@@ -157,17 +167,23 @@
     }
     
     .action-btn {
-      width: 28px;
-      height: 28px;
+      width: 24px;
+      height: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 6px;
-      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.3);
       border: 1px solid rgba(255, 255, 255, 0.1);
       cursor: pointer;
       color: #94a3b8;
       transition: all 0.2s;
+    }
+    
+    .action-btn:hover {
+      background: rgba(99, 102, 241, 0.3);
+      color: #e2e8f0;
+      border-color: rgba(99, 102, 241, 0.5);
     }
     
     /* Stop button styling */
@@ -175,9 +191,9 @@
       border: 2px solid #ef4444 !important;
       color: #ef4444 !important;
       background: rgba(239, 68, 68, 0.1) !important;
-      width: 32px !important;
-      height: 32px !important;
-      border-radius: 6px !important;
+      width: 28px !important;
+      height: 28px !important;
+      border-radius: 4px !important;
     }
     
     .stop-btn:hover {
@@ -374,7 +390,7 @@
       border: 1px solid rgba(99, 102, 241, 0.3);
       width: 350px;
       border-radius: 8px;
-      z-index: 100;
+      z-index: 9999;
       top: 100%;
       left: 0;
       margin-top: 4px;
@@ -683,9 +699,11 @@
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: 1000;
+        z-index: 9998;
         transform: translateX(-100%);
         transition: transform 0.3s ease;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(20px);
       }
       
       #sidebar.mobile-open {
@@ -730,6 +748,7 @@
         background: rgba(15, 23, 42, 0.98);
         backdrop-filter: blur(20px);
         border: 1px solid rgba(99, 102, 241, 0.4);
+        z-index: 9999;
       }
       
       .dropdown-search-container {
@@ -744,8 +763,20 @@
         max-width: 95%;
       }
       
-      .model-limits {
-        min-width: 80px;
+      .user-bubble, .assistant-response {
+        max-width: 92%;
+      }
+      
+      .mobile-model-selector {
+        min-width: 120px;
+        max-width: 140px;
+      }
+      
+      .action-btn {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        min-height: 28px;
       }
       
       .thinking-indicator {
@@ -796,20 +827,19 @@
     .chat-history-item.focused { background: rgba(79,70,229,0.4)!important; outline: 1px solid #6366f1; }
     
     .chat-history-edit-toggle {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 28px;
-      height: 28px;
+      position: relative;
+      width: 24px;
+      height: 24px;
       background: rgba(99, 102, 241, 0.2);
       border: 1px solid rgba(99, 102, 241, 0.3);
-      border-radius: 6px;
+      border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       color: #94a3b8;
       transition: all 0.2s;
+      flex-shrink: 0;
     }
     
     .chat-history-edit-toggle:hover,
@@ -847,23 +877,23 @@
     
     /* Enhanced codeblock styling */
     .markdown-body pre {
-      position: relative;
+      position: relative !important;
       background: rgba(15, 23, 42, 0.9) !important;
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      border-radius: 8px;
-      padding: 0;
-      margin: 16px 0;
-      overflow: hidden;
+      border: 1px solid rgba(99, 102, 241, 0.3) !important;
+      border-radius: 8px !important;
+      padding: 0 !important;
+      margin: 16px 0 !important;
+      overflow: visible !important;
     }
     
     .enhanced-codeblock {
-      position: relative;
+      position: relative !important;
       background: rgba(15, 23, 42, 0.9) !important;
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      border-radius: 8px;
-      padding: 0;
-      margin: 16px 0;
-      overflow: hidden;
+      border: 1px solid rgba(99, 102, 241, 0.3) !important;
+      border-radius: 8px !important;
+      padding: 0 !important;
+      margin: 16px 0 !important;
+      overflow: visible !important;
     }
     
     .code-header {
@@ -912,20 +942,20 @@
     }
     
     .markdown-body pre code {
-      display: block;
-      padding: 16px;
+      display: block !important;
+      padding: 16px !important;
       background: transparent !important;
-      color: #e2e8f0;
-      font-family: 'Roboto Mono', 'Consolas', 'Monaco', monospace;
-      font-size: 13px;
-      line-height: 1.4;
-      overflow-x: auto;
-      white-space: pre;
+      color: #e2e8f0 !important;
+      font-family: 'Roboto Mono', 'Consolas', 'Monaco', monospace !important;
+      font-size: 13px !important;
+      line-height: 1.4 !important;
+      overflow-x: auto !important;
+      white-space: pre !important;
     }
     
     .code-wrap .markdown-body pre code {
-      white-space: pre-wrap;
-      word-break: break-all;
+      white-space: pre-wrap !important;
+      word-break: break-all !important;
     }
     
     .logo { display:flex; align-items:center; gap:10px; font-family:'Roboto Mono', monospace; user-select:none; }
@@ -946,7 +976,6 @@
 <body class="m-0 p-0">
   <div class="bg-blobs">
     <div class="blob b1"></div>
-    <div class="blob b3"></div>
   </div>
   
   <!-- Login Page -->
@@ -1011,7 +1040,7 @@
         </svg>
       </button>
       
-      <div class="mobile-logo" style="cursor: pointer;" onclick="goToHomepage()">
+      <div class="mobile-logo" style="cursor: pointer;" onclick="window.goToHomepage ? window.goToHomepage() : goToHomepage()">
         <div class="logo-icon gradient-bg" style="width:32px; height:32px; border-radius:8px;">
           <svg viewBox="0 0 100 100">
             <defs>
@@ -1053,7 +1082,7 @@
     <div id="sidebar" class="w-64 glass-sidebar flex flex-col relative">
       <div class="p-4 flex-1">
         <div class="sidebar-logo-wrap">
-          <div class="logo small" style="cursor: pointer;" onclick="goToHomepage()">
+          <div class="logo small" style="cursor: pointer;" onclick="window.goToHomepage ? window.goToHomepage() : goToHomepage()">
             <div class="logo-icon gradient-bg" style="width:52px; height:52px; border-radius:16px;">
               <svg viewBox="0 0 100 100">
                 <defs>
@@ -1073,10 +1102,10 @@
           </div>
         </div>
         
-        <div class="flex items-center justify-between mb-4 mt-6 relative">
+        <div class="flex items-center justify-between mb-4 mt-6">
           <h3 class="font-semibold">Chat History</h3>
           <button id="editChatsBtn" class="chat-history-edit-toggle" title="Edit Chat Order">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 20h9"></path>
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
             </svg>
@@ -1468,7 +1497,7 @@
       }
     });
     document.getElementById('signoutBtn')?.addEventListener('click', () => {
-      localStorage.removeItem('gh_token');
+      localStorage.clear(); // Clear all stored data including tokens
       profileMenu?.classList.add('hidden');
       showLoginPage();
     });
@@ -1506,7 +1535,7 @@
       
       if (settingsModal && !settingsModal.classList.contains('hidden')) {
         const glass = settingsModal.querySelector('.glass');
-        if (glass && !glass.contains(e.target) && e.target !== settingsModal) {
+        if (glass && !glass.contains(e.target)) {
           settingsModal.classList.add('hidden');
         }
       }
@@ -1554,7 +1583,9 @@
     });
 
     // Model dropdown
-    dropdownSelected?.addEventListener('click', () => {
+    dropdownSelected?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       dropdownContent?.classList.toggle('show');
       dropdownSelected?.classList.toggle('active');
     });
@@ -1634,6 +1665,9 @@
     function selectModel(id){
       const m = models.find(x=>x.id===id); 
       if(!m) return;
+      
+      // Store selected model in localStorage
+      localStorage.setItem('selected_model', id);
       
       // Update desktop dropdown
       const selectedModelName = document.getElementById('selectedModelName');
@@ -1787,10 +1821,16 @@ User: "What's the weather like?" → "Weather Information"`;
       
       // Show welcome message if chat is empty, otherwise hide it
       if (chat.messages.length === 0) {
-        chatBox.innerHTML = '<div class="max-w-3xl mx-auto"><div id="welcomeMessage" class="text-center py-10 text-gray-500"><h2 class="text-2xl mb-4">How can I help you today?</h2><p class="text-sm">Start a conversation by typing a message below</p></div></div>';
+        const chatBoxContainer = chatBox.querySelector('.max-w-3xl');
+        if (chatBoxContainer) {
+          chatBoxContainer.innerHTML = '<div id="welcomeMessage" class="text-center py-10 text-gray-500"><h2 class="text-2xl mb-4">How can I help you today?</h2><p class="text-sm">Start a conversation by typing a message below</p></div>';
+        }
       } else {
         // Recreate message container without welcome message
-        chatBox.innerHTML = '<div class="max-w-3xl mx-auto"></div>';
+        const chatBoxContainer = chatBox.querySelector('.max-w-3xl');
+        if (chatBoxContainer) {
+          chatBoxContainer.innerHTML = '';
+        }
         
         // Load messages without triggering storage save
         chat.messages.forEach(m => { 
@@ -1900,6 +1940,9 @@ User: "What's the weather like?" → "Weather Information"`;
         createNewChat();
       }
     }
+
+    // Make goToHomepage globally available
+    window.goToHomepage = goToHomepage;
 
     // Messages
     function appendUserMessage(content){
@@ -2429,14 +2472,28 @@ User: "What's the weather like?" → "Weather Information"`;
         .then(data=>{
           models = Array.isArray(data)? data : (data.models||fallback);
           renderDropdownItems(models); 
-          if(models.length) selectModel(models[0].id);
+          
+          // Restore previously selected model or select first available
+          const savedModelId = localStorage.getItem('selected_model');
+          const modelToSelect = savedModelId && models.find(m => m.id === savedModelId) 
+            ? savedModelId 
+            : (models.length ? models[0].id : null);
+          
+          if(modelToSelect) selectModel(modelToSelect);
           statusEl?.classList.add('hidden');
         })
         .catch(err=>{
           console.warn('Model fetch failed', err);
           models = fallback; 
           renderDropdownItems(models); 
-          if(models.length) selectModel(models[0].id);
+          
+          // Restore previously selected model or select first available
+          const savedModelId = localStorage.getItem('selected_model');
+          const modelToSelect = savedModelId && models.find(m => m.id === savedModelId) 
+            ? savedModelId 
+            : (models.length ? models[0].id : null);
+          
+          if(modelToSelect) selectModel(modelToSelect);
           if(statusEl){ statusEl.textContent = 'Using fallback models'; statusEl.classList.remove('hidden'); }
         });
     }
@@ -2456,7 +2513,9 @@ User: "What's the weather like?" → "Weather Information"`;
     });
     
     // Mobile dropdown
-    document.getElementById('mobileDropdownSelected')?.addEventListener('click', () => {
+    document.getElementById('mobileDropdownSelected')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const mobileContent = document.getElementById('mobileDropdownContent');
       const mobileSelected = document.getElementById('mobileDropdownSelected');
       mobileContent?.classList.toggle('show');
