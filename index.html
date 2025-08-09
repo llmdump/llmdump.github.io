@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GH Models Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.0/github-markdown-dark.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #0f172a;
+      color: #e2e8f0;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .glass {
+      background: rgba(30, 41, 59, 0.4);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+    }
+    
+    .glass-sidebar {
+      background: rgba(30, 41, 59, 0.4);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+    }
+    
+    .glass-sidebar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 2px;
+      height: 100%;
+      background: linear-gradient(180deg, 
+        rgba(99, 102, 241, 0) 0%, 
+        rgba(99, 102, 241, 0.8) 50%, 
+        rgba(99, 102, 241, 0) 100%);
+    }
+    
+    .glass-textbox {
+      background: rgba(30, 41, 59, 0.4);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .glass-textbox::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, 
+        rgba(99, 102, 241, 0) 0%, 
+        rgba(99, 102, 241, 0.8) 50%, 
+        rgba(99, 102, 241, 0) 100%);
+    }
+    
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: -1;
+    }
+    
+    .cursor-glow {
+      position: fixed;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(99, 102, 241, 0.2);
+      box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: -1;
+      transition: opacity 0.2s;
+    }
+    
+    .chat-bubble {
+      max-width: 85%;
+      border-radius: 18px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      position: relative;
+      animation: fadeIn 0.2s ease-in;
+    }
+    
+    .user-bubble {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      border-bottom-right-radius: 4px;
+      margin-left: auto;
+      align-self: flex-end;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .assistant-response {
+      opacity: 0;
+      animation: streamFadeIn 0.4s ease-out forwards;
+    }
+    
+    @keyframes streamFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .tooltip {
+      position: relative;
+      cursor: help;
+    }
+    
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 200px;
+      background-color: #1e293b;
+      color: #e2e8f0;
+      text-align: center;
+      border-radius: 6px;
+      padding: 10px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      border: 1px solid #334155;
+      font-size: 12px;
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    .send-icon {
+      width: 20px;
+      height: 20px;
+    }
+    
+    /* Custom dropdown styles */
+    .custom-dropdown {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+    
+    .dropdown-selected {
+      background: transparent;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      transition: background-color 0.2s ease;
+    }
+    
+    .dropdown-selected:hover {
+      background: rgba(30, 41, 59, 0.3);
+    }
+    
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(20px);
+      width: 350px;
+      border-radius: 8px;
+      z-index: 100;
+      top: 100%;
+      left: 0;
+      margin-top: 4px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+      animation: dropdownFade 0.2s ease-out;
+    }
+    
+    @keyframes dropdownFade {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .dropdown-content.show {
+      display: block;
+    }
+    
+    .dropdown-search-container {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background: rgba(30, 41, 59, 0.6);
+      border-radius: 8px 8px 0 0;
+    }
+    
+    .search-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      fill: #94a3b8;
+    }
+    
+    .dropdown-search {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: white;
+      outline: none;
+    }
+    
+    .dropdown-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background-color 0.2s ease;
+    }
+    
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+    
+    .dropdown-item:hover {
+      background: rgba(79, 70, 229, 0.2);
+    }
+    
+    .model-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    
+    .model-info {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .model-limits {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      min-width: 100px;
+      flex-shrink: 0;
+    }
+    
+    .profile-menu {
+      position: absolute;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(20px);
+      border-radius: 8px;
+      padding: 8px;
+      z-index: 100;
+      right: 16px;
+      bottom: 60px;
+      min-width: 200px;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeInMenu 0.2s ease-out forwards;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    @keyframes fadeInMenu {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .profile-menu.hidden {
+      display: none;
+    }
+    
+    .profile-menu button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      color: #e2e8f0;
+      cursor: pointer;
+    }
+    
+    .profile-menu button:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .thinking-indicator {
+      color: #94a3b8;
+      font-size: 14px;
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .thinking-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+      padding-left: 24px;
+      font-size: 13px;
+      color: #64748b;
+    }
+    
+    .thinking-content.open {
+      max-height: 500px;
+    }
+    
+    .close-icon {
+      width: 18px;
+      height: 18px;
+      fill: #e2e8f0;
+    }
+    
+    /* Enhanced animations and effects */
+    .assistant-bubble {
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(12px);
+      border-radius: 18px;
+      border-bottom-left-radius: 4px;
+      margin-right: auto;
+      align-self: flex-start;
+      position: relative;
+    }
+    
+    .message-actions {
+      position: absolute;
+      top: -8px;
+      right: 8px;
+      display: none;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(20px);
+      border-radius: 8px;
+      padding: 4px;
+      gap: 4px;
+      z-index: 10;
+    }
+    
+    .chat-bubble:hover .message-actions {
+      display: flex;
+    }
+    
+    .action-btn {
+      padding: 4px;
+      border-radius: 4px;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .action-btn:hover {
+      background: rgba(79, 70, 229, 0.3);
+      color: #e2e8f0;
+    }
+    
+    .action-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+    
+    /* Improved thinking indicator */
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+    
+    .thinking-dots {
+      display: inline-flex;
+      gap: 2px;
+    }
+    
+    .thinking-dots span {
+      width: 4px;
+      height: 4px;
+      background: #94a3b8;
+      border-radius: 50%;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    
+    .thinking-dots span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .thinking-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    
+    /* System prompt styling */
+    .system-prompt-container {
+      margin-bottom: 4px;
+    }
+    
+    .system-prompt-toggle {
+      font-size: 12px;
+      color: #64748b;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(30, 41, 59, 0.3);
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+    
+    .system-prompt-toggle:hover {
+      background: rgba(30, 41, 59, 0.5);
+    }
+    
+    .system-prompt-editor {
+      display: none;
+      margin-bottom: 12px;
+    }
+    
+    .system-prompt-editor.show {
+      display: block;
+    }
+    
+    .system-prompt-textarea {
+      width: 100%;
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 8px;
+      padding: 8px;
+      color: #e2e8f0;
+      font-size: 13px;
+      resize: vertical;
+      min-height: 80px;
+    }
+    
+    /* Mobile responsive styles */
+    @media (max-width: 768px) {
+      body {
+        overflow: auto;
+      }
+      
+      #chatPage {
+        flex-direction: column;
+        height: 100vh;
+      }
+      
+      #sidebar {
+        width: 100%;
+        height: auto;
+        max-height: 200px;
+        order: 2;
+      }
+      
+      .dropdown-content {
+        width: 100%;
+        left: 0;
+        right: 0;
+      }
+      
+      .chat-bubble {
+        max-width: 95%;
+      }
+      
+      .model-limits {
+        min-width: 80px;
+      }
+      
+      .thinking-indicator {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .glass {
+        border-radius: 12px;
+      }
+      
+      .glass-textbox {
+        border-radius: 12px;
+      }
+      
+      .dropdown-content {
+        width: calc(100vw - 32px);
+        max-width: none;
+      }
+      
+      .model-info span {
+        font-size: 14px;
+      }
+      
+      .model-limits span {
+        font-size: 11px;
+      }
+    }
+    
+    /* Additional CSS for new features */
+    .chat-history-item.focused { background: rgba(79,70,229,0.4)!important; outline: 1px solid #6366f1; }
+  </style>
+</head>
+<body class="m-0 p-0">
+  <!-- Cursor glow effect -->
+  <div class="cursor-glow" id="cursorGlow"></div>
+  
+  <!-- Login Page -->
+  <div id="loginPage" class="flex flex-col min-h-screen items-center justify-center px-4">
+    <h1 class="text-3xl md:text-4xl font-bold mb-8 text-center">Welcome to GH Models Chat!</h1>
+    
+    <div class="glass p-6 w-full max-w-md">
+      <button id="githubLogin" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-3 rounded w-full flex items-center justify-center gap-2 mb-4">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        Sign in with GitHub
+      </button>
+      
+      <div class="flex items-center gap-2 mb-2">
+        <p class="text-sm opacity-80">Or, provide a personal access token</p>
+        <div class="tooltip">
+          <span class="text-xs bg-gray-700 rounded-full w-5 h-5 flex items-center justify-center cursor-help">i</span>
+          <span class="tooltiptext">Create a GitHub Personal Access Token with 'read:models' scope at github.com/settings/tokens</span>
+        </div>
+      </div>
+      
+      <input type="password" id="patToken" class="w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-700 mb-3" placeholder="github_pat_..." />
+      <button id="usePat" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-3 rounded w-full flex items-center justify-center gap-2">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+        </svg>
+        Use Token
+      </button>
+    </div>
+  </div>
+  
+  <!-- Chat Page -->
+  <div id="chatPage" class="flex h-screen hidden">
+    <!-- Sidebar (with glass) -->
+    <div id="sidebar" class="w-64 glass-sidebar flex flex-col relative">
+      <div class="p-4 flex-1">
+        <button id="newChat" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-4 rounded-lg mb-4 flex items-center justify-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          New Chat
+        </button>
+        
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold">Chat History</h3>
+          <button id="sidebarSettings" class="text-gray-400 hover:text-white">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div id="chatHistory" class="space-y-2 overflow-y-auto"></div>
+      </div>
+      
+      <div class="p-4 border-t border-gray-800 mt-auto">
+        <button id="userProfile" class="flex items-center gap-3 w-full text-left p-2 hover:bg-gray-800 rounded-lg">
+          <div class="bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <span id="usernameDisplay">Account</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Main Chat Area -->
+    <div class="flex-1 flex flex-col">
+      <!-- Header (seamless) -->
+      <div class="p-4 border-b border-gray-800 flex items-center bg-gray-900">
+        <div class="flex-1 flex items-center gap-4">
+          <div class="custom-dropdown">
+            <div id="dropdownSelected" class="dropdown-selected">
+              <div id="selectedModelIcon" class="model-icon bg-gray-700 flex items-center justify-center">
+                <span>G</span>
+              </div>
+              <span id="selectedModelName">Select Model</span>
+            </div>
+            <div id="dropdownContent" class="dropdown-content">
+              <div class="dropdown-search-container">
+                <svg class="search-icon" viewBox="0 0 24 24">
+                  <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                </svg>
+                <input type="text" id="dropdownSearch" class="dropdown-search" placeholder="Search models...">
+              </div>
+              <div id="dropdownItems"></div>
+            </div>
+          </div>
+          <div id="rateLimitInfo" class="text-sm text-gray-400 flex items-center gap-2"></div>
+          <div id="networkStatus" class="text-xs px-2 py-1 rounded bg-red-900/40 text-red-300 hidden"></div>
+        </div>
+      </div>
+      
+      <!-- Chat Box -->
+      <div id="chatBox" class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-900 to-slate-900">
+        <div class="max-w-3xl mx-auto">
+          <div id="welcomeMessage" class="text-center py-10 text-gray-500">
+            <h2 class="text-2xl mb-4">How can I help you today?</h2>
+            <p class="text-sm">Start a conversation by typing a message below</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Input Area (glass textbox only) -->
+      <div class="p-4">
+        <div class="max-w-3xl mx-auto">
+          <!-- System Prompt Section -->
+          <div class="system-prompt-container">
+            <div class="system-prompt-toggle" id="systemPromptToggle">
+              ⚙️ System Prompt
+            </div>
+            <div class="system-prompt-editor" id="systemPromptEditor">
+              <textarea 
+                id="systemPromptText" 
+                class="system-prompt-textarea"
+                placeholder="Enter system prompt..."
+              >You are a helpful AI assistant. Be concise, accurate, and helpful in your responses.</textarea>
+            </div>
+          </div>
+          
+          <div class="glass-textbox relative">
+            <textarea 
+              id="messageInput" 
+              placeholder="Message..." 
+              class="w-full p-4 pr-12 rounded-lg bg-transparent text-white resize-none"
+              rows="1"
+              style="min-height: 60px; max-height: 200px;"
+            ></textarea>
+            <button id="sendBtn" class="absolute right-3 bottom-3 rounded-full p-2">
+              <svg class="send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Profile Menu -->
+  <div id="profileMenu" class="profile-menu hidden">
+    <button id="reauthBtn">Re-authenticate</button>
+    <button id="settingsBtn">Settings</button>
+    <button id="signoutBtn" class="text-red-400">Sign Out</button>
+  </div>
+  
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="glass p-6 w-full max-w-md relative">
+      <button id="closeSettings" class="absolute top-3 right-3 rounded-full p-2">
+        <svg class="close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      
+      <h3 class="text-xl font-bold mb-4">Settings</h3>
+      
+      <div class="mb-4">
+        <label class="block mb-2">Default Model</label>
+        <div class="custom-dropdown">
+          <div id="defaultDropdownSelected" class="dropdown-selected">
+            <div id="defaultSelectedModelIcon" class="model-icon bg-gray-700 flex items-center justify-center">
+              <span>G</span>
+            </div>
+            <span id="defaultSelectedModelName">Select Model</span>
+          </div>
+          <div id="defaultDropdownContent" class="dropdown-content">
+            <div class="dropdown-search-container">
+              <svg class="search-icon" viewBox="0 0 24 24">
+                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+              </svg>
+              <input type="text" id="defaultDropdownSearch" class="dropdown-search" placeholder="Search models...">
+            </div>
+            <div id="defaultDropdownItems"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mb-6">
+        <label class="block mb-2">Personal Access Token</label>
+        <input type="password" id="settingsPat" class="w-full p-2 rounded bg-gray-800 border border-gray-700 mb-2" placeholder="github_pat_..." />
+        <button id="saveToken" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded w-full">
+          Save Token
+        </button>
+      </div>
+      
+      <div class="flex gap-2 mb-4">
+        <button id="exportAll" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded">
+          Export All Chats
+        </button>
+        <button id="importChats" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded">
+          Import Chats
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+  (()=>{
+    // Cursor glow effect
+    const cursorGlow = document.getElementById('cursorGlow');
+    document.addEventListener('mousemove', (e) => {
+      if (!cursorGlow) return;
+      cursorGlow.style.left = e.clientX + 'px';
+      cursorGlow.style.top = e.clientY + 'px';
+      cursorGlow.style.opacity = '1';
+    });
+    document.addEventListener('mouseleave', () => { if(cursorGlow) cursorGlow.style.opacity = '0'; });
+
+    // DOM Elements
+    const loginPage = document.getElementById('loginPage');
+    const chatPage = document.getElementById('chatPage');
+    const chatBox = document.getElementById('chatBox');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const chatHistory = document.getElementById('chatHistory');
+    const newChatBtn = document.getElementById('newChat');
+    const userProfile = document.getElementById('userProfile');
+    const profileMenu = document.getElementById('profileMenu');
+    const settingsModal = document.getElementById('settingsModal');
+    const dropdownSelected = document.getElementById('dropdownSelected');
+    const dropdownContent = document.getElementById('dropdownContent');
+    const dropdownSearch = document.getElementById('dropdownSearch');
+    const dropdownItems = document.getElementById('dropdownItems');
+    const rateLimitInfo = document.getElementById('rateLimitInfo');
+    const sidebarSettings = document.getElementById('sidebarSettings');
+
+    // State
+    let chats = JSON.parse(localStorage.getItem('chat_history') || '[]');
+    let currentChatId = null;
+    let models = [];
+
+    // Auth init (PAT only simplified)
+    const storedToken = localStorage.getItem('gh_token');
+    if (storedToken) { fetchModels(); showChatPage(); } else { showLoginPage(); }
+
+    // Auth handlers
+    const patInput = document.getElementById('patToken');
+    document.getElementById('usePat')?.addEventListener('click', () => {
+      const token = patInput.value.trim();
+      if (token.startsWith('github_pat_')) {
+        localStorage.setItem('gh_token', token);
+        fetchModels();
+        showChatPage();
+      } else {
+        alert('Invalid token (must start with github_pat_)');
+      }
+    });
+
+    function showLoginPage() {
+      loginPage?.classList.remove('hidden');
+      chatPage?.classList.add('hidden');
+    }
+    function showChatPage() {
+      loginPage?.classList.add('hidden');
+      chatPage?.classList.remove('hidden');
+    }
+
+    // Profile menu
+    userProfile?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      profileMenu?.classList.toggle('hidden');
+    });
+    document.getElementById('signoutBtn')?.addEventListener('click', () => {
+      localStorage.removeItem('gh_token');
+      showLoginPage();
+    });
+    document.getElementById('reauthBtn')?.addEventListener('click', () => {
+      localStorage.removeItem('gh_token');
+      showLoginPage();
+    });
+    document.getElementById('settingsBtn')?.addEventListener('click', () => {
+      profileMenu?.classList.add('hidden');
+      settingsModal?.classList.remove('hidden');
+    });
+
+    // Outside click
+    document.addEventListener('click', (e) => {
+      if (profileMenu && !profileMenu.classList.contains('hidden') && !profileMenu.contains(e.target) && e.target !== userProfile) {
+        profileMenu.classList.add('hidden');
+      }
+      if (dropdownContent?.classList.contains('show') && !dropdownSelected.contains(e.target) && !dropdownContent.contains(e.target)) {
+        dropdownContent.classList.remove('show');
+      }
+      if (settingsModal && !settingsModal.classList.contains('hidden')) {
+        const glass = settingsModal.querySelector('.glass');
+        if (glass && !glass.contains(e.target) && e.target !== settingsModal) {
+          settingsModal.classList.add('hidden');
+        }
+      }
+    });
+
+    // Settings modal
+    document.getElementById('closeSettings')?.addEventListener('click', () => settingsModal?.classList.add('hidden'));
+    document.getElementById('saveToken')?.addEventListener('click', () => {
+      const newToken = document.getElementById('settingsPat').value.trim();
+      if (newToken.startsWith('github_pat_')) {
+        localStorage.setItem('gh_token', newToken);
+        location.reload();
+      } else {
+        alert('Token must start with github_pat_');
+      }
+    });
+    document.getElementById('exportAll')?.addEventListener('click', () => {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(chats, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr; a.download = 'chat_history.json';
+      document.body.appendChild(a); a.click(); a.remove();
+    });
+    document.getElementById('importChats')?.addEventListener('click', () => {
+      const input = document.createElement('input'); input.type='file'; input.accept='.json';
+      input.onchange = evt => {
+        const file = evt.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = () => { try { const imported = JSON.parse(reader.result); chats = imported; localStorage.setItem('chat_history', JSON.stringify(chats)); location.reload(); } catch { alert('Invalid JSON'); } };
+        reader.readAsText(file,'utf-8');
+      };
+      input.click();
+    });
+    sidebarSettings?.addEventListener('click', ()=> settingsModal?.classList.remove('hidden'));
+
+    // ESC close
+    document.addEventListener('keydown', (e)=>{
+      if (e.key === 'Escape') {
+        dropdownContent?.classList.remove('show');
+        profileMenu?.classList.add('hidden');
+        if (!settingsModal?.classList.contains('hidden')) settingsModal.classList.add('hidden');
+      }
+    });
+
+    // Model dropdown
+    dropdownSelected?.addEventListener('click', ()=> dropdownContent?.classList.toggle('show'));
+    dropdownSearch?.addEventListener('input', e => filterModels(e.target.value));
+
+    function filterModels(query) {
+      const q = query.toLowerCase();
+      renderDropdownItems(models.filter(m => m.name.toLowerCase().includes(q) || m.publisher.toLowerCase().includes(q)));
+    }
+    function renderDropdownItems(items) {
+      dropdownItems.innerHTML = '';
+      items.forEach(model => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        item.innerHTML = `
+          <div class="model-icon bg-gray-700 flex items-center justify-center">${getModelLogo(model.publisher)}</div>
+          <div class="model-info">
+            <span class="font-medium">${model.name}</span>
+            <span class="text-xs text-gray-400">${model.publisher}</span>
+          </div>
+          <div class="model-limits">
+            <span class="text-xs font-medium">${model.rate_limit_tier}</span>
+            <span class="text-xs text-gray-400">${model.limits?.max_input_tokens || 'N/A'} in, ${model.limits?.max_output_tokens || 'N/A'} out</span>
+          </div>`;
+        item.addEventListener('click', ()=> { selectModel(model.id); dropdownContent.classList.remove('show'); });
+        dropdownItems.appendChild(item);
+      });
+    }
+    function getModelLogo(pub){
+      const logos={OpenAI:'O',Anthropic:'A',Mistral:'M',Meta:'Me',xAI:'X',Cohere:'C',Google:'G'};return logos[pub]||'?';
+    }
+    function selectModel(id){
+      const m = models.find(x=>x.id===id); if(!m) return;
+      document.getElementById('selectedModelName').textContent = m.name;
+      document.getElementById('selectedModelIcon').innerHTML = `<div class="model-icon bg-gray-700 flex items-center justify-center">${getModelLogo(m.publisher)}</div>`;
+      updateRateLimitInfo(m);
+    }
+    function updateRateLimitInfo(model){
+      if(model?.limits){
+        const inTok = model.limits.max_input_tokens ?? model.limits.input ?? '—';
+        const outTok = model.limits.max_output_tokens ?? model.limits.output ?? '—';
+        rateLimitInfo.innerHTML = `<span class="bg-gray-800 px-2 py-1 rounded text-xs">${model.rate_limit_tier||model.tier||'?'}</span><span class="text-xs">${inTok} in, ${outTok} out</span>`;
+      } else { rateLimitInfo.innerHTML=''; }
+    }
+    const GITHUB_CLIENT_ID = 'REPLACE_WITH_CLIENT_ID'; // TODO: set via env build or template
+    const OAUTH_REDIRECT_URI = window.location.origin + window.location.pathname; // must match OAuth App callback
+
+    function startOAuth(){
+      if(location.protocol==='file:') { alert('Serve over http:// (not file://) for OAuth'); return; }
+      if(!GITHUB_CLIENT_ID || GITHUB_CLIENT_ID.startsWith('REPLACE_')) { alert('Configure GITHUB_CLIENT_ID in index.html'); return; }
+      const state = crypto.randomUUID();
+      localStorage.setItem('oauth_state', state);
+      const scope = 'read:user read:org'; // add read:models when public
+      const authUrl = `https://github.com/login/oauth/authorize?client_id=${encodeURIComponent(GITHUB_CLIENT_ID)}&redirect_uri=${encodeURIComponent(OAUTH_REDIRECT_URI)}&scope=${encodeURIComponent(scope)}&state=${encodeURIComponent(state)}`;
+      window.location = authUrl;
+    }
+
+    function handleOAuthCallback(){
+      const params = new URLSearchParams(location.search);
+      const code = params.get('code');
+      const state = params.get('state');
+      if(!code) return;
+      const expected = localStorage.getItem('oauth_state');
+      if(!state || state !== expected){ alert('OAuth state mismatch. Retry sign in.'); return; }
+      // Exchange code via backend
+      fetch(`/api/exchange?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`)
+        .then(r=>{ if(!r.ok) throw new Error('Exchange failed'); return r.json(); })
+        .then(data=>{
+          if(!data.access_token){ throw new Error('No access token in response'); }
+          localStorage.setItem('gh_token', data.access_token);
+          // Clean URL
+          history.replaceState({}, document.title, OAUTH_REDIRECT_URI);
+          fetchModels();
+          showChatPage();
+        })
+        .catch(err=>{ console.error(err); alert('OAuth exchange error: '+err.message); });
+    }
+
+    document.getElementById('githubLogin')?.addEventListener('click', (e)=>{ e.preventDefault(); startOAuth(); });
+
+    // Replace original fetchModels with proxy-aware version
+    function fetchModels(){
+      const token = localStorage.getItem('gh_token'); if(!token) return;
+      const statusEl = document.getElementById('networkStatus');
+      const fallback = [
+        { id:'gpt-4o', name:'GPT-4o', publisher:'OpenAI', rate_limit_tier:'Low', limits:{max_input_tokens:8000,max_output_tokens:4000}},
+        { id:'gpt-4o-mini', name:'GPT-4o Mini', publisher:'OpenAI', rate_limit_tier:'High', limits:{max_input_tokens:8000,max_output_tokens:4000}},
+        { id:'claude-3-5-sonnet', name:'Claude 3.5 Sonnet', publisher:'Anthropic', rate_limit_tier:'Standard', limits:{max_input_tokens:10000,max_output_tokens:4000}}
+      ];
+      const apiUrl = `/api/models`; // backend proxy avoids browser CORS
+      fetch(apiUrl, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+        .then(data=>{
+          models = Array.isArray(data)? data : (data.models||fallback);
+          renderDropdownItems(models); if(models.length) selectModel(models[0].id);
+          statusEl?.classList.add('hidden');
+        })
+        .catch(err=>{
+          console.warn('Proxy model fetch failed', err);
+          models = fallback; renderDropdownItems(models); if(models.length) selectModel(models[0].id);
+          if(statusEl){ statusEl.textContent = 'Using fallback models (proxy fetch failed)'; statusEl.classList.remove('hidden'); }
+        });
+    }
+
+    // Call after defining fetchModels
+    handleOAuthCallback();
+
+    // Chat history
+    function loadChatHistory(){
+      chatHistory.innerHTML='';
+      chats.forEach(chat=>{
+        const el=document.createElement('div');
+        el.className='p-2 hover:bg-gray-800 rounded cursor-pointer text-sm truncate flex justify-between items-center chat-history-item';
+        const title=document.createElement('span'); title.className='flex-1 truncate'; title.textContent=chat.title||'Untitled Chat';
+        const del=document.createElement('button'); del.className='text-red-400 ml-2 font-bold'; del.textContent='×';
+        del.addEventListener('click',e=>{ e.stopPropagation(); deleteChat(chat.id); });
+        el.appendChild(title); el.appendChild(del);
+        el.addEventListener('click',()=>loadChat(chat.id));
+        chatHistory.appendChild(el);
+      });
+    }
+    function deleteChat(id){
+      chats = chats.filter(c=>c.id!==id); localStorage.setItem('chat_history', JSON.stringify(chats)); loadChatHistory();
+      if(currentChatId===id) createNewChat();
+    }
+    function loadChat(id){
+      const chat = chats.find(c=>c.id===id); if(!chat) return;
+      currentChatId=id; chatBox.innerHTML='';
+      chat.messages.forEach(m=>{ m.role==='user'?appendUserMessage(m.content):appendAssistantMessage(m.content); });
+    }
+    function createNewChat(){
+      currentChatId='chat_'+Date.now();
+      const newChat={id:currentChatId,title:'New Chat',messages:[],createdAt:new Date().toISOString()};
+      chats.push(newChat); localStorage.setItem('chat_history', JSON.stringify(chats));
+      chatBox.innerHTML=`<div class="max-w-3xl mx-auto"><div id="welcomeMessage" class="text-center py-10 text-gray-500"><h2 class="text-2xl mb-4">How can I help you today?</h2><p class="text-sm">Start a conversation by typing a message below</p></div></div>`;
+      loadChatHistory();
+    }
+    newChatBtn?.addEventListener('click', createNewChat);
+
+    // Messages
+    function appendUserMessage(content){
+      const welcome=document.getElementById('welcomeMessage'); if(welcome) welcome.remove();
+      const bubble=document.createElement('div'); bubble.className='chat-bubble user-bubble markdown-body';
+      bubble.innerHTML=`${marked.parse(content)}<div class="message-actions"><button class="action-btn" onclick="editMessage(this)" title="Edit">✎</button><button class="action-btn" onclick="copyMessage(this)" title="Copy">⧉</button><button class="action-btn" onclick="deleteMessage(this)" title="Delete">✕</button></div>`;
+      bubble.dataset.role='user'; chatBox.appendChild(bubble); chatBox.scrollTop=chatBox.scrollHeight;
+      const chat=chats.find(c=>c.id===currentChatId); if(chat){ chat.messages.push({role:'user',content}); bubble.dataset.msgIndex=chat.messages.length-1; localStorage.setItem('chat_history', JSON.stringify(chats)); }
+    }
+    function appendAssistantMessage(content){
+      const welcome=document.getElementById('welcomeMessage'); if(welcome) welcome.remove();
+      const wrap=document.createElement('div'); wrap.className='assistant-response';
+      const bubble=document.createElement('div'); bubble.className='chat-bubble assistant-bubble markdown-body';
+      bubble.innerHTML=`${marked.parse(content)}<div class="message-actions"><button class="action-btn" onclick="regenerateResponse(this)" title="Regenerate">↻</button><button class="action-btn" onclick="copyMessage(this)" title="Copy">⧉</button><button class="action-btn" onclick="deleteMessage(this)" title="Delete">✕</button></div>`;
+      bubble.dataset.role='assistant'; wrap.appendChild(bubble); chatBox.appendChild(wrap); chatBox.scrollTop=chatBox.scrollHeight;
+      const chat=chats.find(c=>c.id===currentChatId); if(chat){ chat.messages.push({role:'assistant',content}); bubble.dataset.msgIndex=chat.messages.length-1; localStorage.setItem('chat_history', JSON.stringify(chats)); }
+    }
+
+    // System prompt toggle
+    const systemPromptToggle=document.getElementById('systemPromptToggle');
+    const systemPromptEditor=document.getElementById('systemPromptEditor');
+    systemPromptToggle?.addEventListener('click',()=> systemPromptEditor?.classList.toggle('show'));
+
+    // Helpers to rebuild chat messages after edits/deletes
+    function rebuildMessagesFromDOM(){
+      const bubbles=chatBox.querySelectorAll('.chat-bubble'); const rebuilt=[];
+      bubbles.forEach(b=>{ const role=b.dataset.role; if(!role) return; const text=b.innerText.replace(/✎|⧉|✕|↻/g,'').trim(); rebuilt.push({role,content:text}); });
+      const chat=chats.find(c=>c.id===currentChatId); if(chat){
+        const sys = document.getElementById('systemPromptText')?.value.trim();
+        chat.messages = sys? [{role:'system',content:sys}, ...rebuilt.filter(m=>m.role!=='system')]: rebuilt;
+        localStorage.setItem('chat_history', JSON.stringify(chats));
+      }
+    }
+
+    // Message actions
+    window.copyMessage = (btn)=>{ const b=btn.closest('.chat-bubble'); if(!b) return; const txt=b.innerText.replace(/✎|⧉|✕|↻/g,'').trim(); navigator.clipboard.writeText(txt); };
+    window.deleteMessage = (btn)=>{ const b=btn.closest('.chat-bubble'); if(!b) return; (b.parentElement.classList.contains('assistant-response')?b.parentElement:b).remove(); rebuildMessagesFromDOM(); };
+    window.editMessage = (btn)=>{
+      const b=btn.closest('.chat-bubble'); if(!b||b.dataset.role!=='user'||b.querySelector('textarea')) return;
+      const orig=b.innerText.replace(/✎|⧉|✕|↻/g,'').trim();
+      const ta=document.createElement('textarea'); ta.className='w-full bg-gray-800 text-sm p-2 rounded mt-2'; ta.value=orig; b.appendChild(ta); ta.focus();
+      ta.addEventListener('keydown',e=>{ if(e.key==='Escape'){ ta.remove(); } if(e.key==='Enter'&&e.ctrlKey){ e.preventDefault(); const nv=ta.value.trim(); if(nv){ b.querySelector('.markdown-body')?.remove(); const rendered=document.createElement('div'); rendered.className='markdown-body'; rendered.innerHTML=marked.parse(nv); b.insertBefore(rendered, b.querySelector('.message-actions')); ta.remove(); rebuildMessagesFromDOM(); } } });
+    };
+    window.regenerateResponse = (btn)=>{
+      const b=btn.closest('.chat-bubble'); if(!b) return; const wrap=b.parentElement.classList.contains('assistant-response')?b.parentElement:b; wrap.remove(); rebuildMessagesFromDOM(); generateAssistantForLastUser();
+    };
+
+    function sendMessage(){
+      const msg=messageInput.value.trim(); if(!msg) return; if(!currentChatId) createNewChat(); appendUserMessage(msg);
+      const planningDiv=document.createElement('div'); planningDiv.className='assistant-response'; planningDiv.innerHTML='<div class="text-gray-500 italic">Planning Response...</div>'; chatBox.appendChild(planningDiv); chatBox.scrollTop=chatBox.scrollHeight;
+      const token=localStorage.getItem('gh_token'); const model=models.find(m=>m.name===document.getElementById('selectedModelName').textContent)||models[0];
+      const chat=chats.find(c=>c.id===currentChatId); let messages=[...chat.messages];
+      const sys=document.getElementById('systemPromptText')?.value.trim(); if(sys && (!messages[0]||messages[0].role!=='system')) messages.unshift({role:'system',content:sys});
+      setTimeout(()=>{ planningDiv.innerHTML=`<div class="thinking-indicator" id="thinkingIndicator"><span>▼</span><span>Thinking</span><div class="thinking-dots"><span></span><span></span><span></span></div></div><div class="thinking-content" id="thinkingContent"><div class="text-xs text-gray-400 p-2">Analyzing query structure and context...</div></div>`; const ti=planningDiv.querySelector('#thinkingIndicator'); const tc=planningDiv.querySelector('#thinkingContent'); ti.addEventListener('click',()=>{ tc.classList.toggle('open'); ti.querySelector('span:first-child').textContent=tc.classList.contains('open')?'▲':'▼'; }); },800);
+      fetch('https://models.inference.ai.azure.com/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({messages, model:model?.id||'gpt-4o', stream:true})})
+        .then(r=>{ const reader=r.body.getReader(); let full=''; const dec=new TextDecoder(); const start=Date.now(); reader.read().then(function proc({done,value}){ if(done){ const t=((Date.now()-start)/1000).toFixed(1); const ti=planningDiv.querySelector('#thinkingIndicator'); if(ti) ti.innerHTML=`<span>▼</span><span>Thought for ${t} seconds</span>`; appendAssistantMessage(full); return; } const chunk=dec.decode(value,{stream:true}); chunk.split('\n').filter(l=>l.trim()!=='').forEach(line=>{ if(line.startsWith('data: ')){ const data=line.slice(6); if(data==='[DONE]'){ const t=((Date.now()-start)/1000).toFixed(1); const ti=planningDiv.querySelector('#thinkingIndicator'); if(ti) ti.innerHTML=`<span>▼</span><span>Thought for ${t} seconds</span>`; appendAssistantMessage(full); return; } try{ const json=JSON.parse(data); const c=json.choices?.[0]?.delta?.content||''; full+=c; planningDiv.innerHTML=`<div class=\"markdown-body\">${marked.parse(full)}</div>`; chatBox.scrollTop=chatBox.scrollHeight; }catch{} } }); reader.read().then(proc); }); })
+        .catch(err=>{ planningDiv.innerHTML=`<div class="markdown-body text-red-400">Error: ${err.message}</div>`; });
+      messageInput.value=''; messageInput.style.height='60px';
+    }
+    sendBtn?.addEventListener('click', sendMessage);
+
+    messageInput?.addEventListener('keydown', e=>{
+      if(e.key==='Enter'){
+        if(e.ctrlKey){ e.preventDefault(); sendMessage(); }
+        else if(e.shiftKey){ const start=messageInput.selectionStart; const end=messageInput.selectionEnd; messageInput.value=messageInput.value.substring(0,start)+'\n'+messageInput.value.substring(end); messageInput.selectionStart=messageInput.selectionEnd=start+1; e.preventDefault(); }
+        else { e.preventDefault(); sendMessage(); }
+      }
+    });
+    messageInput?.addEventListener('input', function(){ this.style.height='auto'; this.style.height=this.scrollHeight+'px'; });
+
+    function generateAssistantForLastUser(){
+      const chat=chats.find(c=>c.id===currentChatId); if(!chat) return;
+      const planningDiv=document.createElement('div'); planningDiv.className='assistant-response'; planningDiv.innerHTML='<div class="text-gray-500 italic">Planning Response...</div>'; chatBox.appendChild(planningDiv); chatBox.scrollTop=chatBox.scrollHeight;
+      const token=localStorage.getItem('gh_token'); const model=models.find(m=>m.name===document.getElementById('selectedModelName').textContent)||models[0];
+      let messages=[...chat.messages]; const sys=document.getElementById('systemPromptText')?.value.trim(); if(sys && (!messages[0]||messages[0].role!=='system')) messages.unshift({role:'system',content:sys});
+      setTimeout(()=>{ planningDiv.innerHTML=`<div class="thinking-indicator" id="thinkingIndicator"><span>▼</span><span>Thinking</span><div class="thinking-dots"><span></span><span></span><span></span></div></div><div class="thinking-content" id="thinkingContent"><div class="text-xs text-gray-400 p-2">Re-evaluating instructions...</div></div>`; const ti=planningDiv.querySelector('#thinkingIndicator'); const tc=planningDiv.querySelector('#thinkingContent'); ti.addEventListener('click',()=>{ tc.classList.toggle('open'); ti.querySelector('span:first-child').textContent=tc.classList.contains('open')?'▲':'▼'; }); },600);
+      fetch('https://models.inference.ai.azure.com/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({messages, model:model?.id||'gpt-4o', stream:true})})
+        .then(r=>{ const reader=r.body.getReader(); let full=''; const dec=new TextDecoder(); const start=Date.now(); reader.read().then(function proc({done,value}){ if(done){ const t=((Date.now()-start)/1000).toFixed(1); const ti=planningDiv.querySelector('#thinkingIndicator'); if(ti) ti.innerHTML=`<span>▼</span><span>Thought for ${t} seconds</span>`; appendAssistantMessage(full); return;} const chunk=dec.decode(value,{stream:true}); chunk.split('\n').filter(l=>l.trim()!=='').forEach(line=>{ if(line.startsWith('data: ')){ const data=line.slice(6); if(data==='[DONE]'){ const t=((Date.now()-start)/1000).toFixed(1); const ti=planningDiv.querySelector('#thinkingIndicator'); if(ti) ti.innerHTML=`<span>▼</span><span>Thought for ${t} seconds</span>`; appendAssistantMessage(full); return;} try{ const json=JSON.parse(data); const c=json.choices?.[0]?.delta?.content||''; full+=c; planningDiv.innerHTML=`<div class=\"markdown-body\">${marked.parse(full)}</div>`; chatBox.scrollTop=chatBox.scrollHeight; }catch{} } }); reader.read().then(proc); }); })
+        .catch(err=>{ planningDiv.innerHTML=`<div class="markdown-body text-red-400">Error: ${err.message}</div>`; });
+    }
+
+    // Keyboard navigation
+    let historyFocusIndex=-1;
+    document.addEventListener('keydown', e=>{
+      if(e.altKey && e.key==='n'){ e.preventDefault(); newChatBtn?.click(); }
+      if(e.altKey && e.key==='m'){ e.preventDefault(); dropdownSelected?.click(); }
+      if(e.altKey && e.key==='/'){ e.preventDefault(); messageInput?.focus(); }
+      if(e.altKey && (e.key==='ArrowDown'||e.key==='ArrowUp')){ e.preventDefault(); const items=[...chatHistory.querySelectorAll('.chat-history-item')]; if(!items.length) return; historyFocusIndex = e.key==='ArrowDown' ? (historyFocusIndex+1)%items.length : (historyFocusIndex-1+items.length)%items.length; items.forEach(i=>i.classList.remove('focused')); const t=items[historyFocusIndex]; t.classList.add('focused'); t.scrollIntoView({block:'nearest'}); if(e.altKey&&e.shiftKey) t.click(); }
+    });
+
+    // Initialize
+    loadChatHistory(); if(!chats.length) createNewChat();
+  })();
+  </script>
+</body>
+</html>
