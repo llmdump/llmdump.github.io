@@ -175,6 +175,9 @@
       border: 2px solid #ef4444 !important;
       color: #ef4444 !important;
       background: rgba(239, 68, 68, 0.1) !important;
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: 6px !important;
     }
     
     .stop-btn:hover {
@@ -269,6 +272,15 @@
     }
     
     .assistant-response {
+      background: rgba(30, 41, 59, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-bottom-left-radius: 4px;
+      max-width: 85%;
+      border-radius: 18px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      position: relative;
       opacity: 0;
       animation: streamFadeIn 0.4s ease-out forwards;
     }
@@ -329,6 +341,25 @@
       gap: 8px;
       border: none;
       transition: background-color 0.2s ease;
+      position: relative;
+    }
+    
+    .dropdown-selected::after {
+      content: '';
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 4px solid #94a3b8;
+      transition: transform 0.2s ease;
+    }
+    
+    .dropdown-selected.active::after {
+      transform: translateY(-50%) rotate(270deg);
     }
     
     .dropdown-selected.active, .dropdown-selected:hover {
@@ -338,8 +369,9 @@
     .dropdown-content {
       display: none;
       position: absolute;
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.95);
       backdrop-filter: blur(20px);
+      border: 1px solid rgba(99, 102, 241, 0.3);
       width: 350px;
       border-radius: 8px;
       z-index: 100;
@@ -348,6 +380,8 @@
       margin-top: 4px;
       box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
       animation: dropdownFade 0.2s ease-out;
+      max-height: 400px;
+      overflow-y: auto;
     }
     
     @keyframes dropdownFade {
@@ -662,24 +696,12 @@
       .mobile-header {
         display: flex;
         align-items: center;
-        justify-content: between;
+        justify-content: space-between;
         padding: 12px 16px;
         background: rgba(30, 41, 59, 0.4);
         backdrop-filter: blur(12px);
         border-bottom: 1px solid rgba(99, 102, 241, 0.2);
-      }
-      
-      .mobile-hamburger {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        background: rgba(99, 102, 241, 0.2);
-        border: 1px solid rgba(99, 102, 241, 0.3);
-        border-radius: 8px;
-        cursor: pointer;
-        color: #e2e8f0;
+        gap: 12px;
       }
       
       .mobile-logo {
@@ -687,11 +709,12 @@
         align-items: center;
         gap: 8px;
         flex: 1;
-        justify-content: center;
+        min-width: 0;
       }
       
       .mobile-model-selector {
-        max-width: 120px;
+        min-width: 120px;
+        max-width: 150px;
       }
       
       .dropdown-content {
@@ -699,6 +722,22 @@
         left: 16px;
         right: 16px;
         max-width: none;
+        max-height: 60vh;
+        overflow-y: auto;
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(15, 23, 42, 0.98);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(99, 102, 241, 0.4);
+      }
+      
+      .dropdown-search-container {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(30, 41, 59, 0.9);
+        backdrop-filter: blur(20px);
       }
       
       .chat-bubble {
@@ -809,8 +848,18 @@
     /* Enhanced codeblock styling */
     .markdown-body pre {
       position: relative;
-      background: rgba(15, 23, 42, 0.8) !important;
-      border: 1px solid rgba(99, 102, 241, 0.2);
+      background: rgba(15, 23, 42, 0.9) !important;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 8px;
+      padding: 0;
+      margin: 16px 0;
+      overflow: hidden;
+    }
+    
+    .enhanced-codeblock {
+      position: relative;
+      background: rgba(15, 23, 42, 0.9) !important;
+      border: 1px solid rgba(99, 102, 241, 0.3);
       border-radius: 8px;
       padding: 0;
       margin: 16px 0;
@@ -891,14 +940,12 @@
     .bg-blobs { position:fixed; inset:0; pointer-events:none; z-index:-2; overflow:hidden; }
     .bg-blobs .blob { position:absolute; filter:blur(120px); opacity:.55; mix-blend-mode:screen; }
     .bg-blobs .blob.b1 { width:700px; height:700px; top:-250px; left:-180px; background:radial-gradient(circle at 30% 30%, rgba(99,102,241,.8), rgba(99,102,241,0) 65%); }
-    .bg-blobs .blob.b2 { width:600px; height:600px; bottom:-200px; right:-120px; background:radial-gradient(circle at 60% 40%, rgba(14,165,233,.75), rgba(14,165,233,0) 70%); }
     .bg-blobs .blob.b3 { width:500px; height:500px; top:40%; left:55%; background:radial-gradient(circle at 50% 50%, rgba(139,92,246,.55), rgba(139,92,246,0) 70%); }
   </style>
 </head>
 <body class="m-0 p-0">
   <div class="bg-blobs">
     <div class="blob b1"></div>
-    <div class="blob b2"></div>
     <div class="blob b3"></div>
   </div>
   
@@ -964,7 +1011,7 @@
         </svg>
       </button>
       
-      <div class="mobile-logo">
+      <div class="mobile-logo" style="cursor: pointer;" onclick="goToHomepage()">
         <div class="logo-icon gradient-bg" style="width:32px; height:32px; border-radius:8px;">
           <svg viewBox="0 0 100 100">
             <defs>
@@ -1006,7 +1053,7 @@
     <div id="sidebar" class="w-64 glass-sidebar flex flex-col relative">
       <div class="p-4 flex-1">
         <div class="sidebar-logo-wrap">
-          <div class="logo small">
+          <div class="logo small" style="cursor: pointer;" onclick="goToHomepage()">
             <div class="logo-icon gradient-bg" style="width:52px; height:52px; border-radius:16px;">
               <svg viewBox="0 0 100 100">
                 <defs>
@@ -1028,20 +1075,12 @@
         
         <div class="flex items-center justify-between mb-4 mt-6 relative">
           <h3 class="font-semibold">Chat History</h3>
-          <div class="flex items-center gap-2">
-            <button id="editChatsBtn" class="chat-history-edit-toggle" title="Edit Chat Order">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 20h9"></path>
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-              </svg>
-            </button>
-            <button id="sidebarSettings" class="text-gray-400 hover:text-white">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-              </svg>
-            </button>
-          </div>
+          <button id="editChatsBtn" class="chat-history-edit-toggle" title="Edit Chat Order">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+          </button>
         </div>
         
         <button id="newChat" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-4 rounded-lg mb-4 flex items-center justify-center gap-2">
@@ -1139,8 +1178,8 @@
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
               </svg>
             </button>
-            <button id="stopBtn" class="absolute right-3 bottom-3 rounded-full p-2 hidden" style="border: 2px solid #ef4444; color: #ef4444;">
-              <svg class="stop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <button id="stopBtn" class="absolute right-3 bottom-3 rounded p-2 hidden stop-btn">
+              <svg class="stop-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect>
               </svg>
             </button>
@@ -1430,6 +1469,7 @@
     });
     document.getElementById('signoutBtn')?.addEventListener('click', () => {
       localStorage.removeItem('gh_token');
+      profileMenu?.classList.add('hidden');
       showLoginPage();
     });
     document.getElementById('settingsBtn')?.addEventListener('click', () => {
@@ -1499,7 +1539,6 @@
       };
       input.click();
     });
-    sidebarSettings?.addEventListener('click', ()=> settingsModal?.classList.remove('hidden'));
 
     // ESC close
     document.addEventListener('keydown', (e)=>{
@@ -1573,8 +1612,24 @@
         });
       }
     }
-    function getModelLogo(pub){
-      const logos={OpenAI:'O',Anthropic:'A',Mistral:'M',Meta:'Me',xAI:'X',Cohere:'C',Google:'G'};return logos[pub]||'?';
+    function getModelLogo(publisher) {
+      const logos = {
+        'OpenAI': `<svg width="16" height="16" viewBox="0 0 721 721" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_1637_2935)"><g clip-path="url(#clip1_1637_2935)"><path d="M304.246 295.411V249.828C304.246 245.989 305.687 243.109 309.044 241.191L400.692 188.412C413.167 181.215 428.042 177.858 443.394 177.858C500.971 177.858 537.44 222.482 537.44 269.982C537.44 273.34 537.44 277.179 536.959 281.018L441.954 225.358C436.197 222 430.437 222 424.68 225.358L304.246 295.411ZM518.245 472.945V364.024C518.245 357.304 515.364 352.507 509.608 349.149L389.174 279.096L428.519 256.543C431.877 254.626 434.757 254.626 438.115 256.543L529.762 309.323C556.154 324.679 573.905 357.304 573.905 388.971C573.905 425.436 552.315 459.024 518.245 472.941V472.945ZM275.937 376.982L236.592 353.952C233.235 352.034 231.794 349.154 231.794 345.315V239.756C231.794 188.416 271.139 149.548 324.4 149.548C344.555 149.548 363.264 156.268 379.102 168.262L284.578 222.964C278.822 226.321 275.942 231.119 275.942 237.838V376.986L275.937 376.982ZM360.626 425.922L304.246 394.255V327.083L360.626 295.416L417.002 327.083V394.255L360.626 425.922ZM396.852 571.789C376.698 571.789 357.989 565.07 342.151 553.075L436.674 498.374C442.431 495.017 445.311 490.219 445.311 483.499V344.352L485.138 367.382C488.495 369.299 489.936 372.179 489.936 376.018V481.577C489.936 532.917 450.109 571.785 396.852 571.785V571.789ZM283.134 464.79L191.486 412.01C165.094 396.654 147.343 364.029 147.343 332.362C147.343 295.416 169.415 262.309 203.48 248.393V357.791C203.48 364.51 206.361 369.308 212.117 372.665L332.074 442.237L292.729 464.79C289.372 466.707 286.491 466.707 283.134 464.79ZM277.859 543.48C223.639 543.48 183.813 502.695 183.813 452.314C183.813 448.475 184.294 444.636 184.771 440.797L279.295 495.498C285.051 498.856 290.812 498.856 296.568 495.498L417.002 425.927V471.509C417.002 475.349 415.562 478.229 412.204 480.146L320.557 532.926C308.081 540.122 293.206 543.48 277.854 543.48H277.859ZM396.852 600.576C454.911 600.576 503.37 559.313 514.41 504.612C568.149 490.696 602.696 440.315 602.696 388.976C602.696 355.387 588.303 322.762 562.392 299.25C564.791 289.173 566.231 279.096 566.231 269.024C566.231 200.411 510.571 149.067 446.274 149.067C433.322 149.067 420.846 150.984 408.37 155.305C386.775 134.192 357.026 120.758 324.4 120.758C266.342 120.758 217.883 162.02 206.843 216.721C153.104 230.637 118.557 281.018 118.557 332.357C118.557 365.946 132.95 398.571 158.861 422.083C156.462 432.16 155.022 442.237 155.022 452.309C155.022 520.922 210.682 572.266 274.978 572.266C287.931 572.266 300.407 570.349 312.883 566.028C334.473 587.141 364.222 600.576 396.852 600.576Z" fill="currentColor"/></g></g><defs><clipPath id="clip0_1637_2935"><rect width="720" height="720" fill="white" transform="translate(0.606934 0.899902)"/></clipPath><clipPath id="clip1_1637_2935"><rect width="484.139" height="479.818" fill="white" transform="translate(118.557 120.758)"/></clipPath></defs></svg>`,
+        'xAI': `<img src="https://github.com/images/modules/marketplace/models/families/xai.svg" width="16" height="16" alt="xAI" style="filter: invert(1);">`,
+        'Meta': `<img src="https://github.com/images/modules/marketplace/models/families/meta.svg" width="16" height="16" alt="Meta" style="filter: invert(1);">`,
+        'Mistral': `<img src="https://github.com/images/modules/marketplace/models/families/mistral.svg" width="16" height="16" alt="Mistral" style="filter: invert(1);">`,
+        'Cohere': `<img src="https://github.com/images/modules/marketplace/models/families/cohere.svg" width="16" height="16" alt="Cohere" style="filter: invert(1);">`,
+        'Core42': `<img src="https://github.com/images/modules/marketplace/models/families/core42.svg" width="16" height="16" alt="Core42" style="filter: invert(1);">`,
+        'JAIS': `<img src="https://github.com/images/modules/marketplace/models/families/core42.svg" width="16" height="16" alt="JAIS" style="filter: invert(1);">`,
+        'Microsoft': `<img src="https://github.com/images/modules/marketplace/models/families/microsoft.svg" width="16" height="16" alt="Microsoft" style="filter: invert(1);">`,
+        'DeepSeek': `<span style="font-size:10px; font-weight:bold;">DS</span>`,
+        'Azure': `<img src="https://github.com/images/modules/marketplace/models/families/azure-openai.svg" width="16" height="16" alt="Azure" style="filter: invert(1);">`,
+        'AI21': `<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjE2IiBoZWlnaHQ9IjIxNiIgdmlld0JveD0iMCAwIDIxNiAyMTYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMTYiIGhlaWdodD0iMjE2IiBmaWxsPSJ3aGl0ZSIvPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDBfNTgwXzI2KSI+CjxwYXRoIGQ9Ik00Ni43NDggMTE3Ljk0Nkw0NS41MTU1IDExNC4wNDlIMzQuMTQzOUwzMi45MTA5IDExNy45NDZIMjUuMDEzN0wzNi40Mjk4IDg1Ljg1NjRINDMuMjM0TDU0Ljc4NzEgMTE3Ljk0Nkg0Ni43NDhaTTM5Ljg1NDkgOTUuMDIzOEwzNS45Mjc2IDEwOC4yMjdINDMuNjkwOEwzOS44NTQ5IDk1LjAyMzhaIiBmaWxsPSIjMUYyMTI3Ii8+CjxwYXRoIGQ9Ik01NS42NjggODUuODU2NEg2My4xNTY4VjExNy45NDZINTUuNjY4Vjg1Ljg1NjRaIiBmaWxsPSIjMUYyMTI3Ii8+CjxwYXRoIGQ9Ik02NS4xNzQ5IDExMS4zOUM2NS41MTExIDEwOS44MDYgNjYuMTA1MSAxMDguMjg4IDY2LjkzMjkgMTA2Ljg5N0M2Ny42NTI4IDEwNS43MjIgNjguNTU0NyAxMDQuNjcgNjkuNjA0NSAxMDMuNzhDNzAuNjc2OSAxMDIuODg3IDcxLjgxNCAxMDIuMDc1IDczLjAwNjMgMTAxLjM1MUM3My45NDk2IDEwMC44IDc0LjgyNDggMTAwLjI3MyA3NS42MzE5IDk5Ljc2ODlDNzYuMzc2NCA5OS4zMTAxIDc3LjA4NjEgOTguNzk2OCA3Ny43NTUzIDk4LjIzMzJDNzguMzMzMyA5Ny43NTEgNzguODIwNSA5Ny4xNjg3IDc5LjE5MzkgOTYuNTEzOUM3OS41NTA0IDk1Ljg2MTIgNzkuNzMxNCA5NS4xMjY1IDc5LjcxOSA5NC4zODIyQzc5LjcxOSA5My4wOTg3IDc5LjM2ODkgOTIuMTc0MSA3OC42Njg5IDkxLjYwODdDNzcuOTI2NSA5MS4wMjk0IDc3LjAwNTcgOTAuNzI5MyA3Ni4wNjYgOTAuNzYwNEM3NC45OTY2IDkwLjcyOCA3My45NTY2IDkxLjExNDQgNzMuMTY2IDkxLjgzOEM3Mi4zODk4IDkyLjU1NjMgNzIuMDAxNyA5My43NTYgNzIuMDAxNyA5NS40MzY5SDY0LjY0OTRDNjQuNjM2MiA5NC4wNDA1IDY0Ljg5MjMgOTIuNjU0OCA2NS40MDMzIDkxLjM1NkM2NS44OTMzIDkwLjEyMDQgNjYuNjQ5NSA4OS4wMDg5IDY3LjYxNzYgODguMTAxMUM2OC42NDg2IDg3LjE0OTggNjkuODYwMSA4Ni40MTcgNzEuMTc5NiA4NS45NDY1QzcyLjczNCA4NS40MDE0IDc0LjM3MjMgODUuMTM3NCA3Ni4wMTg2IDg1LjE2NjhDNzcuNDMxMyA4NS4xNjAyIDc4LjgzNzkgODUuMzUzMiA4MC4xOTcxIDg1Ljc0QzgxLjQ2MTMgODYuMDkyMyA4Mi42NDY5IDg2LjY4MzYgODMuNjkwMyA4Ny40ODIxQzg0LjcxNTYgODguMjg3MSA4NS41MzY5IDg5LjMyMzggODYuMDg3NiA5MC41MDc4Qzg2LjcwOTYgOTEuODgxIDg3LjAxNCA5My4zNzc4IDg2Ljk3NzkgOTQuODg2Qzg2Ljk5NDQgOTYuMTYxNyA4Ni42OTYzIDk3LjQyMTggODYuMTEwMyA5OC41NTM5Qzg1LjU0OSA5OS42MzA3IDg0LjgzMzcgMTAwLjYxOSA4My45ODcgMTAxLjQ4OEM4My4xNjAyIDEwMi4zMzUgODIuMjUgMTAzLjA5NSA4MS4yNzAzIDEwMy43NTdDODAuMjk1MSAxMDQuNDE1IDc5LjQxMjIgMTA0Ljk3MyA3OC42MjE1IDEwNS40MzFDNzcuNTI0NiAxMDYuMTY0IDc2LjYxODkgMTA2Ljc5OCA3NS45MDQ0IDEwNy4zMzRDNzUuMjkxMiAxMDcuNzc5IDc0LjcxODMgMTA4LjI3NyA3NC4xOTIzIDEwOC44MjNDNzMuNzk4NyAxMDkuMjI4IDczLjQ5NTEgMTA5LjcxMyA3My4zMDE1IDExMC4yNDVDNzMuMTI1MSAxMTAuNzkyIDczLjA0MDIgMTExLjM2NSA3My4wNTAzIDExMS45NEg4Ni43NVYxMTcuOTQ2SDY0LjU1ODRDNjQuNTE5MyAxMTUuNzQ1IDY0LjcyNiAxMTMuNTQ1IDY1LjE3NDkgMTExLjM5WiIgZmlsbD0iIzFGMjEyNyIvPgo8cGF0aCBkPSJNODguMTY1IDkxLjQ5MTlDODkuNDQ0NiA5MS41MTgxIDkwLjcyMzIgOTEuNDAyNyA5MS45Nzc3IDkxLjE0NzlDOTIuODE1NyA5MC45ODgyIDkzLjYwNTIgOTAuNjM1MSA5NC4yODQgOTAuMTE2NUM5NC44Mjg3IDg5LjY2MjggOTUuMjI2MSA4OS4wNTYyIDk1LjQyNTUgODguMzc0NEM5NS42NTM3IDg3LjU1NDEgOTUuNzYxMyA4Ni43MDQ2IDk1Ljc0NDggODUuODUzSDEwMi4yNzdWMTE3Ljk0Nkg5NC43NDMyVjk2LjcxOTdIODguMTY1VjkxLjQ5MTlaIiBmaWxsPSIjMUYyMTI3Ii8+CjxwYXRoIGQ9Ik0xMTAuNzUxIDg1Ljg1NjRIMTE3LjczN1YxMTcuOTQ2SDExMC43NTFWODUuODU2NFoiIGZpbGw9IiNFOTFFNjMiLz4KPHBhdGggZD0iTTE0My41MzMgOTUuODMxOVYxMTcuOTNIMTM2LjU0NlYxMTQuODExQzEzNi4yNiAxMTUuMzQ4IDEzNS44OSAxMTUuODM1IDEzNS40NSAxMTYuMjU1QzEzNC45OCAxMTYuNzA4IDEzNC40NSAxMTcuMDk0IDEzMy44NzUgMTE3LjQwMUMxMzMuMjU4IDExNy43MyAxMzIuNjA3IDExNy45OTEgMTMxLjkzNCAxMTguMTc4QzEzMS4yNTEgMTE4LjM3NCAxMzAuNTQ0IDExOC40NzUgMTI5LjgzMyAxMTguNDc2QzEyOC4zMzMgMTE4LjQ5MyAxMjYuODQ2IDExOC4xODkgMTI1LjQ3MyAxMTcuNTgyQzEyNC4xODYgMTE3LjAxNCAxMjMuMDI4IDExNi4xODcgMTIyLjA3MSAxMTUuMTUzQzEyMS4xMDMgMTE0LjA5IDEyMC4zNTggMTEyLjg0MyAxMTkuODc5IDExMS40ODVDMTE4Ljg0NCAxMDguNTAyIDExOC44NDQgMTA1LjI1NCAxMTkuODc5IDEwMi4yN0MxMjAuMzU4IDEwMC45MTMgMTIxLjEwMyA5OS42NjU4IDEyMi4wNzEgOTguNjAyNUMxMjMuMDI4IDk3LjU2ODggMTI0LjE4NiA5Ni43NDIyIDEyNS40NzMgOTYuMTczNUMxMjYuODQ3IDk1LjU2NzcgMTI4LjMzNCA5NS4yNjM2IDEyOS44MzQgOTUuMjgxNUMxMzAuNTQ1IDk1LjI4MzIgMTMxLjI1MiA5NS4zODM0IDEzMS45MzUgOTUuNTc5M0MxMzIuNjExIDk1Ljc2ODYgMTMzLjI2MyA5Ni4wMzggMTMzLjg3NiA5Ni4zODE5QzEzNC40NTMgOTYuNzA1MiAxMzQuOTgzIDk3LjEwNjEgMTM1LjQ1MSA5Ny41NzM2QzEzNS44NzkgOTcuOTk1IDEzNi4yNDggOTguNDczMSAxMzYuNTQ3IDk4Ljk5NDZWOTUuODMxOUgxNDMuNTMzWk0xMzEuMjk1IDExMi41MkMxMzIuMDM1IDExMi41MzEgMTMyLjc2OSAxMTIuMzc0IDEzMy40NDEgMTEyLjA2MkMxMzQuMDYzIDExMS43NjkgMTM0LjYyMyAxMTEuMzU2IDEzNS4wODYgMTEwLjg0N0MxMzUuNTU0IDExMC4zMjUgMTM1LjkxOCAxMDkuNzE4IDEzNi4xNTkgMTA5LjA1OUMxMzYuNDE5IDEwOC4zNjMgMTM2LjU1IDEwNy42MjUgMTM2LjU0NyAxMDYuODgxQzEzNi41NTcgMTA1LjQzMiAxMzYuMDM3IDEwNC4wMjkgMTM1LjA4NSAxMDIuOTM4QzEzNC42MjcgMTAyLjQxOCAxMzQuMDY3IDEwMS45OTYgMTMzLjQ0IDEwMS43MDFDMTI5LjE0OCAxMDEuNzAxQzEzMC41NTQgMTAxLjI0MiAxMzEuMjk0IDEwMS4yNDJDMTMwLjU1NCAxMDEuMjQyIDEyOS44MjMgMTAxLjM5OSAxMjkuMTQ4IDEwMS43MDFDMTI4LjUyMSAxMDEuOTk3IDEyNy45NjEgMTAyLjQxOCAxMjcuNTAzIDEwMi45MzhDMTI2LjU1MSAxMDQuMDI5IDEyNi4wMzEgMTA1LjQzMiAxMjYuMDQyIDEwNi44ODFDMTI2LjAzNyAxMDcuNjI1IDEyNi4xNjkgMTA4LjM2MyAxMjYuNDI5IDEwOS4wNTlDMTI2LjY3IDEwOS43MTggMTI3LjAzNCAxMTAuMzI1IDEyNy41MDIgMTEwLjg0N0MxMjcuOTY1IDExMS4zNTYgMTI4LjUyNCAxMTEuNzY5IDEyOS4xNDcgMTEyLjA2MkMxMjkuODE5IDExMi4zNzUgMTMwLjU1NCAxMTIuNTMxIDEzMS4yOTUgMTEyLjUyWiIgZmlsbD0iI0U5MUU2MyIvPgo8cGF0aCBkPSJNMTUyLjAyMiAxMTcuOTQ2SDE0NS4wMzVWODUuODU2NEgxNTIuMDIyVjk5LjAxMThDMTUyLjMyMSA5OC40OTAzIDE1Mi42OSA5OC4wMTIyIDE1My4xMTggOTcuNTkwOEMxNTMuNTkxIDk3LjExOTQgMTU0LjEyOSA5Ni43MTgyIDE1NC43MTUgOTYuMzk5MUMxNTUuMzMxIDk2LjA2MDMgMTU1Ljk4MSA5NS43OTExIDE1Ni42NTYgOTUuNTk2NUMxNTcuMzQ2IDk1LjM5NzQgMTU4LjA2MSA5NS4yOTcyIDE1OC43NzkgOTUuMjk4N0MxNjAuMjggOTUuMjgxNiAxNjEuNzY3IDk1LjU4NjQgMTYzLjE0IDk2LjE5MjZDMTY0LjQyNyA5Ni43NjE1IDE2NS41ODUgOTcuNTg4MSAxNjYuNTQyIDk4LjYyMTdDMTY3LjUwOSA5OS42ODUyIDE2OC4yNTUgMTAwLjkzMiAxNjguNzM0IDEwMi4yOUMxNjkuNzY5IDEwNS4yNzMgMTY5Ljc2OSAxMDguNTIxIDE2OC43MzQgMTExLjUwNUMxNjguMjU1IDExMi44NjIgMTY3LjUwOSAxMTQuMTA5IDE2Ni41NDIgMTE1LjE3MkMxNjUuNTg1IDExNi4yMDYgMTY0LjQyNyAxMTcuMDMzIDE2My4xNCAxMTcuNjAyQzE2MS43NjcgMTE4LjIwOCAxNjAuMjggMTE4LjUxMyAxNTguNzc5IDExOC40OTVDMTU4LjA2MSAxMTguNDk3IDE1Ny4zNDYgMTE4LjM5NyAxNTYuNjU2IDExOC4xOThDMTU1Ljk4NSAxMTguMDA1IDE1NS4zMzQgMTE3Ljc0NSAxNTQuNzE1IDExNy40MkMxNTQuMTMxIDExNy4xMTcgMTUzLjU5MyAxMTYuNzMxIDE1My4xMTggMTE2LjI3NEMxNTIuNjc5IDExNS44NTUgMTUyLjMwOSAxMTUuMzY3IDE1Mi4wMjIgMTE0LjgzVjExNy45NDZaTTE1Ny4zMTkgMTEyLjUzNkMxNTguMDQ1IDExMi41NDUgMTU4Ljc2MyAxMTIuMzg4IDE1OS40MiAxMTIuMDc4QzE2MC4wNDMgMTExLjc4NiAxNjAuNjAyIDExMS4zNzMgMTYxLjA2NSAxMTAuODY0QzE2MS41MzMgMTEwLjM0MSAxNjEuODk3IDEwOS43MzUgMTYyLjEzOSAxMDkuMDc1QzE2Mi4zOTggMTA4LjM3OSAxNjIuNTMgMTA3LjY0MSAxNjIuNTI2IDEwNi44OThDMTYyLjUzNiAxMDUuNDQ4IDE2Mi4wMTYgMTA0LjA0NSAxNjEuMDY0IDEwMi45NTVDMTYwLjYwNiAxMDIuNDM0IDE2MC4wNDYgMTAyLjAxMyAxNTkuNDE5IDEwMS43MTdDMTU4Ljc2MyAxMDEuNDA3IDE1OC4wNDUgMTAxLjI1IDE1Ny4zMTkgMTAxLjI1N0MxNTYuNTcyIDEwMS4yNDggMTU1LjgzMSAxMDEuNDA0IDE1NS4xNTEgMTAxLjcxNUMxNTQuNTE1IDEwMi4wMDYgMTUzLjk0OCAxMDIuNDI4IDE1My40ODQgMTAyLjk1M0MxNTIuNTMyIDEwNC4wNDMgMTUyLjAxMiAxMDUuNDQ2IDE1Mi4wMjMgMTA2Ljg5NkMxNTIuMDE5IDEwNy42MzkgMTUyLjE1IDEwOC4zNzcgMTUyLjQxIDEwOS4wNzNDMTUyLjY1MSAxMDkuNzMyIDE1My4wMTUgMTEwLjMzOSAxNTMuNDgzIDExMC44NjFDMTUzLjk1MiAxMTEuMzc1IDE1NC41MTggMTExLjc4OCAxNTUuMTUgMTEyLjA3NkMxNTUuODMgMTEyLjM4OCAxNTYuNTcxIDExMi41NDYgMTU3LjMxOSAxMTIuNTM2WiIgZmlsbD0iI0U5MUU2MyIvPgo8cGF0aCBkPSJNMTgyLjYzOCAxMDQuOTI2QzE4My42MTIgMTA1LjIwMSAxODQuNTI1IDEwNS40OTkgMTg1LjM3OCAxMDUuODJDMTg2LjE3NSAxMDYuMTExIDE4Ni45MjggMTA2LjUxMyAxODcuNjE1IDEwNy4wMTJDMTg4LjI0OSAxMDcuNDggMTg4Ljc3MSAxMDguMDgyIDE4OS4xNDUgMTA4Ljc3N0MxODkuNTUzIDEwOS42MDIgMTg5Ljc0OSAxMTAuNTE2IDE4OS43MTYgMTExLjQzNkMxODkuNzU0IDExMi41OTMgMTg5LjQ4NiAxMTMuNzQgMTg4LjkzOSAxMTQuNzZDMTg4LjQyIDExNS42NjMgMTg3LjY4MiAxMTYuNDIgMTg2Ljc5MyAxMTYuOTYxQzE4NS44MTUgMTE3LjU1MSAxODQuNzQxIDExNy45NjIgMTgzLjYyIDExOC4xNzVDMTgyLjM0OSAxMTguNDI2IDE4MS4wNTYgMTE4LjU0OCAxNzkuNzYxIDExOC41NDFDMTc2LjYyNSAxMTguNTQxIDE3NC4xNTIgMTE3Ljg1NCAxNzIuMzQxIDExNi40NzlDMTcwLjUyOSAxMTUuMTAzIDE2OS45ODkgMTEzLjEzMiAxNjkuOTg5IDExMC41NjRIMTc2LjQ3NEMxNzYuNDc0IDExMS43MjYgMTc2LjgwMSAxMTIuNTU5IDE3Ny40NTUgMTEzLjA2M0MxNzguMTkyIDExMy41OTMgMTc5LjA4NCAxMTMuODU5IDE3OS45OSAxMTMuODE5QzE4MC43MTMgMTEzLjg1IDE4MS40MzEgMTEzLjY4NCAxODIuMDY3IDExMy4zMzhDMTgyLjMzMyAxMTMuMTc0IDE4Mi41NDggMTEyLjkzOSAxODIuNjg5IDExMi42NkMxODIuODI5IDExMi4zODEgMTgyLjg5MSAxMTIuMDY4IDE4Mi44NjYgMTExLjc1N0MxODIuODg1IDExMS4zODIgMTgyLjc2MiAxMTEuMDE0IDE4Mi41MjQgMTEwLjcyNUMxODIuMjI1IDExMC40MTUgMTgxLjg2OCAxMTAuMTY1IDE8MS40NzQgMTA5Ljk5MkMxODAuODgzIDEwOS43MTcgMTgwLjI3MiAxMDkuNDg3IDE3OS42NDcgMTA5LjMwNEMxNzguOTAxIDEwOS4wNzQgMTc4LjAxIDEwOC43OTIgMTc2Ljk3NiAxMDguNDU2QzE3Ni4wNjMgMTA4LjE4MSAxNzUuMTk1IDEwNy44ODMgMTc0LjM3MyAxMDcuNTYyQzE3My42MDIgMTA3LjI2OSAxNzIuODczIDEwNi44NzYgMTcyLjIwNCAxMDYuMzkzQzE3MS41ODEgMTA1LjkzNiAxNzEuMDczIDEwNS4zMzkgMTcwLjcyIDEwNC42NTFDMTcwLjMyNyAxMDMuODIxIDE3MC4xMzkgMTAyLjkwOSAxNzAuMTcyIDEwMS45OTFDMTcwLjE3MiA5OS42OTkxIDE3MS4wNDcgOTguMDAyOSAxNzIuNzk3IDk2LjkwMjdDMTc0LjU0OCA5NS44MDI1IDE3Ni45MTUgOTUuMjUxOSAxNzkuODk4IDk1LjI1MUMxODEuMzEyIDk1LjIyNzIgMTgyLjcyMSA5NS40MjA2IDE4NC4wNzcgOTUuODI0MkMxODUuMTYzIDk2LjE0MzcgMTg2LjE3MiA5Ni42ODE4IDE4Ny4wNDUgOTcuNDA1NkMxODcuODA0IDk4LjA1NTQgMTg4LjQwNSA5OC44NzEgMTg4LjgwMyA5OS43ODk5QzE4OS4yIDEwMC43MTYgMTg5LjQwMiAxMDEuNzE1IDE4OS4zOTcgMTAyLjcyNEgxODIuNTAxQzE4Mi41NSAxMDEuOTQ4IDE4Mi4yOTYgMTAxLjE4NCAxODEuNzk0IDEwMC41OTJDMTgxLjUwNCAxMDAuMzIxIDE4MS4xNjIgMTAwLjExNCAxODAuNzg4IDk5Ljk4NDJDMTgwLjQxNSA5OS44NTQgMTgwLjAxOCA5OS44MDM0IDE3OS42MjQgOTkuODM1NkMxNzguOTgyIDk5LjgxOTkgMTc4LjM0OSA5OS45ODY4IDE3Ny43OTggMTAwLjMxN0MxNzcuNTQ2IDEwMC40NzEgMTc3LjM0IDEwMC42OTEgMTc3LjIwMyAxMDAuOTUzQzE3Ny4wNjYgMTAxLjIxNiAxNzcuMDAzIDEwMS41MTEgMTc3LjAyMSAxMDEuODA3QzE3Ny4wMDkgMTAyLjE3MSAxNzcuMTQgMTAyLjUyNiAxNzcuMzg3IDEwMi43OTNDMTc3LjY5NSAxMDMuMDk3IDE3OC4wNiAxMDMuMzM4IDE3OC40NiAxMDMuNTA0QzE3OS4wMzIgMTAzLjc1NCAxNzkuNjE5IDEwMy45NjkgMTgwLjIxOCAxMDQuMTQ1QzE4MC45MTggMTA0LjM2MSAxODEuNzI1IDEwNC42MjEgMTgyLjYzOCAxMDQuOTI2WiIgZmlsbD0iI0U5MUU2MyIvPgo8L2c+CjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwXzU4MF8yNiI+CjxyZWN0IHdpZHRoPSIxNjUiIGhlaWdodD0iMzMuNzQ0MSIgZmlsbD0id2hpdGUiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI1IDg1KSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=" width="16" height="16" alt="AI21">`,
+        'Google': `<span style="font-size:10px; font-weight:bold; color: #4285f4;">G</span>`,
+        'Anthropic': `<span style="font-size:10px; font-weight:bold; color: #ff7043;">A</span>`
+      };
+      
+      return logos[publisher] || `<span style="font-size:10px; font-weight:bold; color: #6366f1;">${publisher?.charAt(0) || '?'}</span>`;
     }
     function selectModel(id){
       const m = models.find(x=>x.id===id); 
@@ -1603,18 +1658,21 @@
     
     function updateRateLimitInfo(model){
       if(model?.limits || model?.rate_limit){
-        const tier = model.rate_limit_tier || model.tier || '?';
+        const tier = (model.rate_limit_tier || model.tier || '?').toLowerCase();
         const rpd = model.rate_limit?.requests_per_day || model.limits?.requests_per_day || '—';
         const inTok = model.limits?.max_input_tokens ?? model.limits?.input ?? '—';
         const outTok = model.limits?.max_output_tokens ?? model.limits?.output ?? '—';
         
-        rateLimitInfo.innerHTML = `
-          <div class="rate-limit-info">
-            <span class="rate-limit-tier">${tier}</span>
-            <span class="rate-limit-tokens">${rpd} RPD</span>
-            <span class="rate-limit-tokens">${inTok} in • ${outTok} out</span>
-          </div>
-        `;
+        // Format large numbers with abbreviations
+        const formatNumber = (num) => {
+          if (num === '—' || num === 'N/A') return num;
+          const n = parseInt(num);
+          if (n >= 1000000) return `${Math.floor(n/1000000)}M`;
+          if (n >= 1000) return `${Math.floor(n/1000)}K`;
+          return n.toString();
+        };
+        
+        rateLimitInfo.innerHTML = `<div class="text-xs text-gray-400">${tier}: ${rpd} req/day, ${formatNumber(inTok)} in, ${formatNumber(outTok)} out</div>`;
       } else { 
         rateLimitInfo.innerHTML=''; 
       }
@@ -1727,72 +1785,83 @@ User: "What's the weather like?" → "Weather Information"`;
       const existingMessages = chatBox.querySelectorAll('.user-bubble, .assistant-response');
       existingMessages.forEach(el => el.remove());
       
-      // Recreate welcome message container
-      chatBox.innerHTML = '<div class="max-w-3xl mx-auto"><div id="welcomeMessage" class="text-center py-10 text-gray-500 hidden"><h2 class="text-2xl mb-4">How can I help you today?</h2><p class="text-sm">Start a conversation by typing a message below</p></div></div>';
-      
-      // Load messages without triggering storage save
-      chat.messages.forEach(m => { 
-        if(m.role === 'user') {
-          const bubble = document.createElement('div');
-          bubble.className = 'user-bubble';
-          bubble.innerHTML = `
-            <div class="markdown-body">${marked.parse(m.content)}</div>
-            <div class="message-actions">
-              <button class="action-btn" onclick="editMessage(this)" title="Edit">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 20h9"></path>
-                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                </svg>
-              </button>
-              <button class="action-btn" onclick="copyMessage(this)" title="Copy">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-              <button class="action-btn" onclick="deleteMessage(this)" title="Delete">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3,6 5,6 21,6"></polyline>
-                  <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
-                </svg>
-              </button>
-            </div>
-          `;
-          bubble.dataset.role = 'user';
-          chatBox.appendChild(bubble);
-        } else if(m.role === 'assistant') {
-          const response = document.createElement('div');
-          response.className = 'assistant-response';
-          response.innerHTML = `
-            <div class="markdown-body">${marked.parse(m.content)}</div>
-            <div class="message-actions">
-              <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="23,4 23,10 17,10"></polyline>
-                  <polyline points="1,20 1,14 7,14"></polyline>
-                  <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
-                </svg>
-              </button>
-              <button class="action-btn" onclick="copyMessage(this)" title="Copy">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-              <button class="action-btn" onclick="deleteMessage(this)" title="Delete">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3,6 5,6 21,6"></polyline>
-                  <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
-                </svg>
-              </button>
-            </div>
-          `;
-          response.dataset.role = 'assistant';
-          chatBox.appendChild(response);
-        }
-      });
+      // Show welcome message if chat is empty, otherwise hide it
+      if (chat.messages.length === 0) {
+        chatBox.innerHTML = '<div class="max-w-3xl mx-auto"><div id="welcomeMessage" class="text-center py-10 text-gray-500"><h2 class="text-2xl mb-4">How can I help you today?</h2><p class="text-sm">Start a conversation by typing a message below</p></div></div>';
+      } else {
+        // Recreate message container without welcome message
+        chatBox.innerHTML = '<div class="max-w-3xl mx-auto"></div>';
+        
+        // Load messages without triggering storage save
+        chat.messages.forEach(m => { 
+          if(m.role === 'user') {
+            const bubble = document.createElement('div');
+            bubble.className = 'user-bubble';
+            bubble.innerHTML = `
+              <div class="markdown-body">${marked.parse(m.content)}</div>
+              <div class="message-actions">
+                <button class="action-btn" onclick="editMessage(this)" title="Edit">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 20h9"></path>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                  </svg>
+                </button>
+                <button class="action-btn" onclick="copyMessage(this)" title="Copy">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </button>
+                <button class="action-btn" onclick="deleteMessage(this)" title="Delete">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3,6 5,6 21,6"></polyline>
+                    <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
+                  </svg>
+                </button>
+              </div>
+            `;
+            bubble.dataset.role = 'user';
+            chatBox.appendChild(bubble);
+          } else if(m.role === 'assistant') {
+            const response = document.createElement('div');
+            response.className = 'assistant-response';
+            response.innerHTML = `
+              <div class="markdown-body">${marked.parse(m.content)}</div>
+              <div class="message-actions">
+                <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23,4 23,10 17,10"></polyline>
+                    <polyline points="1,20 1,14 7,14"></polyline>
+                    <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
+                  </svg>
+                </button>
+                <button class="action-btn" onclick="copyMessage(this)" title="Copy">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </button>
+                <button class="action-btn" onclick="deleteMessage(this)" title="Delete">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3,6 5,6 21,6"></polyline>
+                    <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
+                  </svg>
+                </button>
+              </div>
+            `;
+            response.dataset.role = 'assistant';
+            chatBox.appendChild(response);
+          }
+        });
+      }
       
       chatBox.scrollTop = chatBox.scrollHeight;
+      
+      // Highlight the currently selected chat
+      const chatItems = document.querySelectorAll('.chat-history-item');
+      chatItems.forEach(item => item.classList.remove('focused'));
+      const currentItem = document.querySelector(`[data-chat-id="${id}"]`);
+      if (currentItem) currentItem.classList.add('focused');
     }
     
     function createNewChat(){
@@ -1817,6 +1886,19 @@ User: "What's the weather like?" → "Weather Information"`;
             loadChatHistory(); // Refresh the chat list to show new title
           }
         });
+    }
+
+    function goToHomepage() {
+      // Check if there's already an empty "New Chat" available
+      const emptyNewChat = chats.find(c => c.title === 'New Chat' && c.messages.length === 0);
+      
+      if (emptyNewChat) {
+        // Load the existing empty chat
+        loadChat(emptyNewChat.id);
+      } else {
+        // Create a new chat only if no empty one exists
+        createNewChat();
+      }
     }
 
     // Messages
@@ -2365,7 +2447,7 @@ User: "What's the weather like?" → "Weather Information"`;
     // Event Listeners
     sendBtn?.addEventListener('click', sendMessage);
     stopBtn?.addEventListener('click', stopGeneration);
-    newChatBtn?.addEventListener('click', createNewChat);
+    newChatBtn?.addEventListener('click', goToHomepage);
     
     // Desktop dropdown
     dropdownSelected?.addEventListener('click', () => {
