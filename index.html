@@ -1490,7 +1490,7 @@
       profileMenu?.classList.add('hidden');
       showLoginPage();
     });
-    document.getElementById('settingsBtn')?.addEventListener('click', () => {
+    document.getElementById('settingsBtn')?.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent closing the menu because of outside click
       profileMenu?.classList.add('hidden');
       settingsModal?.classList.remove('hidden');
