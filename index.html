@@ -1498,8 +1498,6 @@
 
     // Outside click
     document.addEventListener('click', (e) => {
-      // Make sure this click was not the click to open the menu
-      if (e.target === userProfile || e.target.closest('#profileMenu') || e.target.closest('#settingsModal')) return;
       if (profileMenu && !profileMenu.classList.contains('hidden') && !profileMenu.contains(e.target) && e.target !== userProfile) {
         profileMenu.classList.add('hidden');
       }
