@@ -7,6 +7,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
+  <script type="module">
+  import { Octokit } from "https://esm.sh/@octokit/core";
+  </script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.0/github-markdown-dark.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -373,7 +376,7 @@
       background: rgba(15, 23, 42, 0.95);
       backdrop-filter: blur(20px);
       border: 1px solid rgba(99, 102, 241, 0.3);
-      width: 350px;
+      width: 100%;
       border-radius: 8px;
       z-index: 99999;
       top: 100%;
@@ -1168,7 +1171,7 @@
             <div class="system-prompt-toggle" id="systemPromptToggle">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; margin-right: 6px;">
                 <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
               </svg>
               System Prompt
             </div>
@@ -1180,7 +1183,7 @@
               >You are a helpful AI assistant. Be concise, accurate, and helpful in your responses.</textarea>
             </div>
           </div>
-
+          <!-- Input Textarea -->
           <div class="glass-textbox relative">
             <textarea
               id="messageInput"
@@ -1196,8 +1199,7 @@
             </button>
             <button id="stopBtn" class="absolute right-3 bottom-3 rounded p-2 stop-btn">
 
-            </button>
-          </div>
+          </button>
         </div>
       </div>
     </div>
@@ -1235,28 +1237,28 @@
       <h3 class="text-xl font-bold mb-4">Settings</h3>
 
       <div class="mb-4">
-        <label class="block mb-2">Default Model</label>
+        <label class="block mb-2">Title Generation Model</label>
         <div class="custom-dropdown">
-          <div id="defaultDropdownSelected" class="dropdown-selected">
-            <div id="defaultSelectedModelIcon" class="model-icon bg-gray-700 flex items-center justify-center">
-              <span>G</span>
+          <div id="titleDropdownSelected" class="dropdown-selected">
+            <div id="titleSelectedModelIcon" class="model-icon bg-gray-700 flex items-center justify-center">
+              <span style="font-size:10px;">G</span>
             </div>
-            <span id="defaultSelectedModelName">Select Model</span>
+            <span id="titleSelectedModelName">GPT-4.1 Mini</span>
           </div>
-          <div id="defaultDropdownContent" class="dropdown-content">
+          <div id="titleDropdownContent" class="dropdown-content">
             <div class="dropdown-search-container">
               <svg class="search-icon" viewBox="0 0 24 24">
                 <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
               </svg>
-              <input type="text" id="defaultDropdownSearch" class="dropdown-search" placeholder="Search models...">
+              <input type="text" id="titleDropdownSearch" class="dropdown-search" placeholder="Search models...">
             </div>
-            <div id="defaultDropdownItems"></div>
+            <div id="titleDropdownItems"></div>
           </div>
         </div>
       </div>
 
       <div class="mb-6">
-        <label class="block mb-2">Personal Access Token</label>
+        <label class="block mb-2">Edit Personal Access Token</label>
         <input type="password" id="settingsPat" class="w-full p-2 rounded bg-gray-800 border border-gray-700 mb-2" placeholder="github_pat_..." />
         <button id="saveToken" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded w-full">
           Save Token
@@ -1424,7 +1426,7 @@
     // Helper functions
     function loadUserProfile(){
       const token=localStorage.getItem('gh_token');
-      if(!token) return;
+      if(!token || !token.trim() || token.trim()=="" || token == "") return;
       fetch('https://api.github.com/user',{headers:{Authorization:`Bearer ${token}`}})
         .then(r=> r.ok ? r.json(): Promise.reject())
         .then(u=>{
@@ -1451,10 +1453,12 @@
     document.getElementById('usePat')?.addEventListener('click', () => {
       const token = patInput.value.trim();
       if (token.startsWith('github_pat_')) {
+        const octokit = new Octokit({ auth: token });
         localStorage.setItem('gh_token', token);
         fetchModels();
         loadUserProfile();
         showChatPage();
+
       } else {
         alert('Invalid token (must start with github_pat_)');
       }
@@ -1487,12 +1491,15 @@
       showLoginPage();
     });
     document.getElementById('settingsBtn')?.addEventListener('click', () => {
+      e.stopPropagation(); // Prevent closing the menu because of outside click
       profileMenu?.classList.add('hidden');
       settingsModal?.classList.remove('hidden');
     });
 
     // Outside click
     document.addEventListener('click', (e) => {
+      // Make sure this click was not the click to open the menu
+      if (e.target === userProfile || e.target.closest('#profileMenu') || e.target.closest('#settingsModal')) return;
       if (profileMenu && !profileMenu.classList.contains('hidden') && !profileMenu.contains(e.target) && e.target !== userProfile) {
         profileMenu.classList.add('hidden');
       }
@@ -1501,6 +1508,14 @@
       if (dropdownContent?.classList.contains('show') && !dropdownSelected?.contains(e.target) && !dropdownContent.contains(e.target)) {
         dropdownContent.classList.remove('show');
         dropdownSelected?.classList.remove('active');
+      }
+
+      // Title dropdown
+      const titleDropdownContent = document.getElementById('titleDropdownContent');
+      const titleDropdownSelected = document.getElementById('titleDropdownSelected');
+      if (titleDropdownContent?.classList.contains('show') && !titleDropdownSelected?.contains(e.target) && !titleDropdownContent.contains(e.target)) {
+        titleDropdownContent.classList.remove('show');
+        titleDropdownSelected?.classList.remove('active');
       }
 
       // Mobile dropdown
@@ -1559,6 +1574,8 @@
       if (e.key === 'Escape') {
         dropdownContent?.classList.remove('show');
         dropdownSelected?.classList.remove('active');
+        document.getElementById('titleDropdownContent')?.classList.remove('show');
+        document.getElementById('titleDropdownSelected')?.classList.remove('active');
         document.getElementById('mobileDropdownContent')?.classList.remove('show');
         document.getElementById('mobileDropdownSelected')?.classList.remove('active');
         document.getElementById('sidebar')?.classList.remove('mobile-open');
@@ -1576,21 +1593,36 @@
     });
     dropdownSearch?.addEventListener('input', e => filterModels(e.target.value));
 
-    function filterModels(query) {
+    // Title generation model dropdown
+    const titleDropdownSelected = document.getElementById('titleDropdownSelected');
+    const titleDropdownContent = document.getElementById('titleDropdownContent');
+    const titleDropdownSearch = document.getElementById('titleDropdownSearch');
+    const titleDropdownItems = document.getElementById('titleDropdownItems');
+
+    titleDropdownSelected?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      titleDropdownContent?.classList.toggle('show');
+      titleDropdownSelected?.classList.toggle('active');
+    });
+
+    titleDropdownSearch?.addEventListener('input', e => filterTitleModels(e.target.value));
+
+    function filterTitleModels(query) {
       const q = query.toLowerCase();
-      renderDropdownItems(models.filter(m => m.name.toLowerCase().includes(q) || m.publisher.toLowerCase().includes(q)));
+      renderTitleDropdownItems(models.filter(m => m.name.toLowerCase().includes(q) || m.publisher.toLowerCase().includes(q)));
     }
-    function renderDropdownItems(items) {
-      if(!dropdownItems) return;
-      dropdownItems.innerHTML = '';
+
+    function renderTitleDropdownItems(items) {
+      if(!titleDropdownItems) return;
+      titleDropdownItems.innerHTML = '';
       items.forEach(model => {
         const item = document.createElement('div');
         item.className = 'dropdown-item';
-
-        const rpd = model.rate_limit?.requests_per_day || model.limits?.requests_per_day || 'N/A';
+        const tier = model.rate_limit_tier || model.tier || 'Unknown';
+        const rpd = getModelRPDString(model);
         const inTokens = model.limits?.max_input_tokens || model.limits?.input || 'N/A';
         const outTokens = model.limits?.max_output_tokens || model.limits?.output || 'N/A';
-        const tier = model.rate_limit_tier || model.tier || 'Unknown';
 
         item.innerHTML = `
           <div class="model-icon bg-gray-700 flex items-center justify-center">${getModelLogo(model.publisher)}</div>
@@ -1601,7 +1633,95 @@
           <div class="model-limits">
             <div class="rate-limit-info">
               <span class="rate-limit-tier">${tier}</span>
-              <span class="rate-limit-tokens">${rpd} RPD</span>
+              <span class="rate-limit-tokens">${rpd}</span>
+              <span class="rate-limit-tokens">${inTokens} in</span>
+              <span class="rate-limit-tokens">${outTokens} out</span>
+            </div>
+          </div>`;
+        item.addEventListener('click', () => {
+          selectTitleModel(model.id);
+          titleDropdownContent?.classList.remove('show');
+          titleDropdownSelected?.classList.remove('active');
+        });
+        titleDropdownItems.appendChild(item);
+      });
+    }
+
+    function selectTitleModel(id) {
+      const m = models.find(x=>x.id===id);
+      if(!m) return;
+
+      // Store selected title model in localStorage
+      localStorage.setItem('selected_title_model', id);
+
+      // Update title dropdown display
+      const titleSelectedModelName = document.getElementById('titleSelectedModelName');
+      const titleSelectedModelIcon = document.getElementById('titleSelectedModelIcon');
+      if(titleSelectedModelName) {
+        titleSelectedModelName.textContent = m.name;
+        titleSelectedModelName.dataset.modelId = m.id;
+      }
+      if(titleSelectedModelIcon) titleSelectedModelIcon.innerHTML = getModelLogo(m.publisher);
+    }
+
+    function filterModels(query) {
+      const q = query.toLowerCase();
+      renderDropdownItems(models.filter(m => m.name.toLowerCase().includes(q) || m.publisher.toLowerCase().includes(q)));
+    }
+    function getModelRPDString(model) {
+        const RPDLookupTable = {
+            /*{'custom', 'low', 'embeddings', 'high'}*/
+            'custom': ['','','',''],
+            'low': ['150','150','300','450'],
+            'embeddings': ['150','150','300','450'],
+            'high': ['50','50','100','150']
+        }
+        const CustomLookupTable = {
+            'openai/o1-preview' : ['N/A','8','10','12'],
+            'openai/o1' : ['N/A','8','10','12'],
+            'openai/o3' : ['N/A','8','10','12'],
+            'openai/o1-mini' : ['N/A','12','15','20'],
+            'openai/o3-mini' : ['N/A','12','15','20'],
+            'openai/o4-mini' : ['N/A','12','15','20'],
+            'xai/grok-3' : ['15','15','20','30'],
+            'xai/grok-3-mini' : ['30','30','40','50']
+        }
+        const tier = model.rate_limit_tier || model.tier || 'Unknown';
+        var rpds = RPDLookupTable[tier] || ['Unknown', 'Unknown', 'Unknown', 'Unknown'];
+        localStorage.getItem('gh_token')
+        const github_copilot_subscription = localStorage.getItem('github_subscription') || 'Free';  // TODO make it adjustable
+        if (rpds == ['', '','', '']) {
+            rpds = CustomLookupTable[model.id] || ['Unknown', 'Unknown', 'Unknown', 'Unknown'];
+        }
+        if (rpds[0] != ""){
+        return `${rpds[0]} RPD`;
+        }
+        else {
+            return `${rpds[1]} RPD (Copilot Pro)`
+        }
+    }
+    function renderDropdownItems(items) {
+      if(!dropdownItems) return;
+      dropdownItems.innerHTML = '';
+      items.forEach(model => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        const tier = model.rate_limit_tier || model.tier || 'Unknown';
+        //const rpd = model.rate_limit?.requests_per_day || model.limits?.requests_per_day || 'N/A';
+        const rpd = getModelRPDString(model);
+        const inTokens = model.limits?.max_input_tokens || model.limits?.input || 'N/A';
+        const outTokens = model.limits?.max_output_tokens || model.limits?.output || 'N/A';
+
+        item.innerHTML = `
+          <div class="model-icon bg-gray-700 flex items-center justify-center">${getModelLogo(model.publisher)}</div>
+          <div class="model-info">
+            <span class="font-medium">${model.name} <span class="text-xs text-gray-400">${model.id}</span></span>
+            <span class="text-xs text-gray-400">${model.publisher}</span>
+          </div>
+          <div class="model-limits">
+            <div class="rate-limit-info">
+              <span class="rate-limit-tier">${tier}</span>
+              <span class="rate-limit-tokens">${rpd}</span>
               <span class="rate-limit-tokens">${inTokens} in</span>
               <span class="rate-limit-tokens">${outTokens} out</span>
             </div>
@@ -1638,9 +1758,9 @@
         'Core42': `<img src="https://github.com/images/modules/marketplace/models/families/core42.svg" width="16" height="16" alt="Core42" >`,
         'JAIS': `<img src="https://github.com/images/modules/marketplace/models/families/core42.svg" width="16" height="16" alt="JAIS" >`,
         'Microsoft': `<img src="https://github.com/images/modules/marketplace/models/families/microsoft.svg" width="16" height="16" alt="Microsoft" >`,
-        'DeepSeek': `<span style="font-size:10px; font-weight:bold;">DS</span>`,
+        'DeepSeek': `<img src="https://github.com/images/modules/marketplace/models/families/deepseek.svg" width="16" height="16" alt="Microsoft" >`,
         'Azure': `<img src="https://github.com/images/modules/marketplace/models/families/azure-openai.svg" width="16" height="16" alt="Azure" >`,
-        'AI21': `<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjE2IiBoZWlnaHQ9IjIxNiIgdmlld0JveD0iMCAwIDIxNiAyMTYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMTYiIGhlaWdodD0iMjE2IiBmaWxsPSJ3aGl0ZSIvPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDBfNTgwXzI2KSI+CjxwYXRoIGQ9Ik00Ni43NDggMTE3Ljk0Nkw0NS41MTU1IDExNC4wNDlIMzQuMTQzOUwzMi45MTA5IDExNy45NDZIMjUuMDEzN0wzNi40Mjk4IDg1Ljg1NjRINDMuMjM0TDU0Ljc4NzEgMTE3Ljk0Nkg0Ni43NDhaTTM5Ljg1NDkgOTUuMDIzOEwzNS45Mjc2IDEwOC4yMjdINDMuNjkwOEwzOS44NTQ5IDk1LjAyMzhaIiBmaWxsPSIjMUYyMTI3Ii8+CjxwYXRoIGQ9Ik01NS42NjggODUuODU2NEg2My4xNTY4VjExNy45NDZINTUuNjY4Vjg1Ljg1NjRaIiBmaWxsPSIjMUYyMTI3Ii8+CjxwYXRoIGQ9Ik02NS4xNzQ5IDExMS4zOUM2NS41MTExIDEwOS44MDYgNjYuMTA1MSAxMDguMjg4IDY2LjkzMjkgMTA2Ljg5N0M2Ny42NTI4IDEwNS43MjIgNjguNTU0NyAxMDQuNjcgNjkuNjA0NSAxMDMuNzhDNzAuNjc2OSAxMDIuODg3IDcxLjgxNCAxMDIuMDc1IDczLjAwNjMgMTAxLjM1MUM3My45NDk2IDEwMC44IDc0LjgyNDggMTAwLjI3MyA3NS42MzE5IDk5Ljc2ODlDNzYuMzc2NCA5OS4zMTAxIDc3LjA4NjEgOTguNzk2OCA3Ny43NTUzIDk4LjIzMzJDNzguMzMzMyA5Ny43NTEgNzguODIwNSA5Ny4xNjg3IDc5LjE5MzkgOTYuNTEzOUM3OS41NTA0IDk1Ljg2MTIgNzkuNzMxNCA5NS4xMjY1IDc5LjcxOSA5NC4zODIyQzc5LjcxOSA5My4wOTg3IDc5LjM2ODkgOTIuMTc0MSA3OC42Njg5IDkxLjYwODdDNzcuOTI2NSA5MS4wMjk0IDc3LjAwNTcgOTAuNzI5MyA3Ni4wNjYgOTAuNzYwNEM3NC45OTY2IDkwLjcyOCA3My45NTY2IDkxLjExNDQgNzMuMTY2IDkxLjgzOEM3Mi4zODk4IDkyLjU1NjMgNzIuMDAxNyA5My43NTYgNzIuMDAxNyA5NS40MzY5SDY0LjY0OTRDNjQuNjM2MiA5NC4wNDA1IDY0Ljg5MjMgOTIuNjU0OCA2NS40MDMzIDkxLjM1NkM2NS44OTMzIDkwLjEyMDQgNjYuNjQ5NSA4OS4wMDg5IDY3LjYxNzYgODguMTAxMUM2OC42NDg2IDg3LjE0OTggNjkuODYwMSA4Ni40MTcgNzEuMTc5NiA4NS45NDY1QzcyLjczNCA4NS40MDE0IDc0LjM3MjMgODUuMTM3NCA3Ni4wMTg2IDg1LjE2NjhDNzcuNDMxMyA4NS4xNjAyIDc4LjgzNzkgODUuMzUzMiA4MC4xOTcxIDg1Ljc0QzgxLjQ2MTMgODYuMDkyMyA4Mi42NDY5IDg2LjY4MzYgODMuNjkwMyA4Ny40ODIxQzg0LjcxNTYgODguMjg3MSA4NS41MzY5IDg5LjMyMzggODYuMDg3NiA5MC41MDc4Qzg2LjcwOTYgOTEuODgxIDg3LjAxNCA5My4zNzc4IDg2Ljk3NzkgOTQuODg2Qzg2Ljk5NDQgOTYuMTYxNyA4Ni42OTYzIDk3LjQyMTggODYuMTEwMyA5OC41NTM5Qzg1LjU0OSA5OS42MzA3IDg0LjgzMzcgMTAwLjYxOSA4My45ODcgMTAxLjQ4OEM4My4xNjAyIDEwMi4zMzUgODIuMjUgMTAzLjA5NSA4MS4yNzAzIDEwMy43NTdDODAuMjk1MSAxMDQuNDE1IDc5LjQxMjIgMTA0Ljk3MyA3OC42MjE1IDEwNS40MzFDNzcuNTI0NiAxMDYuMTY0IDc2LjYxODkgMTA2Ljc5OCA3NS45MDQ0IDEwNy4zMzRDNzUuMjkxMiAxMDcuNzc5IDc0LjcxODMgMTA4LjI3NyA3NC4xOTIzIDEwOC44MjNDNzMuNzk4NyAxMDkuMjI4IDczLjQ5NTEgMTA5LjcxMyA3My4zMDE1IDExMC4yNDVDNzMuMTI1MSAxMTAuNzkyIDczLjA0MDIgMTExLjM2NSA3My4wNTAzIDExMS45NEg4Ni43NVYxMTcuOTQ2SDY0LjU1ODRDNjQuNTE5MyAxMTUuNzQ1IDY0LjcyNiAxMTMuNTQ1IDY1LjE3NDkgMTExLjM5WiIgZmlsbD0iIzFGMjEyNyIvPgo8cGF0aCBkPSJNODguMTY1IDkxLjQ5MTlDODkuNDQ0NiA5MS41MTgxIDkwLjcyMzIgOTEuNDAyNyA5MS45Nzc3IDkxLjE0NzlDOTIuODE1NyA5MC45ODgyIDkzLjYwNTIgOTAuNjM1MSA5NC4yODQgOTAuMTE2NUM5NC44Mjg3IDg5LjY2MjggOTUuMjI2MSA4OS4wNTYyIDk1LjQyNTUgODguMzc0NEM5NS42NTM3IDg3LjU1NDEgOTUuNzYxMyA4Ni43MDQ2IDk1Ljc0NDggODUuODUzSDEwMi4yNzdWMTE3Ljk0Nkg5NC43NDMyVjk2LjcxOTdIODguMTY1VjkxLjQ5MTlaIiBmaWxsPSIjMUYyMTI3Ii8+CjxwYXRoIGQ9Ik0xMTAuNzUxIDg1Ljg1NjRIMTE3LjczN1YxMTcuOTQ2SDExMC43NTFWODUuODU2NFoiIGZpbGw9IiNFOTFFNjMiLz4KPHBhdGggZD0iTTE0My41MzMgOTUuODMxOVYxMTcuOTNIMTM2LjU0NlYxMTQuODExQzEzNi4yNiAxMTUuMzQ4IDEzNS44OSAxMTUuODM1IDEzNS40NSAxMTYuMjU1QzEzNC45OCAxMTYuNzA4IDEzNC40NSAxMTcuMDk0IDEzMy44NzUgMTE3LjQwMUMxMzMuMjU4IDExNy43MyAxMzIuNjA3IDExNy45OTEgMTMxLjkzNCAxMTguMTc4QzEzMS4yNTEgMTE4LjM3NCAxMzAuNTQ0IDExOC40NzUgMTI5LjgzMyAxMTguNDc2QzEyOC4zMzMgMTE4LjQ5MyAxMjYuODQ2IDExOC4xODkgMTI1LjQ3MyAxMTcuNTgyQzEyNC4xODYgMTE3LjAxNCAxMjMuMDI4IDExNi4xODcgMTIyLjA3MSAxMTUuMTUzQzEyMS4xMDMgMTE0LjA5IDEyMC4zNTggMTEyLjg0MyAxMTkuODc5IDExMS40ODVDMTE4Ljg0NCAxMDguNTAyIDExOC44NDQgMTA1LjI1NCAxMTkuODc5IDEwMi4yN0MxMjAuMzU4IDEwMC45MTMgMTIxLjEwMyA5OS42NjU4IDEyMi4wNzEgOTguNjAyNUMxMjMuMDI4IDk3LjU2ODggMTI0LjE4NiA5Ni43NDIyIDEyNS40NzMgOTYuMTczNUMxMjYuODQ3IDk1LjU2NzcgMTI4LjMzNCA5NS4yNjM2IDEyOS44MzQgOTUuMjgxNUMxMzAuNTQ1IDk1LjI4MzIgMTMxLjI1MiA5NS4zODM0IDEzMS45MzUgOTUuNTc5M0MxMzIuNjExIDk1Ljc2ODYgMTMzLjI2MyA5Ni4wMzggMTMzLjg3NiA5Ni4zODE5QzEzNC40NTMgOTYuNzA1MiAxMzQuOTgzIDk3LjEwNjEgMTM1LjQ1MSA5Ny41NzM2QzEzNS44NzkgOTcuOTk1IDEzNi4yNDggOTguNDczMSAxMzYuNTQ3IDk4Ljk5NDZWOTUuODMxOUgxNDMuNTMzWk0xMzEuMjk1IDExMi41MkMxMzIuMDM1IDExMi41MzEgMTMyLjc2OSAxMTIuMzc0IDEzMy40NDEgMTEyLjA2MkMxMzQuMDYzIDExMS43NjkgMTM0LjYyMyAxMTEuMzU2IDEzNS4wODYgMTEwLjg0N0MxMzUuNTU0IDExMC4zMjUgMTM1LjkxOCAxMDkuNzE4IDEzNi4xNTkgMTA5LjA1OUMxMzYuNDE5IDEwOC4zNjMgMTM2LjU1IDEwNy42MjUgMTM2LjU0NyAxMDYuODgxQzEzNi41NTcgMTA1LjQzMiAxMzYuMDM3IDEwNC4wMjkgMTM1LjA4NSAxMDIuOTM4QzEzNC42MjcgMTAyLjQxOCAxMzQuMDY3IDEwMS45OTYgMTMzLjQ0IDEwMS43MDFDMTI5LjE0OCAxMDEuNzAxQzEzMC41NTQgMTAxLjI0MiAxMzEuMjk0IDEwMS4yNDJDMTMwLjU1NCAxMDEuMjQyIDEyOS44MjMgMTAxLjM5OSAxMjkuMTQ4IDEwMS43MDFDMTI4LjUyMSAxMDEuOTk3IDEyNy45NjEgMTAyLjQxOCAxMjcuNTAzIDEwMi45MzhDMTI2LjU1MSAxMDQuMDI5IDEyNi4wMzEgMTA1LjQzMiAxMjYuMDQyIDEwNi44ODFDMTI2LjAzNyAxMDcuNjI1IDEyNi4xNjkgMTA4LjM2MyAxMjYuNDI5IDEwOS4wNTlDMTI2LjY3IDEwOS43MTggMTI3LjAzNCAxMTAuMzI1IDEyNy41MDIgMTEwLjg0N0MxMjcuOTY1IDExMS4zNTYgMTI4LjUyNCAxMTEuNzY5IDEyOS4xNDcgMTEyLjA2MkMxMjkuODE5IDExMi4zNzUgMTMwLjU1NCAxMTIuNTMxIDEzMS4yOTUgMTEyLjUyWiIgZmlsbD0iI0U5MUU2MyIvPgo8cGF0aCBkPSJNMTUyLjAyMiAxMTcuOTQ2SDE0NS4wMzVWODUuODU2NEgxNTIuMDIyVjk5LjAxMThDMTUyLjMyMSA5OC40OTAzIDE1Mi42OSA5OC4wMTIyIDE1My4xMTggOTcuNTkwOEMxNTMuNTkxIDk3LjExOTQgMTU0LjEyOSA5Ni43MTgyIDE1NC43MTUgOTYuMzk5MUMxNTUuMzMxIDk2LjA2MDMgMTU1Ljk4MSA5NS43OTExIDE1Ni42NTYgOTUuNTk2NUMxNTcuMzQ2IDk1LjM5NzQgMTU4LjA2MSA5NS4yOTcyIDE1OC43NzkgOTUuMjk4N0MxNjAuMjggOTUuMjgxNiAxNjEuNzY3IDk1LjU4NjQgMTYzLjE0IDk2LjE5MjZDMTY0LjQyNyA5Ni43NjE1IDE2NS41ODUgOTcuNTg4MSAxNjYuNTQyIDk4LjYyMTdDMTY3LjUwOSA5OS42ODUyIDE2OC4yNTUgMTAwLjkzMiAxNjguNzM0IDEwMi4yOUMxNjkuNzY5IDEwNS4yNzMgMTY5Ljc2OSAxMDguNTIxIDE2OC43MzQgMTExLjUwNUMxNjguMjU1IDExMi44NjIgMTY3LjUwOSAxMTQuMTA5IDE2Ni41NDIgMTE1LjE3MkMxNjUuNTg1IDExNi4yMDYgMTY0LjQyNyAxMTcuMDMzIDE2My4xNCAxMTcuNjAyQzE2MS43NjcgMTE4LjIwOCAxNjAuMjggMTE4LjUxMyAxNTguNzc5IDExOC40OTVDMTU4LjA2MSAxMTguNDk3IDE1Ny4zNDYgMTE4LjM5NyAxNTYuNjU2IDExOC4xOThDMTU1Ljk4NSAxMTguMDA1IDE1NS4zMzQgMTE3Ljc0NSAxNTQuNzE1IDExNy40MkMxNTQuMTMxIDExNy4xMTcgMTUzLjU5MyAxMTYuNzMxIDE1My4xMTggMTE2LjI3NEMxNTIuNjc5IDExNS44NTUgMTUyLjMwOSAxMTUuMzY3IDE1Mi4wMjIgMTE0LjgzVjExNy45NDZaTTE1Ny4zMTkgMTEyLjUzNkMxNTguMDQ1IDExMi41NDUgMTU4Ljc2MyAxMTIuMzg4IDE1OS40MiAxMTIuMDc4QzE2MC4wNDMgMTExLjc4NiAxNjAuNjAyIDExMS4zNzMgMTYxLjA2NSAxMTAuODY0QzE2MS41MzMgMTEwLjM0MSAxNjEuODk3IDEwOS43MzUgMTYyLjEzOSAxMDkuMDc1QzE2Mi4zOTggMTA4LjM3OSAxNjIuNTMgMTA3LjY0MSAxNjIuNTI2IDEwNi44OThDMTYyLjUzNiAxMDUuNDQ4IDE2Mi4wMTYgMTA0LjA0NSAxNjEuMDY0IDEwMi45NTVDMTYwLjYwNiAxMDIuNDM0IDE2MC4wNDYgMTAyLjAxMyAxNTkuNDE5IDEwMS43MTdDMTU4Ljc2MyAxMDEuNDA3IDE1OC4wNDUgMTAxLjI1IDE1Ny4zMTkgMTAxLjI1N0MxNTYuNTcyIDEwMS4yNDggMTU1LjgzMSAxMDEuNDA0IDE1NS4xNTEgMTAxLjcxNUMxNTQuNTE1IDEwMi4wMDYgMTUzLjk0OCAxMDIuNDI4IDE1My40ODQgMTAyLjk1M0MxNTIuNTMyIDEwNC4wNDMgMTUyLjAxMiAxMDUuNDQ2IDE1Mi4wMjMgMTA2Ljg5NkMxNTIuMDE5IDEwNy42MzkgMTUyLjE1IDEwOC4zNzcgMTUyLjQxIDEwOS4wNzNDMTUyLjY1MSAxMDkuNzMyIDE1My4wMTUgMTEwLjMzOSAxNTMuNDgzIDExMC44NjFDMTUzLjk1MiAxMTEuMzc1IDE1NC41MTggMTExLjc4OCAxNTUuMTUgMTEyLjA3NkMxNTUuODMgMTEyLjM4OCAxNTYuNTcxIDExMi41NDYgMTU3LjMxOSAxMTIuNTM2WiIgZmlsbD0iI0U5MUU2MyIvPgo8cGF0aCBkPSJNMTgyLjYzOCAxMDQuOTI2QzE4My42MTIgMTA1LjIwMSAxODQuNTI1IDEwNS40OTkgMTg1LjM3OCAxMDUuODJDMTg2LjE3NSAxMDYuMTExIDE4Ni45MjggMTA2LjUxMyAxODcuNjE1IDEwNy4wMTJDMTg4LjI0OSAxMDcuNDggMTg4Ljc3MSAxMDguMDgyIDE4OS4xNDUgMTA4Ljc3N0MxODkuNTUzIDEwOS42MDIgMTg5Ljc0OSAxMTAuNTE2IDE4OS43MTYgMTExLjQzNkMxODkuNzU0IDExMi41OTMgMTg5LjQ4NiAxMTMuNzQgMTg4LjkzOSAxMTQuNzZDMTg4LjQyIDExNS42NjMgMTg3LjY4MiAxMTYuNDIgMTg2Ljc5MyAxMTYuOTYxQzE4NS44MTUgMTE3LjU1MSAxODQuNzQxIDExNy45NjIgMTgzLjYyIDExOC4xNzVDMTgyLjM0OSAxMTguNDI2IDE4MS4wNTYgMTE4LjU0OCAxNzkuNzYxIDExOC41NDFDMTc2LjYyNSAxMTguNTQxIDE3NC4xNTIgMTE3Ljg1NCAxNzIuMzQxIDExNi40NzlDMTcwLjUyOSAxMTUuMTAzIDE2OS45ODkgMTEzLjEzMiAxNjkuOTg5IDExMC41NjRIMTc2LjQ3NEMxNzYuNDc0IDExMS43MjYgMTc2LjgwMSAxMTIuNTU5IDE3Ny40NTUgMTEzLjA2M0MxNzguMTkyIDExMy41OTMgMTc5LjA4NCAxMTMuODU5IDE3OS45OSAxMTMuODE5QzE4MC43MTMgMTEzLjg1IDE4MS40MzEgMTEzLjY4NCAxODIuMDY3IDExMy4zMzhDMTgyLjMzMyAxMTMuMTc0IDE4Mi41NDggMTEyLjkzOSAxODIuNjg5IDExMi42NkMxODIuODI5IDExMi4zODEgMTgyLjg5MSAxMTIuMDY4IDE4Mi44NjYgMTExLjc1N0MxODIuODg1IDExMS4zODIgMTgyLjc2MiAxMTEuMDE0IDE4Mi41MjQgMTEwLjcyNUMxODIuMjI1IDExMC40MTUgMTgxLjg2OCAxMTAuMTY1IDE8MS40NzQgMTA5Ljk5MkMxODAuODgzIDEwOS43MTcgMTgwLjI3MiAxMDkuNDg3IDE3OS42NDcgMTA5LjMwNEMxNzguOTAxIDEwOS4wNzQgMTc4LjAxIDEwOC43OTIgMTc2Ljk3NiAxMDguNDU2QzE3Ni4wNjMgMTA4LjE4MSAxNzUuMTk1IDEwNy44ODMgMTc0LjM3MyAxMDcuNTYyQzE3My42MDIgMTA3LjI2OSAxNzIuODczIDEwNi44NzYgMTcyLjIwNCAxMDYuMzkzQzE3MS41ODEgMTA1LjkzNiAxNzEuMDczIDEwNS4zMzkgMTcwLjcyIDEwNC42NTFDMTcwLjMyNyAxMDMuODIxIDE3MC4xMzkgMTAyLjkwOSAxNzAuMTcyIDEwMS45OTFDMTcwLjE3MiA5OS42OTkxIDE3MS4wNDcgOTguMDAyOSAxNzIuNzk3IDk2LjkwMjdDMTc0LjU0OCA5NS44MDI1IDE3Ni45MTUgOTUuMjUxOSAxNzkuODk4IDk1LjI1MUMxODEuMzEyIDk1LjIyNzIgMTgyLjcyMSA5NS40MjA2IDE4NC4wNzcgOTUuODI0MkMxODUuMTYzIDk2LjE0MzcgMTg2LjE3MiA5Ni42ODE4IDE4Ny4wNDUgOTcuNDA1NkMxODcuODA0IDk4LjA1NTQgMTg4LjQwNSA5OC44NzEgMTg4LjgwMyA5OS43ODk5QzE4OS4yIDEwMC43MTYgMTg5LjQwMiAxMDEuNzE1IDEMDM0IDE3OS42MjQgOTkuODM1NkMxNzguOTgyIDk5LjgxOTkgMTc4LjM0OSA5OS45ODY4IDE3Ny43OTggMTAwLjMxN0MxNzcuNTQ2IDEwMC40NzEgMTc3LjM0IDEwM42OTEgMTc3LjIwMyAxMDAuOTUzQzE3Ny4wNjYgMTAxLjIxNiAxNzcuMDAzIDEwMS41MTEgMTc3LjAyMSAxMDEuODA3QzE3Ny4wMDkgMTAyLjE3MSAxNzcuMTQgMTAyLjUyNiAxNzcuMzg3IDEwMi43OTNDMTc3LjY5NSAxMDMuMDk3IDE3OC4wNiAxMDMuMzM4IDE3OC40NiAxMDMuNTA0QzE3OS4wMzIgMTAzLjc1NCAxNzkuNjE5IDEwMy45NjkgMTgwLjIxOCAxMDQuMTQ1QzE4MC45MTggMTA0LjM2MSAxODEuNzI1IDEwNC42MjEgMTgyLjYzOCAxMDQuOTI2WiIgZmlsbD0iI0U5MUU2MyIvPgo8L2c+CjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwXzU4MF8yNiI+CjxyZWN0IHdpZHRoPSIxNjUiIGhlaWdodD0iMzMuNzQ0MSIgZmlsbD0id2hpdGUiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI1IDg1KSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=" width="16" height="16" alt="AI21">`,
+        'AI21 Labs': `<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjE2IiBoZWlnaHQ9IjIxNiIgdmlld0JveD0iMCAwIDIxNiAyMTYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMTYiIGhlaWdodD0iMjE2IiBmaWxsPSJ3aGl0ZSIvPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDBfNTgwXzI2KSI+CjxwYXRoIGQ9Ik00Ni43NDggMTE3Ljk0Nkw0NS41MTU1IDExNC4wNDlIMzQuMTQzOUwzMi45MTA5IDExNy45NDZIMjUuMDEzN0wzNi40Mjk4IDg1Ljg1NjRINDMuMjM0TDU0Ljc4NzEgMTE3Ljk0Nkg0Ni43NDhaTTM5Ljg1NDkgOTUuMDIzOEwzNS45Mjc2IDEwOC4yMjdINDMuNjkwOEwzOS44NTQ5IDk1LjAyMzhaIiBmaWxsPSIjMUYyMTI3Ii8+CjxwYXRoIGQ9Ik01NS42NjggODUuODU2NEg2My4xNTY4VjExNy45NDZINTUuNjY4Vjg1Ljg1NjRaIiBmaWxsPSIjMUYyMTI3Ii8+CjxwYXRoIGQ9Ik02NS4xNzQ5IDExMS4zOUM2NS41MTExIDEwOS44MDYgNjYuMTA1MSAxMDguMjg4IDY2LjkzMjkgMTA2Ljg5N0M2Ny42NTI4IDEwNS43MjIgNjguNTU0NyAxMDQuNjc2IDY5LjYwNDUgMTAzLjc4QzcwLjY3NjkgMTAyLjg4NyA3MS44MTQgMTAyLjA3NSA3My4wMDYzIDEwMS4zNTEzNzMuOTQ5NiAxMDIuODg3IDcxLjgxNCAxMDIuMDc1IDczLjAwNjMgMTAxLjM1MUM3My45NDk2IDEwMC44IDc0LjgyNDggMTAwLjI3MyA3NS42MzE5IDk5Ljc2ODlDNzYuMzc2NCA5OS4zMTAxIDc3LjA4NjEgOTguNzk2OCA3Ny43NTUzIDk4LjIzMzJDNzguMzMzMyA5Ny43NTEgNzguODIwNSA5Ny4xNjg3IDc5LjE5MzkgOTYuNTEzOUM3OS41NTA0IDk1Ljg2MTIgNzkuNzMxNCA5NS4xMjY1IDc5LjcxOSA5NC4zODIyQzc5LjcxOSA5My4wOTg3IDc5LjM2ODkgOTIuMTc0MSA3OC42Njg5IDkxLjYwODdDNzcuOTI2NSA5MS4wMjk0IDc3LjAwNTcgOTAuNzI5MyA3Ni4wNjYgOTAuNzYwNEM3NC45OTY2IDkwLjcyOCA3My45NTY2IDkxLjExNDQgNzMuMTY2IDkxLjgzOEM3Mi4zODk4IDkyLjU1NjMgNzIuMDAxNyA5My43NTYgNzIuMDAxNyA5NS40MzY5SDY0LjY0OTRDNjQuNjM2MiA5NC4wNDA1IDY0Ljg5MjMgOTIuNjU0OCA2NS40MDMzIDkxLjM1NkM2NS44OTMzIDkwLjEyMDQgNjYuNjQ5NSA4OS4wMDg5IDY3LjYxNzYgODguMTAxMUM2OC42NDg2IDg3LjE0OTggNjkuODYwMSA4Ni40MTcgNzEuMTc5NiA4NS45NDY1QzcyLjczNCA4NS40MDE0IDc0LjM3MjMgODUuMTM3NCA3Ni4wMTg2IDg1LjE2NjhDNzcuNDMxMyA4NS4xNjAyIDc4LjgzNzkgODUuMzUzMiA4MC4xOTcxIDg1Ljc0QzgxLjQ2MTMgODYuMDkyMyA4Mi42NDY5IDg2LjY4MzYgODMuNjkwMyA4Ny40ODIxQzg0LjcxNTYgODguMjg3MSA4NS41MzY5IDg5LjMyMzggODYuMDg3NiA5MC41MDc4Qzg2LjcwOTYgOTEuODgxIDg3LjAxNCA5My4zNzc4IDg2Ljk3NzkgOTQuODg2Qzg2Ljk5NDQgOTYuMTYxNyA4Ni42OTYzIDk3LjQyMTggODYuMTEwMyA5OC41NTM5Qzg1LjU0OSA5OS42MzA3IDg0LjgzMzcgMTAwLjYxOSA4My45ODcgMTAxLjQ4OEM4My4xNjAyIDEwMi4zMzUgODIuMjUgMTAzLjA5NSA4MS4yNzAzIDEwMy43NTdDODAuMjk1MSAxMDQuNDE1IDc5LjQxMjIgMTA0Ljk3MyA3OC42MjE1IDEwNS40MzFDNzcuNTI0NiAxMDYuMTY0IDc2LjYxODkgMTA2Ljc5OCA3NS45MDQ0IDEwNy4zMzRDNzUuMjkxMiAxMDcuNzc5IDc0LjcxODMgMTA4LjI3NyA3NC4xOTIzIDEwOC44MjNDNzMuNzk4NyAxMDkuMjI4IDczLjQ5NTEgMTA5LjcxMyA3My4zMDE1IDExMC4yNDVDNzMuMTI1MSAxMTAuNzkyIDczLjA0MDIgMTExLjM2NSA3My4wNTAzIDExMS45NEg4Ni43NVYxMTcuOTQ2SDY0LjU1ODRDNjQuNTE5MyAxMTUuNzQ1IDY0LjcyNiAxMTMuNTQ1IDY1LjE3NDkgMTExLjM5WiIgZmlsbD0iIzFGMjEyNyIvPgo8cGF0aCBkPSJNODguMTY1IDkxLjQ5MTlDODkuNDQ0NiA5MS41MTgxIDkwLjcyMzIgOTEuNDAyNyA5MS45Nzc3IDkxLjE0NzlDOTIuODE1NyA5MC45ODgyIDkzLjYwNTIgOTAuNjM1MSA5NC4yODQgOTAuMTE2NUM5NC44Mjg3IDg5LjY2MjggOTUuMjI2MSA4OS4wNTYyIDk1LjQyNTUgODguMzc0NEM5NS42NTM3IDg3LjU1NDEgOTUuNzYxMyA4Ni43MDQ2IDk1Ljc0NDggODUuODUzSDEwMi4yNzdWMTE3Ljk0Nkg5NC43NDMyVjk2LjcxOTdIODguMTY1VjkxLjQ5MTlaIiBmaWxsPSIjMUYyMTI3Ii8+CjxwYXRoIGQ9Ik0xMTAuNzUxIDg1Ljg1NjRIMTE3LjczN1YxMTcuOTQ2SDExMC43NTFWODUuODU2NFoiIGZpbGw9IiNFOTFFNjMiLz4KPHBhdGggZD0iTTE0My41MzMgOTUuODMxOVYxMTcuOTNIMTM2LjU0NlYxMTQuODExQzEzNi4yNiAxMTUuMzQ4IDEzNS44OSAxMTUuODM1IDEzNS40NSAxMTYuMjU1QzEzNC45OCAxMTYuNzA4IDEzNC40NSAxMTcuMDk0IDEzMy44NzUgMTE3LjQwMUMxMzMuMjU4IDExNy43MyAxMzIuNjA3IDExNy45OTEgMTMxLjkzNCAxMTguMTc4QzEzMS4yNTEgMTE4LjM3NCAxMzAuNTQ0IDExOC40NzUgMTI5LjgzMyAxMTguNDc2QzEyOC4zMzMgMTE4LjQ5MyAxMjYuODQ2IDExOC4xODkgMTI1LjQ3MyAxMTcuNTgyQzEyNC4xODYgMTE3LjAxNCAxMjMuMDI4IDExNi4xODcgMTIyLjA3MSAxMTUuMTUzQzEyMS4xMDMgMTE0LjA5IDEyMC4zNTggMTEyLjg0MyAxMTkuODc5IDExMS40ODVDMTE4Ljg0NCAxMDguNTAyIDExOC44NDQgMTA1LjI1NCAxMTkuODc5IDEwMi4yN0MxMjAuMzU4IDEwMC45MTMgMTIxLjEwMyA5OS42NjU4IDEyMi4wNzEgOTguNjAyNUMxMjMuMDI4IDk3LjU2ODggMTI0LjE4NiA5Ni43NDIyIDEyNS40NzMgOTYuMTczNUMxMjYuODQ3IDk1LjU2NzcgMTI4LjMzNCA5NS4yNjM2IDEyOS44MzQgOTUuMjgxNUMxMzAuNTQ1IDk1LjI4MzIgMTMxLjI1MiA5NS4zODM0IDEzMS45MzUgOTUuNTc5M0MxMzIuNjExIDk1Ljc2ODYgMTMzLjI2MyA5Ni4wMzggMTMzLjg3NiA5Ni4zODE5QzEzNC40NTMgOTYuNzA1MiAxMzQuOTgzIDk3LjEwNjEgMTM1LjQ1MSA5Ny41NzM2QzEzNS44NzkgOTcuOTk1IDEzNi4yNDggOTguNDczMSAxMzYuNTQ3IDk4Ljk5NDZWOTUuODMxOUgxNDMuNTMzWk0xMzEuMjk1IDExMi41MkMxMzIuMDM1IDExMi41MzEgMTMyLjc2OSAxMTIuMzc0IDEzMy40NDEgMTEyLjA2MkMxMzQuMDYzIDExMS43NjkgMTM0LjYyMyAxMTEuMzU2IDEzNS4wODYgMTEwLjg0N0MxMzUuNTU0IDExMC4zMjUgMTM1LjkxOCAxMDkuNzE4IDEzNi4xNTkgMTA5LjA1OUMxMzYuNDE5IDEwOC4zNjMgMTM2LjU1IDEwNy42MjUgMTM2LjU0NyAxMDYuODgxQzEzNi41NTcgMTA1LjQzMiAxMzYuMDM3IDEwNC4wMjkgMTM1LjA4NSAxMDIuOTM4QzEzNC42MjcgMTAyLjQxOCAxMzQuMDY3IDEwMS45OTYgMTMzLjQ0IDEwMS43MDFDMTI5LjE0OCAxMDEuNzAxQzEzMC41NTQgMTAxLjI0MiAxMzEuMjk0IDEwMS4yNDJDMTMwLjU1NCAxMDEuMjQyIDEyOS44MjMgMTAxLjM5OSAxMjkuMTQ4IDEwMS43MDFDMTI4LjUyMSAxMDEuOTk3IDEyNy45NjEgMTAyLjQxOCAxMjcuNTAzIDEwMi45MzhDMTI2LjU1MSAxMDQuMDI5IDEyNi4wMzEgMTA1LjQzMiAxMjYuMDQyIDEwNi44ODFDMTI2LjAzNyAxMDcuNjI1IDEyNi4xNjkgMTA4LjM2MyAxMjYuNDI5IDEwOS4wNTlDMTI2LjY3IDEwOS43MTggMTI3LjAzNCAxMTAuMzI1IDEyNy41MDIgMTEwLjg0N0MxMjcuOTY1IDExMS4zNTYgMTI4LjUyNCAxMTEuNzY5IDEyOS4xNDcgMTEyLjA2MkMxMjkuODE5IDExMi4zNzUgMTMwLjU1NCAxMTIuNTMxIDEzMS4yOTUgMTEyLjUyWiIgZmlsbD0iI0U5MUU2MyIvPgo8cGF0aCBkPSJNMTUyLjAyMiAxMTcuOTQ2SDE0NS4wMzVWODUuODU2NEgxNTIuMDIyVjk5LjAxMThDMTUyLjMyMSA5OC40OTAzIDE1Mi42OSA5OC4wMTIyIDE1My4xMTggOTcuNTkwOEMxNTMuNTkxIDk3LjExOTQgMTU0LjEyOSA5Ni43MTgyIDE1NC43MTUgOTYuMzk5MUMxNTUuMzMxIDk2LjA2MDMgMTU1Ljk4MSA5NS43OTExIDE1Ni42NTYgOTUuNTk2NUMxNTcuMzQ2IDk1LjM5NzQgMTU4LjA2MSA5NS4yOTcyIDE1OC43NzkgOTUuMjk4N0MxNjAuMjggOTUuMjgxNiAxNjEuNzY3IDk1LjU4NjQgMTYzLjE0IDk2LjE5MjZDMTY0LjQyNyA5Ni43NjE1IDE2NS41ODUgOTcuNTg4MSAxNjYuNTQyIDk4LjYyMTdDMTY3LjUwOSA5OS42ODUyIDE2OC4yNTUgMTAwLjkzMiAxNjguNzM0IDEwMi4yOUMxNjkuNzY5IDEwNS4yNzMgMTY5Ljc2OSAxMDguNTIxIDE2OC43MzQgMTExLjUwNUMxNjguMjU1IDExMi44NjIgMTY3LjUwOSAxMTQuMTA5IDE2Ni41NDIgMTE1LjE3MkMxNjUuNTg1IDExNi4yMDYgMTY0LjQyNyAxMTcuMDMzIDE2My4xNCAxMTcuNjAyQzE2MS43NjcgMTE4LjIwOCAxNjAuMjggMTE4LjUxMyAxNTguNzc5IDExOC40OTVDMTU4LjA2MSAxMTguNDk3IDE1Ny4zNDYgMTE4LjM5NyAxNTYuNjU2IDExOC4xOThDMTU1Ljk4NSAxMTguMDA1IDE1NS4zMzQgMTE3Ljc0NSAxNTQuNzE1IDExNy40MkMxNTQuMTMxIDExNy4xMTcgMTUzLjU5MyAxMTYuNzMxIDE1My4xMTggMTE2LjI3NEMxNTIuNjc5IDExNS44NTUgMTUyLjMwOSAxMTUuMzY3IDE1Mi4wMjIgMTE0LjgzVjExNy45NDZaTTE1Ny4zMTkgMTEyLjUzNkMxNTguMDQ1IDExMi41NDUgMTU4Ljc2MyAxMTIuMzg4IDE1OS40MiAxMTIuMDc4QzE2MC4wNDMgMTExLjc4NiAxNjAuNjAyIDExMS4zNzMgMTYxLjA2NSAxMTAuODY0QzE2MS41MzMgMTEwLjM0MSAxNjEuODk3IDEwOS43MzUgMTYyLjEzOSAxMDkuMDc1QzE2Mi4zOTggMTA4LjM3OSAxNjIuNTMgMTA3LjY0MSAxNjIuNTI2IDEwNi44OThDMTYyLjUzNiAxMDUuNDQ4IDE2Mi4wMTYgMTA0LjA0NSAxNjEuMDY0IDEwMi45NTVDMTYwLjYwNiAxMDIuNDM0IDE2MC4wNDYgMTAyLjAxMyAxNTkuNDE5IDEwMS43MTdDMTU4Ljc2MyAxMDEuNDA3IDE1OC4wNDUgMTAxLjI1IDE1Ny4zMTkgMTAxLjI1N0MxNTYuNTcyIDEwMS4yNDggMTU1LjgzMSAxMDEuNDA0IDE1NS4xNTEgMTAxLjcxNUMxNTQuNTE1IDEwMi4wMDYgMTUzLjk0OCAxMDIuNDI4IDE1My40ODQgMTAyLjk1M0MxNTIuNTMyIDEwNC4wNDMgMTUyLjAxMiAxMDUuNDQ2IDE1Mi4wMjMgMTA2Ljg5NkMxNTIuMDE5IDEwNy42MzkgMTUyLjE1IDEwOC4zNzcgMTUyLjQxIDEwOS4wNzNDMTUyLjY1MSAxMDkuNzMyIDE1My4wMTUgMTEwLjMzOSAxNTMuNDgzIDExMC44NjFDMTUzLjk1MiAxMTEuMzc1IDE1NC41MTggMTExLjc4OCAxNTUuMTUgMTEyLjA3NkMxNTUuODMgMTEyLjM4OCAxNTYuNTcxIDExMi41NDYgMTU3LjMxOSAxMTIuNTM2WiIgZmlsbD0iI0U5MUU2MyIvPgo8cGF0aCBkPSJNMTgyLjYzOCAxMDQuOTI2QzE4My42MTIgMTA1LjIwMSAxODQuNTI1IDEwNS40OTkgMTg1LjM3OCAxMDUuODJDMTg2LjE3NSAxMDYuMTExIDE4Ni45MjggMTA2LjUxMyAxODcuNjE1IDEwNy4wMTJDMTg4LjI0OSAxMDcuNDggMTg4Ljc3MSAxMDguMDgyIDE4OS4xNDUgMTA4Ljc3N0MxODkuNTUzIDEwOS42MDIgMTg5Ljc0OSAxMTAuNTE2IDE4OS43MTYgMTExLjQzNkMxODkuNzU0IDExMi41OTMgMTg5LjQ4NiAxMTMuNzQgMTg4LjkzOSAxMTQuNzZDMTg4LjQyIDExNS42NjMgMTg3LjY4MiAxMTYuNDIgMTg2Ljc5MyAxMTYuOTYxQzE4NS44MTUgMTE3LjU1MSAxODQuNzQxIDExNy45NjIgMTgzLjYyIDExOC4xNzVDMTgyLjM0OSAxMTguNDI2IDE4MS4wNTYgMTE4LjU0OCAxNzkuNzYxIDExOC41NDFDMTc2LjYyNSAxMTguNTQxIDE3NC4xNTIgMTE3Ljg1NCAxNzIuMzQxIDExNi40NzlDMTcwLjUyOSAxMTUuMTAzIDE2OS45ODkgMTEzLjEzMiAxNjkuOTg5IDExMC41NjRIMTc2LjQ3NEMxNzYuNDc0IDExMS43MjYgMTc2LjgwMSAxMTIuNTU5IDE3Ny40NTUgMTEzLjA2M0MxNzguMTkyIDExMy41OTMgMTc5LjA4NCAxMTMuODU5IDE3OS45OSAxMTMuODE5QzE4MC43MTMgMTEzLjg1IDE4MS40MzEgMTEzLjY4NCAxODIuMDY3IDExMy4zMzhDMTgyLjMzMyAxMTMuMTc0IDE4Mi41NDggMTEyLjkzOSAxODIuNjg5IDExMi42NkMxODIuODI5IDExMi4zODEgMTgyLjg5MSAxMTIuMDY4IDE4Mi44NjYgMTExLjc1N0MxODIuODg1IDExMS4zODIgMTgyLjc2MiAxMTEuMDE0IDE4Mi41MjQgMTEwLjcyNUMxODIuMjI1IDExMC40MTUgMTgxLjg2OCAxMTAuMTY1IDE8MS40NzQgMTA5Ljk5MkMxODAuODgzIDEwOS43MTcgMTgwLjI3MiAxMDkuNDg3IDE3OS42NDcgMTA5LjMwNEMxNzguOTAxIDEwOS4wNzQgMTc4LjAxIDEwOC43OTIgMTc2Ljk3NiAxMDguNDU2QzE3Ni4wNjMgMTA4LjE4MSAxNzUuMTk1IDEwNy44ODMgMTc0LjM3MyAxMDcuNTYyQzE3My42MDIgMTA3LjI2OSAxNzIuODczIDEwNi44NzYgMTcyLjIwNCAxMDYuMzkzQzE3MS41ODEgMTA1LjkzNiAxNzEuMDczIDEwNS4zMzkgMTcwLjcyIDEwNC42NTFDMTcwLjMyNyAxMDMuODIxIDE3MC4xMzkgMTAyLjkwOSAxNzAuMTcyIDEwMS45OTFDMTcwLjE3MiA5OS42OTkxIDE3MS4wNDcgOTguMDAyOSAxNzIuNzk3IDk2LjkwMjdDMTc0LjU0OCA5NS44MDI1IDE3Ni45MTUgOTUuMjUxOSAxNzkuODk4IDk1LjI1MUMxODEuMzEyIDk1LjIyNzIgMTgyLjcyMSA5NS40MjA2IDE4NC4wNzcgOTUuODI0MkMxODUuMTYzIDk2LjE0MzcgMTg2LjE3MiA5Ni42ODE4IDE4Ny4wNDUgOTcuNDA1NkMxODcuODA0IDk4LjA1NTQgMTg4LjQwNSA5OC44NzEgMTg4LjgwMyA5OS43ODk5QzE4OS4yIDEwMC43MTYgMTg5LjQwMiAxMDEuNzE1IDEMMzc0IDE3OS42MjQgOTkuODM1NkMxNzguOTgyIDk5LjgxOTkgMTc4LjM0OSA5OS45ODY4IDE3Ny43OTggMTAwLjMxN0MxNzcuNTQ2IDEwMC40NzEgMTc3LjM0IDEwM42OTEgMTc3LjIwMyAxMDAuOTUzQzE3Ny4wNjYgMTAxLjIxNiAxNzcuMDAzIDEwMS41MTEgMTc3LjAyMSAxMDEuODA3QzE3Ny4wMDkgMTAyLjE3MSAxNzcuMTQgMTAyLjUyNiAxNzcuMzg3IDEwMi43OTNDMTc3LjY5NSAxMDMuMDk3IDE3OC4wNiAxMDMuMzM4IDE3OC40NiAxMDMuNTA0QzE3OS4wMzIgMTAzLjc1NCAxNzkuNjE5IDEwMy45NjkgMTgwLjIxOCAxMDQuMTQ1QzE4MC45MTggMTA0LjM2MSAxODEuNzI1IDEwNC42MjEgMTgyLjYzOCAxMDQuOTI2WiIgZmlsbD0iI0U5MUU2MyIvPgo8L2c+CjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwXzU4MF8yNiI+CjxyZWN0IHdpZHRoPSIxNjUiIGhlaWdodD0iMzMuNzQ0MSIgZmlsbD0id2hpdGUiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI1IDg1KSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=" width="16" height="16" alt="AI21">`,
         'Google': `<img src="https://www.gstatic.com/lamda/images/gemini_sparkle_aurora_33f86dc0c0257da337c63.svg" width="16" height="16" alt="Google" >`,
         'Gemini': `<img src="https://www.gstatic.com/lamda/images/gemini_sparkle_aurora_33f86dc0c0257da337c63.svg" width="16" height="16" alt="Google" >`,
         'Anthropic': `<img src="https://cdn.brandfetch.io/idmJWF3N06/theme/light/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1721803183866" width="16" height="16" alt="Anthropic" >`
@@ -1727,19 +1847,19 @@
       });
     }
 
-    // TODO: Replace GPT-4.1 Nano with Cerebras models (especially less used ones like llama 70B)
+    // TODO: Replace GPT-4.1 mini with Cerebras models (especially less used ones like llama 70B)
     // when external API keys get added due to per-model rate limits
     function generateChatTitle(firstUserMessage) {
       const token = localStorage.getItem('gh_token');
-      if (!token || !firstUserMessage) return Promise.resolve(null);
+      if (!token || !token.trim() || token.trim()=="" || token == "" || !firstUserMessage) return Promise.resolve(null);
 
-      // Use GPT-4.1 Nano for title generation (lightweight and fast)
-      const titleGenerationModel = 'openai/gpt-4o-mini'; // TODO: Replace with Cerebras model when available
+      // Use selected title generation model or default to GPT-4.1 Mini
+      const titleGenerationModel = localStorage.getItem('selected_title_model') || 'openai/gpt-4.1-mini';
 
-      const titleSystemPrompt = `You are a chat title generator. Generate a concise, descriptive title (2-6 words) for a conversation based on the user's first message.
+      const titleSystemPrompt = `You are a chat title generator. Generate a concise, descriptive title (2-10 words) for a conversation based on the user's first message.
 
 Rules:
-- Keep it under 6 words
+- Keep it under 10 words
 - Make it descriptive but not too specific
 - Don't use quotes or special characters
 - Focus on the main topic or intent
@@ -1747,9 +1867,10 @@ Rules:
 
 Examples:
 User: "How do I make pasta?" → "Pasta Cooking Help"
-User: "Explain quantum computing" → "Quantum Computing Basics"
+User: "Explain quantum computing" → "Quantum Computing Explained"
 User: "Debug my Python code" → "Python Code Debugging"
-User: "What's the weather like?" → "Weather Information"`;
+User: "What's the weather like?" → "Weather Information"
+User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
 
       return fetch('https://models.github.ai/inference/chat/completions', {
         method: 'POST',
@@ -1763,7 +1884,6 @@ User: "What's the weather like?" → "Weather Information"`;
             { role: 'system', content: titleSystemPrompt },
             { role: 'user', content: firstUserMessage }
           ],
-          max_tokens: 20,
           temperature: 0.7
         })
       })
@@ -2108,7 +2228,7 @@ User: "What's the weather like?" → "Weather Information"`;
         localStorage.setItem('chat_history', JSON.stringify(chats));
       }
     }
-
+    stopBtn.classList.add('hidden'); // Hide stop button by default
     function sendMessage(){
       const msg = messageInput.value.trim();
       if(!msg) return;
@@ -2135,7 +2255,7 @@ User: "What's the weather like?" → "Weather Information"`;
       // TODO: When external API keys are added, implement intelligent model routing
       // to prefer Cerebras models (especially less used ones like llama 70B) for better rate limits
 
-      if(!token) {
+      if(!token || !token.trim() || token.trim()=="" || token == "") {
         streamingResponse.classList.remove('streaming');
         streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No authentication token found. Please sign in with GitHub.</div>';
         resetSendButton();
@@ -2169,7 +2289,7 @@ User: "What's the weather like?" → "Weather Information"`;
           messages,
           model: model.id,
           stream: true,
-          max_tokens: 4000
+//TODO The token limit should be adjustable, but it does not matter for Github Models as they have no TPM/TPD limits
         }),
         signal: currentAbortController.signal
       })
@@ -2305,7 +2425,7 @@ User: "What's the weather like?" → "Weather Information"`;
       const modelId = selectedModelElement?.dataset.modelId;
       const model = models.find(m => m.id === modelId);
 
-      if(!token) {
+      if(!token || !token.trim() || token.trim()=="" || token == "") {
         streamingResponse.classList.remove('streaming');
         streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No authentication token found.</div>';
         return;
@@ -2332,8 +2452,7 @@ User: "What's the weather like?" → "Weather Information"`;
         body: JSON.stringify({
           messages,
           model: model.id,
-          stream: true,
-          max_tokens: 4000
+          stream: true
         })
       })
       .then(response => {
@@ -2447,6 +2566,7 @@ User: "What's the weather like?" → "Weather Information"`;
         .then(data=>{
           if(!data.access_token){ throw new Error('No access token in response'); }
           localStorage.setItem('gh_token', data.access_token);
+          const octokit = new Octokit({ auth: data.access_token });
           history.replaceState({}, document.title, OAUTH_REDIRECT_URI);
           fetchModels(); loadUserProfile(); showChatPage();
         })
@@ -2455,20 +2575,18 @@ User: "What's the weather like?" → "Weather Information"`;
 
     function fetchModels(){
       const token = localStorage.getItem('gh_token');
-      if(!token) return;
+      if(!token || !token.trim() || token.trim()=="" || token == "") return;
       const statusEl = document.getElementById('networkStatus');
 
       // TODO: Add Cerebras models when external API keys are implemented
       // Cerebras offers better rate limits per model (especially for less used models like llama 70B)
-      const fallback = [
-        { id:'openai/gpt-4o-mini', name:'GPT-4o Mini', publisher:'OpenAI', rate_limit_tier:'High', limits:{max_input_tokens:8000,max_output_tokens:4000}}
-      ];
-
+      const fallback = [{"id":"openai/gpt-4.1","name":"OpenAI GPT-4.1","publisher":"OpenAI","summary":"gpt-4.1 outperforms gpt-4o across the board, with major gains in coding, instruction following, and long-context understanding","rate_limit_tier":"high","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-04-14","capabilities":["streaming","tool-calling"],"limits":{"max_input_tokens":1048576,"max_output_tokens":32768},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4-1"},{"id":"openai/gpt-4.1-mini","name":"OpenAI GPT-4.1-mini","publisher":"OpenAI","summary":"gpt-4.1-mini outperform gpt-4o-mini across the board, with major gains in coding, instruction following, and long-context handling","rate_limit_tier":"low","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-04-14","capabilities":["streaming","tool-calling"],"limits":{"max_input_tokens":1048576,"max_output_tokens":32768},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4-1-mini"},{"id":"openai/gpt-4.1-nano","name":"OpenAI GPT-4.1-nano","publisher":"OpenAI","summary":"gpt-4.1-nano provides gains in coding, instruction following, and long-context handling along with lower latency and cost","rate_limit_tier":"low","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-04-14","capabilities":["streaming","tool-calling"],"limits":{"max_input_tokens":1048576,"max_output_tokens":32768},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4-1-nano"},{"id":"openai/gpt-4o","name":"OpenAI GPT-4o","publisher":"OpenAI","summary":"OpenAI's most advanced multimodal model in the gpt-4o family. Can handle both text and image inputs.","rate_limit_tier":"high","supported_input_modalities":["text","image","audio"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2024-11-20","capabilities":["agents","assistants","streaming","tool-calling"],"limits":{"max_input_tokens":131072,"max_output_tokens":16384},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4o"},{"id":"openai/gpt-4o-mini","name":"OpenAI GPT-4o mini","publisher":"OpenAI","summary":"An affordable, efficient AI solution for diverse text and image tasks.","rate_limit_tier":"low","supported_input_modalities":["text","image","audio"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2024-07-18","capabilities":["agents","assistants","streaming","tool-calling"],"limits":{"max_input_tokens":131072,"max_output_tokens":4096},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4o-mini"},{"id":"openai/gpt-5","name":"OpenAI gpt-5","publisher":"OpenAI","summary":"gpt-5 is designed for logic-heavy and multi-step tasks. ","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5"},{"id":"openai/gpt-5-chat","name":"OpenAI gpt-5-chat (preview)","publisher":"OpenAI","summary":"gpt-5-chat (preview) is an advanced, natural, multimodal, and context-aware conversations for enterprise applications.","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5-chat"},{"id":"openai/gpt-5-mini","name":"OpenAI gpt-5-mini","publisher":"OpenAI","summary":"gpt-5-mini is a lightweight version for cost-sensitive applications.","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5-mini"},{"id":"openai/gpt-5-nano","name":"OpenAI gpt-5-nano","publisher":"OpenAI","summary":"gpt-5-nano is optimized for speed, ideal for applications requiring low latency. ","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5-nano"},{"id":"openai/o1","name":"OpenAI o1","publisher":"OpenAI","summary":"Focused on advanced reasoning and solving complex problems, including math and science tasks. Ideal for applications that require deep contextual understanding and agentic workflows.","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["reasoning","multilingual","coding"],"registry":"azure-openai","version":"2024-12-17","capabilities":["reasoning","tool-calling"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/o1"},{"id":"openai/o1-mini","name":"OpenAI o1-mini","publisher":"OpenAI","summary":"Smaller, faster, and 80% cheaper than o1-preview, performs well at code generation and small context operations.","rate_limit_tier":"custom","supported_input_modalities":["text"],"supported_output_modalities":["text"],"tags":["reasoning","multilingual","coding"],"registry":"azure-openai","version":"2024-09-12","capabilities":["reasoning","streaming"],"limits":{"max_input_tokens":128000,"max_output_tokens":65536},"html_url":"https://github.com/marketplace/models/azure-openai/o1-mini"}]
       fetch(`${API_BASE}/api/models`,{headers:{Authorization:`Bearer ${token}`}})
         .then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
         .then(data=>{
           models = Array.isArray(data)? data : (data.models||fallback);
           renderDropdownItems(models);
+          renderTitleDropdownItems(models);
 
           // Restore previously selected model or select first available
           const savedModelId = localStorage.getItem('selected_model');
@@ -2477,12 +2595,22 @@ User: "What's the weather like?" → "Weather Information"`;
             : (models.length ? models[0].id : null);
 
           if(modelToSelect) selectModel(modelToSelect);
+
+          // Restore previously selected title model or select GPT-4.1 Mini as default
+          const savedTitleModelId = localStorage.getItem('selected_title_model');
+          const titleModelToSelect = savedTitleModelId && models.find(m => m.id === savedTitleModelId)
+            ? savedTitleModelId
+            : models.find(m => m.id === 'openai/gpt-4.1-mini')?.id || (models.length ? models[0].id : null);
+
+          if(titleModelToSelect) selectTitleModel(titleModelToSelect);
+
           statusEl?.classList.add('hidden');
         })
         .catch(err=>{
           console.warn('Model fetch failed', err);
           models = fallback;
           renderDropdownItems(models);
+          renderTitleDropdownItems(models);
 
           // Restore previously selected model or select first available
           const savedModelId = localStorage.getItem('selected_model');
@@ -2491,6 +2619,15 @@ User: "What's the weather like?" → "Weather Information"`;
             : (models.length ? models[0].id : null);
 
           if(modelToSelect) selectModel(modelToSelect);
+
+          // Restore previously selected title model or select GPT-4.1 Mini as default
+          const savedTitleModelId = localStorage.getItem('selected_title_model');
+          const titleModelToSelect = savedTitleModelId && models.find(m => m.id === savedTitleModelId)
+            ? savedTitleModelId
+            : models.find(m => m.id === 'openai/gpt-4.1-mini')?.id || (models.length ? models[0].id : null);
+
+          if(titleModelToSelect) selectTitleModel(titleModelToSelect);
+
           if(statusEl){ statusEl.textContent = 'Using fallback models'; statusEl.classList.remove('hidden'); }
         });
     }
