@@ -7,20 +7,21 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
-  <script type="module">
-  try {
-    const { Octokit } = await import("https://esm.sh/@octokit/core");
-    window.Octokit = Octokit;
-  } catch(e) {
-    console.warn('Octokit failed to load, authentication will not work');
-    window.Octokit = class MockOctokit { constructor() {} };
-  }
+  <script>
+  // Mock Octokit for fallback
+  window.Octokit = class MockOctokit { 
+    constructor() {} 
+    rest = { 
+      users: { getAuthenticated: () => Promise.reject(new Error('Mock Octokit')) } 
+    }; 
+  };
+  console.warn('Using mock Octokit, authentication will not work');
   </script>
   <script>
   // Fallback for marked.js if CDN fails
   if (typeof marked === 'undefined') {
     window.marked = {
-      parse: function(text) { return text.replace(/\n/g, '<br>'); },
+      parse: function(text) { return text.replace(/\n/g, '&lt;br&gt;'); },
       setOptions: function() {}
     };
   }
@@ -2384,108 +2385,8 @@ Rules:
     window.switchToBranch = switchToBranch;
     window.createNewBranch = createNewBranch;
     window.updateBranchNavigation = updateBranchNavigation;
-    function createNewBranch(chat, fromIndex, newMessage) {
-      if (!chat.branches) initializeBranches(chat);
-      
-      const currentBranch = getCurrentBranch(chat);
-      const newBranch = currentBranch.slice(0, fromIndex);
-      if (newMessage) {
-        newBranch.push(newMessage);
-      }
-      
-      chat.branches.push(newBranch);
-      chat.currentBranch = chat.branches.length - 1;
-      return chat.currentBranch;
-    }
     
-    // Continue with next functions...
-        const branchIndex = createNewBranch(chat, messageIndex, newMessage);
-        
-        // Update display
-        messageContent.innerHTML = marked.parse(newText);
-        editor.remove();
-        controls.remove();
-        
-        // Regenerate assistant response if user message was edited
-        if (container.dataset.role === 'user') {
-          // Remove all messages after this one in current view
-          const allMessages = chatBox.querySelectorAll('.user-bubble, .assistant-response');
-          for (let i = messageIndex + 1; i < allMessages.length; i++) {
-            allMessages[i].remove();
-          }
-          
-          // Update the chat data to only include messages up to the edit
-          const newBranch = chat.branches[chat.currentBranch];
-          newBranch.splice(messageIndex + 1);
-          localStorage.setItem('chat_history', JSON.stringify(chats));
-          
-          // Generate new assistant response
-          setTimeout(() => generateAssistantForLastUser(), 100);
-        }
-        
-        // Update branch navigation
-        updateBranchNavigation();
-      };
-      
-      // Cancel function
-      const cancelEdit = () => {
-        editor.remove();
-        controls.remove();
-      };
-      
-      // Event handlers
-      controls.querySelector('.save').addEventListener('click', saveEdit);
-      controls.querySelector('.cancel').addEventListener('click', cancelEdit);
-      
-      editor.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          cancelEdit();
-        } else if (e.key === 'Enter' && e.ctrlKey) {
-          e.preventDefault();
-          saveEdit();
-        }
-      });
-      
-      // Replace content with editor
-      messageContent.style.display = 'none';
-      messageContent.parentNode.insertBefore(editor, messageContent);
-      messageContent.parentNode.insertBefore(controls, messageContent.nextSibling);
-      
-      // Focus and resize
-      editor.focus();
-      autoResize();
-    };
-
-      return fetch('https://models.github.ai/inference/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: titleGenerationModel,
-          messages: [
-            { role: 'system', content: titleSystemPrompt },
-            { role: 'user', content: firstUserMessage }
-          ],
-          temperature: 0.7
-        })
-      })
-      .then(response => {
-        if (!response.ok) throw new Error('Title generation failed');
-        return response.json();
-      })
-      .then(data => {
-        const title = data.choices?.[0]?.message?.content?.trim();
-        return title || null;
-      })
-      .catch(error => {
-        console.warn('Failed to generate chat title:', error);
-        return null;
-      });
-    }
-    // Edit functionality for chat history
+    function generateChatTitle(firstUserMessage) {
     document.getElementById('editChatsBtn')?.addEventListener('click', () => {
       const sidebar = document.getElementById('sidebar');
       const btn = document.getElementById('editChatsBtn');
@@ -3072,14 +2973,6 @@ Rules:
       return -1; // placeholder
     }
     
-    function switchToBranch(chat, branchIndex) {
-      if (!chat || !chat.branches || branchIndex >= chat.branches.length) return;
-
-      chat.currentBranch = branchIndex;
-      localStorage.setItem('chat_history', JSON.stringify(chats));
-      loadChat(currentChatId);
-    }
-
     function renderBranchNavigation(messageIndex) {
       const chat = chats.find(c => c.id === currentChatId);
       if (!chat?.branches || chat.branches.length <= 1) return null;
@@ -3126,50 +3019,6 @@ Rules:
       generateAssistantForLastUser();
     };
 
-    function rebuildMessagesFromDOM(){
-      const containers = chatBox.querySelectorAll('.user-bubble, .assistant-response');
-      const rebuilt = [];
-      containers.forEach(container => {
-        const role = container.dataset.role;
-        if(!role) return;
-        const text = container.querySelector('.markdown-body').innerText.trim();
-        rebuilt.push({role, content: text});
-      });
-      const chat = chats.find(c => c.id === currentChatId);
-      if(chat){
-        // Initialize branches if needed
-        if (!chat.branches) {
-          chat.branches = [chat.messages || []];
-          chat.currentBranch = 0;
-          delete chat.messages;
-        }
-        
-        const sys = document.getElementById('systemPromptText')?.value.trim();
-        const filteredRebuilt = rebuilt.filter(m => m.role !== 'system');
-        chat.branches[chat.currentBranch] = sys ? [{role:'system', content:sys}, ...filteredRebuilt] : filteredRebuilt;
-        localStorage.setItem('chat_history', JSON.stringify(chats));
-      }
-    }
-      if (!chat.branches) {
-        chat.branches = [chat.messages || []];
-        chat.currentBranch = 0;
-        delete chat.messages;
-      }
-
-      const currentBranch = chat.branches[chat.currentBranch];
-      let messages = [...currentBranch];
-      const sys = document.getElementById('systemPromptText')?.value.trim();
-      if(sys && (!messages[0] || messages[0].role !== 'system')) {
-        messages.unshift({role: 'system', content: sys});
-      }
-      
-      const chat = chats.find(c => c.id === currentChatId);
-      if(chat){
-        const sys = document.getElementById('systemPromptText')?.value.trim();
-        chat.messages = sys ? [{role:'system', content:sys}, ...rebuilt.filter(m => m.role !== 'system')] : rebuilt;
-        localStorage.setItem('chat_history', JSON.stringify(chats));
-      }
-    }
     stopBtn.classList.add('hidden'); // Hide stop button by default
     function sendMessage(){
       const msg = messageInput.value.trim();
@@ -3264,27 +3113,27 @@ Rules:
               // Finalize the message
               streamingResponse.classList.remove('streaming');
               streamingResponse.innerHTML = `
-                <div class="markdown-body">${marked.parse(fullContent || '*No response received*')}&lt;/div&gt;
-                <div class="message-actions">
-                  <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="23,4 23,10 17,10"></polyline>
-                      <polyline points="1,20 1,14 7,14"></polyline>
-                      <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
-                    </svg>
-                  </button>
-                  <button class="action-btn" onclick="copyMessage(this)" title="Copy">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                  </button>
-                  <button class="action-btn" onclick="deleteMessage(this)" title="Delete">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3,6 5,6 21,6"></polyline>
-                      <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
-                    </svg>
-                  </button>
+                &lt;div class="markdown-body"&gt;${marked.parse(fullContent || '*No response received*')}&lt;/div&gt;
+                &lt;div class="message-actions"&gt;
+                  &lt;button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate"&gt;
+                    &lt;svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+                      &lt;polyline points="23,4 23,10 17,10"&gt;&lt;/polyline&gt;
+                      &lt;polyline points="1,20 1,14 7,14"&gt;&lt;/polyline&gt;
+                      &lt;path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"&gt;&lt;/path&gt;
+                    &lt;/svg&gt;
+                  &lt;/button&gt;
+                  &lt;button class="action-btn" onclick="copyMessage(this)" title="Copy"&gt;
+                    &lt;svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+                      &lt;rect x="9" y="9" width="13" height="13" rx="2" ry="2"&gt;&lt;/rect&gt;
+                      &lt;path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"&gt;&lt;/path&gt;
+                    &lt;/svg&gt;
+                  &lt;/button&gt;
+                  &lt;button class="action-btn" onclick="deleteMessage(this)" title="Delete"&gt;
+                    &lt;svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+                      &lt;polyline points="3,6 5,6 21,6"&gt;&lt;/polyline&gt;
+                      &lt;path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"&gt;&lt;/path&gt;
+                    &lt;/svg&gt;
+                  &lt;/button&gt;
                 &lt;/div&gt;
               `;
               streamingResponse.dataset.role = 'assistant';
@@ -3435,27 +3284,27 @@ Rules:
             if(done) {
               streamingResponse.classList.remove('streaming');
               streamingResponse.innerHTML = `
-                <div class="markdown-body">${marked.parse(fullContent || '*No response received*')}&lt;/div&gt;
-                <div class="message-actions">
-                  <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="23,4 23,10 17,10"></polyline>
-                      <polyline points="1,20 1,14 7,14"></polyline>
-                      <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
-                    </svg>
-                  </button>
-                  <button class="action-btn" onclick="copyMessage(this)" title="Copy">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                  </button>
-                  <button class="action-btn" onclick="deleteMessage(this)" title="Delete">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3,6 5,6 21,6"></polyline>
-                      <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
-                    </svg>
-                  </button>
+                &lt;div class="markdown-body"&gt;${marked.parse(fullContent || '*No response received*')}&lt;/div&gt;
+                &lt;div class="message-actions"&gt;
+                  &lt;button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate"&gt;
+                    &lt;svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+                      &lt;polyline points="23,4 23,10 17,10"&gt;&lt;/polyline&gt;
+                      &lt;polyline points="1,20 1,14 7,14"&gt;&lt;/polyline&gt;
+                      &lt;path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"&gt;&lt;/path&gt;
+                    &lt;/svg&gt;
+                  &lt;/button&gt;
+                  &lt;button class="action-btn" onclick="copyMessage(this)" title="Copy"&gt;
+                    &lt;svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+                      &lt;rect x="9" y="9" width="13" height="13" rx="2" ry="2"&gt;&lt;/rect&gt;
+                      &lt;path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"&gt;&lt;/path&gt;
+                    &lt;/svg&gt;
+                  &lt;/button&gt;
+                  &lt;button class="action-btn" onclick="deleteMessage(this)" title="Delete"&gt;
+                    &lt;svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+                      &lt;polyline points="3,6 5,6 21,6"&gt;&lt;/polyline&gt;
+                      &lt;path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"&gt;&lt;/path&gt;
+                    &lt;/svg&gt;
+                  &lt;/button&gt;
                 &lt;/div&gt;
               `;
               streamingResponse.dataset.role = 'assistant';
