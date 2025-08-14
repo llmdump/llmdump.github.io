@@ -7,21 +7,15 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
-  <script>
-  // Mock Octokit for fallback
-  window.Octokit = class MockOctokit { 
-    constructor() {} 
-    rest = { 
-      users: { getAuthenticated: () => Promise.reject(new Error('Mock Octokit')) } 
-    }; 
-  };
-  console.warn('Using mock Octokit, authentication will not work');
+  <script type="module">
+  import { Octokit } from "https://esm.sh/@octokit/core";
+  window.Octokit = Octokit;
   </script>
   <script>
   // Fallback for marked.js if CDN fails
   if (typeof marked === 'undefined') {
     window.marked = {
-      parse: function(text) { return text.replace(/\n/g, '&lt;br&gt;'); },
+      parse: function(text) { return text.replace(/\n/g, '<br>'); },
       setOptions: function() {}
     };
   }
@@ -1352,7 +1346,7 @@
 <body class="m-0 p-0">
   <div class="bg-blobs">
     <div class="blob b1"></div>
-  &lt;/div&gt;
+  </div>
 
   <!-- Login Page -->
   <div id="loginPage" class="flex flex-col min-h-screen items-center justify-center px-4">
@@ -1370,13 +1364,13 @@
             <rect x="0" y="0" width="100" height="100" rx="24" ry="24" fill="url(#lgMain)" />
             <path fill="#fff" fill-opacity=".95" d="M50 20 20 35l30 15 30-15L50 20Zm0 15-30 15 30 15 30-15-30-15Zm0 15-30 15 30 15 30-15-30-15Z" />
           </svg>
-        &lt;/div&gt;
+        </div>
         <div class="logo-word" style="font-size:52px; line-height:1;">
           <span class="pre">llm</span><span class="cursor">|</span><span class="post">dump</span>
-        &lt;/div&gt;
-      &lt;/div&gt;
-      <div class="login-subtext">Login to LLM Dump&lt;/div&gt;
-    &lt;/div&gt;
+        </div>
+      </div>
+      <div class="login-subtext">Login to LLM Dump</div>
+    </div>
 
     <div class="glass p-6 w-full max-w-md">
       <button id="githubLogin" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-3 rounded w-full flex items-center justify-center gap-2 mb-4">
@@ -1391,8 +1385,8 @@
         <div class="tooltip">
           <span class="text-xs bg-gray-700 rounded-full w-5 h-5 flex items-center justify-center cursor-help">i</span>
           <span class="tooltiptext">Create a GitHub Personal Access Token with 'models' scope at github.com/settings/tokens</span>
-        &lt;/div&gt;
-      &lt;/div&gt;
+        </div>
+      </div>
 
       <input type="password" id="patToken" class="w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-700 mb-3" placeholder="github_pat_..." />
       <button id="usePat" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-3 rounded w-full flex items-center justify-center gap-2">
@@ -1401,8 +1395,8 @@
         </svg>
         Use Token
       </button>
-    &lt;/div&gt;
-  &lt;/div&gt;
+    </div>
+  </div>
 
   <!-- Chat Page -->
   <div id="chatPage" class="flex h-screen hidden">
@@ -1429,30 +1423,30 @@
             <rect width="100" height="100" rx="24" ry="24" fill="url(#lgMobile)" />
             <path fill="#fff" fill-opacity=".95" d="M50 20 20 35l30 15 30-15L50 20Zm0 15-30 15 30 15 30-15-30-15Zm0 15-30 15 30 15 30-15-30-15Z" />
           </svg>
-        &lt;/div&gt;
+        </div>
         <span style="font-family:'Roboto Mono', monospace; font-size:16px; font-weight:500;">llm|dump</span>
-      &lt;/div&gt;
+      </div>
 
       <div class="mobile-model-selector">
         <div class="custom-dropdown">
           <div id="mobileDropdownSelected" class="dropdown-selected">
             <div id="mobileSelectedModelIcon" class="model-icon bg-gray-700 flex items-center justify-center">
               <span style="font-size:10px;">G</span>
-            &lt;/div&gt;
+            </div>
             <span id="mobileSelectedModelName" style="font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">GPT</span>
-          &lt;/div&gt;
+          </div>
           <div id="mobileDropdownContent" class="dropdown-content">
             <div class="dropdown-search-container">
               <svg class="search-icon" viewBox="0 0 24 24">
                 <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
               </svg>
               <input type="text" id="mobileDropdownSearch" class="dropdown-search" placeholder="Search models...">
-            &lt;/div&gt;
+            </div>
             <div id="mobileDropdownItems"></div>
-          &lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Sidebar (with glass) -->
     <div id="sidebar" class="w-64 glass-sidebar flex flex-col relative">
@@ -1471,12 +1465,12 @@
                 <rect width="100" height="100" rx="24" ry="24" fill="url(#lgSide)" />
                 <path fill="#fff" fill-opacity=".95" d="M50 20 20 35l30 15 30-15L50 20Zm0 15-30 15 30 15 30-15-30-15Zm0 15-30 15 30 15 30-15-30-15Z" />
               </svg>
-            &lt;/div&gt;
+            </div>
             <div class="logo-word" style="font-size:22px;">
               <span class="pre">llm</span><span class="cursor">|</span><span class="post">dump</span>
-            &lt;/div&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
+            </div>
+          </div>
+        </div>
 
         <div class="flex items-center justify-between mb-4 mt-6">
           <h3 class="font-semibold">Chat History</h3>
@@ -1486,7 +1480,7 @@
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
             </svg>
           </button>
-        &lt;/div&gt;
+        </div>
 
         <button id="newChat" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-4 rounded-lg mb-4 flex items-center justify-center gap-2">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1497,7 +1491,7 @@
         </button>
 
         <div id="chatHistory" class="space-y-2 overflow-y-auto"></div>
-      &lt;/div&gt;
+      </div>
 
       <div class="p-4 border-t border-gray-800 mt-auto">
         <button id="userProfile" class="flex items-center gap-3 w-full text-left p-2 hover:bg-gray-800 rounded-lg">
@@ -1506,11 +1500,11 @@
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
-          &lt;/div&gt;
+          </div>
           <span id="usernameDisplay">Account</span>
         </button>
-      &lt;/div&gt;
-    &lt;/div&gt;
+      </div>
+    </div>
 
     <!-- Main Chat Area -->
     <div class="flex-1 flex flex-col">
@@ -1521,23 +1515,23 @@
             <div id="dropdownSelected" class="dropdown-selected">
               <div id="selectedModelIcon" class="model-icon bg-gray-700 flex items-center justify-center">
                 <span>G</span>
-              &lt;/div&gt;
+              </div>
               <span id="selectedModelName">Select Model</span>
-            &lt;/div&gt;
+            </div>
             <div id="dropdownContent" class="dropdown-content">
               <div class="dropdown-search-container">
                 <svg class="search-icon" viewBox="0 0 24 24">
                   <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
                 </svg>
                 <input type="text" id="dropdownSearch" class="dropdown-search" placeholder="Search models...">
-              &lt;/div&gt;
+              </div>
               <div id="dropdownItems"></div>
-            &lt;/div&gt;
-          &lt;/div&gt;
+            </div>
+          </div>
           <div id="rateLimitInfo" class="text-sm text-gray-400 flex items-center gap-2"></div>
           <div id="networkStatus" class="text-xs px-2 py-1 rounded bg-red-900/40 text-red-300 hidden"></div>
-        &lt;/div&gt;
-      &lt;/div&gt;
+        </div>
+      </div>
 
       <!-- Chat Box -->
       <div id="chatBox" class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-900 to-slate-900">
@@ -1545,9 +1539,9 @@
           <div id="welcomeMessage" class="text-center py-10 text-gray-500">
             <h2 class="text-2xl mb-4">How can I help you today?</h2>
             <p class="text-sm">Start a conversation by typing a message below</p>
-          &lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
+          </div>
+        </div>
+      </div>
 
       <!-- Input Area (glass textbox only) -->
       <div class="p-4">
@@ -1560,15 +1554,15 @@
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
               </svg>
               System Prompt
-            &lt;/div&gt;
+            </div>
             <div class="system-prompt-editor" id="systemPromptEditor">
               <textarea
                 id="systemPromptText"
                 class="system-prompt-textarea"
                 placeholder="Enter system prompt..."
               >You are a helpful AI assistant. Be concise, accurate, and helpful in your responses.</textarea>
-            &lt;/div&gt;
-          &lt;/div&gt;
+            </div>
+          </div>
           <!-- Input Textarea -->
           <div class="glass-textbox relative">
             <textarea
@@ -1586,10 +1580,10 @@
             <button id="stopBtn" class="absolute right-3 bottom-3 rounded p-2 stop-btn">
 
           </button>
-        &lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Profile Menu -->
   <div id="profileMenu" class="profile-menu hidden">
@@ -1608,7 +1602,7 @@
       </svg>
       Sign Out
     </button>
-  &lt;/div&gt;
+  </div>
 
   <!-- Settings Modal -->
   <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
@@ -1628,20 +1622,20 @@
           <div id="titleDropdownSelected" class="dropdown-selected">
             <div id="titleSelectedModelIcon" class="model-icon bg-gray-700 flex items-center justify-center">
               <span style="font-size:10px;">G</span>
-            &lt;/div&gt;
+            </div>
             <span id="titleSelectedModelName">GPT-4.1 Mini</span>
-          &lt;/div&gt;
+          </div>
           <div id="titleDropdownContent" class="dropdown-content">
             <div class="dropdown-search-container">
               <svg class="search-icon" viewBox="0 0 24 24">
                 <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
               </svg>
               <input type="text" id="titleDropdownSearch" class="dropdown-search" placeholder="Search models...">
-            &lt;/div&gt;
+            </div>
             <div id="titleDropdownItems"></div>
-          &lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
+          </div>
+        </div>
+      </div>
 
       <div class="mb-6">
         <label class="block mb-2">Edit Personal Access Token</label>
@@ -1649,7 +1643,7 @@
         <button id="saveToken" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded w-full">
           Save Token
         </button>
-      &lt;/div&gt;
+      </div>
 
       <div class="flex gap-2 mb-4">
         <button id="exportAll" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded">
@@ -1658,9 +1652,9 @@
         <button id="importChats" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded">
           Import Chats
         </button>
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
+      </div>
+    </div>
+  </div>
 
   <script>
   (()=>{
@@ -1704,7 +1698,7 @@
           if(u.login){ document.getElementById('usernameDisplay').textContent=u.login; }
           if(u.avatar_url){
             const av=userProfile.querySelector('div');
-            av.innerHTML=`&lt;img src="${u.avatar_url}&s=80" class="w-8 h-8 rounded-full"/&gt;`;
+            av.innerHTML=`<img src="${u.avatar_url}&s=80" class="w-8 h-8 rounded-full"/>`;
           }
         }).catch(()=>{});
     }
@@ -1892,31 +1886,31 @@
         }
       }
 
-      const copyIcon = `&lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;rect x="9" y="9" width="13" height="13" rx="2" ry="2"&gt;&lt;/rect&gt;&lt;path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"&gt;&lt;/path&gt;&lt;/svg&gt;`;
-      const downloadIcon = `&lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"&gt;&lt;/path&gt;&lt;polyline points="7,10 12,15 17,10"&gt;&lt;/polyline&gt;&lt;line x1="12" y1="15" x2="12" y2="3"&gt;&lt;/line&gt;&lt;/svg&gt;`;
-      const wrapIcon = `&lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;polyline points="6,9 12,15 18,9"&gt;&lt;/polyline&gt;&lt;/svg&gt;`;
+      const copyIcon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+      const downloadIcon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7,10 12,15 17,10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
+      const wrapIcon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"></polyline></svg>`;
       
       return `
-        &lt;pre class="enhanced-codeblock"&gt;
-          &lt;div class="code-header"&gt;
-            &lt;span class="code-language"&gt;${langDisplay}&lt;/span&gt;
-            &lt;div class="code-actions"&gt;
-              &lt;button class="code-action-btn" onclick="copyCode('${codeId}')" title="Copy code"&gt;
+        <pre class="enhanced-codeblock">
+          <div class="code-header">
+            <span class="code-language">${langDisplay}</span>
+            <div class="code-actions">
+              <button class="code-action-btn" onclick="copyCode('${codeId}')" title="Copy code">
                 ${copyIcon}
                 Copy
-              &lt;/button&gt;
-              &lt;button class="code-action-btn" onclick="downloadCode('${codeId}', '${lang}')" title="Download as file"&gt;
+              </button>
+              <button class="code-action-btn" onclick="downloadCode('${codeId}', '${lang}')" title="Download as file">
                 ${downloadIcon}
                 Download
-              &lt;/button&gt;
-              &lt;button class="code-action-btn" onclick="toggleWrap('${codeId}')" title="Toggle line wrap"&gt;
+              </button>
+              <button class="code-action-btn" onclick="toggleWrap('${codeId}')" title="Toggle line wrap">
                 ${wrapIcon}
                 Wrap
-              &lt;/button&gt;
-            &lt;/div&gt;
-          &lt;/div&gt;
-          &lt;code id="${codeId}" class="language-${lang}"&gt;${highlightedCode}&lt;/code&gt;
-        &lt;/pre&gt;
+              </button>
+            </div>
+          </div>
+          <code id="${codeId}" class="language-${lang}">${highlightedCode}</code>
+        </pre>
       `;
     };
 
@@ -1931,7 +1925,7 @@
       navigator.clipboard.writeText(code).then(() => {
         const btn = event.target.closest('.code-action-btn');
         const originalText = btn.innerHTML;
-        btn.innerHTML = `&lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;polyline points="20,6 9,17 4,12"&gt;&lt;/polyline&gt;&lt;/svg&gt;Copied`;
+        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"></polyline></svg>Copied`;
         btn.classList.add('success');
         setTimeout(() => {
           btn.innerHTML = originalText;
@@ -1978,8 +1972,8 @@
       const btn = event.target.closest('.code-action-btn');
       const isWrapped = pre.classList.contains('code-wrap');
       btn.innerHTML = isWrapped ?
-        `&lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;polyline points="18,15 12,9 6,15"&gt;&lt;/polyline&gt;&lt;/svg&gt;Unwrap` :
-        `&lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;polyline points="6,9 12,15 18,9"&gt;&lt;/polyline&gt;&lt;/svg&gt;Wrap`;
+        `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18,15 12,9 6,15"></polyline></svg>Unwrap` :
+        `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"></polyline></svg>Wrap`;
     };
 
     // State
@@ -2008,7 +2002,7 @@
           if(u.login){ document.getElementById('usernameDisplay').textContent=u.login; }
           if(u.avatar_url){
             const av=userProfile.querySelector('div');
-            av.innerHTML=`&lt;img src="${u.avatar_url}&s=80" class="w-8 h-8 rounded-full"/&gt;`;
+            av.innerHTML=`<img src="${u.avatar_url}&s=80" class="w-8 h-8 rounded-full"/>`;
           }
         }).catch(()=>{});
     }
@@ -2193,28 +2187,28 @@
       const response = document.createElement('div');
       response.className = 'assistant-response';
       response.innerHTML = `
-        &lt;div class="message-content"&gt;
-          &lt;div class="markdown-body"&gt;${marked.parse(content)}&lt;/div&gt;
-        &lt;/div&gt;
-        &lt;div class="message-bottom-actions"&gt;
-          &lt;div class="action-buttons"&gt;
-            &lt;button class="bottom-action-btn" onclick="regenerateMessage(this)" title="Regenerate"&gt;
-              &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-                &lt;polyline points="23,4 23,10 17,10"&gt;&lt;/polyline&gt;
-                &lt;polyline points="1,20 1,14 7,14"&gt;&lt;/polyline&gt;
-                &lt;path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"&gt;&lt;/path&gt;
-              &lt;/svg&gt;
+        <div class="message-content">
+          <div class="markdown-body">${marked.parse(content)}</div>
+        </div>
+        <div class="message-bottom-actions">
+          <div class="action-buttons">
+            <button class="bottom-action-btn" onclick="regenerateMessage(this)" title="Regenerate">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23,4 23,10 17,10"></polyline>
+                <polyline points="1,20 1,14 7,14"></polyline>
+                <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
+              </svg>
               Regenerate
-            &lt;/button&gt;
-            &lt;button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy"&gt;
-              &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-                &lt;rect x="9" y="9" width="13" height="13" rx="2" ry="2"&gt;&lt;/rect&gt;
-                &lt;path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"&gt;&lt;/path&gt;
-              &lt;/svg&gt;
+            </button>
+            <button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
               Copy
-            &lt;/button&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
+            </button>
+          </div>
+        </div>
       `;
       response.dataset.role = 'assistant';
       chatBox.appendChild(response);
@@ -2275,19 +2269,19 @@
       const saveBtn = document.createElement('button');
       saveBtn.className = 'inline-edit-btn save';
       saveBtn.innerHTML = `
-        &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-          &lt;path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"&gt;&lt;/path&gt;
-        &lt;/svg&gt;
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+        </svg>
         Send
       `;
       
       const cancelBtn = document.createElement('button');
       cancelBtn.className = 'inline-edit-btn cancel';
       cancelBtn.innerHTML = `
-        &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-          &lt;path d="M18 6L6 18"&gt;&lt;/path&gt;
-          &lt;path d="M6 6l12 12"&gt;&lt;/path&gt;
-        &lt;/svg&gt;
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18"></path>
+          <path d="M6 6l12 12"></path>
+        </svg>
         Cancel
       `;
       
@@ -2359,23 +2353,23 @@
     
     function getPublisherLogo(publisher) {
       const logos = {
-        'OpenAI': `&lt;span style="font-size:16px; font-weight:bold; color: #0ea5e9;"&gt;AI&lt;/span&gt;`,
-        'xAI': `&lt;span style="font-size:12px; font-weight:bold; color: #6366f1;"&gt;xAI&lt;/span&gt;`,
-        'Meta': `&lt;span style="font-size:12px; font-weight:bold; color: #3b82f6;"&gt;Meta&lt;/span&gt;`,
-        'Mistral AI': `&lt;span style="font-size:12px; font-weight:bold; color: #f59e0b;"&gt;M&lt;/span&gt;`,
-        'Cohere': `&lt;span style="font-size:12px; font-weight:bold; color: #10b981;"&gt;C&lt;/span&gt;`,
-        'Core42': `&lt;span style="font-size:12px; font-weight:bold; color: #8b5cf6;"&gt;C42&lt;/span&gt;`,
-        'JAIS': `&lt;span style="font-size:12px; font-weight:bold; color: #8b5cf6;"&gt;J&lt;/span&gt;`,
-        'Microsoft': `&lt;span style="font-size:12px; font-weight:bold; color: #0ea5e9;"&gt;MS&lt;/span&gt;`,
-        'DeepSeek': `&lt;span style="font-size:12px; font-weight:bold; color: #ef4444;"&gt;DS&lt;/span&gt;`,
-        'Azure': `&lt;span style="font-size:12px; font-weight:bold; color: #0ea5e9;"&gt;Az&lt;/span&gt;`,
-        'AI21 Labs': `&lt;span style="font-size:12px; font-weight:bold; color: #f59e0b;"&gt;AI21&lt;/span&gt;`,
-        'Google': `&lt;span style="font-size:12px; font-weight:bold; color: #3b82f6;"&gt;G&lt;/span&gt;`,
-        'Gemini': `&lt;span style="font-size:12px; font-weight:bold; color: #3b82f6;"&gt;G&lt;/span&gt;`,
-        'Anthropic': `&lt;span style="font-size:12px; font-weight:bold; color: #f59e0b;"&gt;A&lt;/span&gt;`
+        'OpenAI': `<span style="font-size:16px; font-weight:bold; color: #0ea5e9;">AI</span>`,
+        'xAI': `<span style="font-size:12px; font-weight:bold; color: #6366f1;">xAI</span>`,
+        'Meta': `<span style="font-size:12px; font-weight:bold; color: #3b82f6;">Meta</span>`,
+        'Mistral AI': `<span style="font-size:12px; font-weight:bold; color: #f59e0b;">M</span>`,
+        'Cohere': `<span style="font-size:12px; font-weight:bold; color: #10b981;">C</span>`,
+        'Core42': `<span style="font-size:12px; font-weight:bold; color: #8b5cf6;">C42</span>`,
+        'JAIS': `<span style="font-size:12px; font-weight:bold; color: #8b5cf6;">J</span>`,
+        'Microsoft': `<span style="font-size:12px; font-weight:bold; color: #0ea5e9;">MS</span>`,
+        'DeepSeek': `<span style="font-size:12px; font-weight:bold; color: #ef4444;">DS</span>`,
+        'Azure': `<span style="font-size:12px; font-weight:bold; color: #0ea5e9;">Az</span>`,
+        'AI21 Labs': `<span style="font-size:12px; font-weight:bold; color: #f59e0b;">AI21</span>`,
+        'Google': `<span style="font-size:12px; font-weight:bold; color: #3b82f6;">G</span>`,
+        'Gemini': `<span style="font-size:12px; font-weight:bold; color: #3b82f6;">G</span>`,
+        'Anthropic': `<span style="font-size:12px; font-weight:bold; color: #f59e0b;">A</span>`
       };
 
-      return logos[publisher] || `&lt;span style="font-size:10px; font-weight:bold; color: #6366f1;"&gt;${publisher?.charAt(0) || '?'}&lt;/span&gt;`;
+      return logos[publisher] || `<span style="font-size:10px; font-weight:bold; color: #6366f1;">${publisher?.charAt(0) || '?'}</span>`;
     }
     function selectModel(id){
       const m = models.find(x=>x.id===id);
@@ -2421,7 +2415,7 @@
           return n.toString();
         };
 
-        rateLimitInfo.innerHTML = `&lt;div class="text-xs text-gray-400"&gt;${tier}: ${rpd} req/day, ${formatNumber(inTok)} in, ${formatNumber(outTok)} out&lt;/div&gt;`;
+        rateLimitInfo.innerHTML = `<div class="text-xs text-gray-400">${tier}: ${rpd} req/day, ${formatNumber(inTok)} in, ${formatNumber(outTok)} out</div>`;
       } else {
         rateLimitInfo.innerHTML='';
       }
@@ -2441,12 +2435,12 @@
 
         const del=document.createElement('button');
         del.className='text-red-400 ml-2 font-bold del-btn';
-        del.innerHTML='&lt;svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;polyline points="3,6 5,6 21,6"&gt;&lt;/polyline&gt;&lt;path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"&gt;&lt;/path&gt;&lt;/svg&gt;';
+        del.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"></polyline><path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path></svg>';
         del.addEventListener('click',e=>{ e.stopPropagation(); deleteChat(chat.id); });
 
         const dragHandle = document.createElement('div');
         dragHandle.className = 'drag-handle';
-        dragHandle.innerHTML = '&lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;circle cx="9" cy="12" r="1"&gt;&lt;/circle&gt;&lt;circle cx="9" cy="5" r="1"&gt;&lt;/circle&gt;&lt;circle cx="9" cy="19" r="1"&gt;&lt;/circle&gt;&lt;circle cx="15" cy="12" r="1"&gt;&lt;/circle&gt;&lt;circle cx="15" cy="5" r="1"&gt;&lt;/circle&gt;&lt;circle cx="15" cy="19" r="1"&gt;&lt;/circle&gt;&lt;/svg&gt;';
+        dragHandle.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>';
 
         el.appendChild(dragHandle);
         el.appendChild(title);
@@ -2481,7 +2475,7 @@ Rules:
         btn.style.color = '#10b981';
         old_btn = btn.innerHTML;
         // Change button to checkmark icon
-        btn.innerHTML = '&lt;svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"&gt;&lt;/path&gt;&lt;polyline points="16 2 16 4 8 4 8 2"&gt;&lt;/polyline&gt;&lt;polyline points="8 10 16 10"&gt;&lt;/polyline&gt;&lt;polyline points="8 14 16 14"&gt;&lt;/polyline&gt;&lt;polyline points="8 18 16 18"&gt;&lt;/polyline&gt;&lt;/svg&gt;';
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><polyline points="16 2 16 4 8 4 8 2"></polyline><polyline points="8 10 16 10"></polyline><polyline points="8 14 16 14"></polyline><polyline points="8 18 16 18"></polyline></svg>';
         // Reset button after 1 second
         setTimeout(() => {btn.style.color = ''; btn.innerHTML = old_btn}, 1000);
       });
@@ -2544,7 +2538,7 @@ Rules:
         const branchIndex = chat.branches.indexOf(branch);
         const branchNumber = branchIndex + 1;
         const isActive = branchIndex === chat.currentBranch;
-        return '&lt;button class="branch-btn ' + (isActive ? 'active' : '') + '" onclick="switchToBranch(chats.find(c => c.id === \'' + chat.id + '\'), ' + branchIndex + ')"&gt;' + branchNumber + '&lt;/button&gt;';
+        return '<button class="branch-btn ' + (isActive ? 'active' : '') + '" onclick="switchToBranch(chats.find(c => c.id === \'' + chat.id + '\'), ' + branchIndex + ')">' + branchNumber + '</button>';
       }).join('');
     }
 
@@ -2580,9 +2574,9 @@ Rules:
       // Toggle icon between edit and check
       const svg = btn.querySelector('svg');
       if (sidebar.classList.contains('editing')) {
-        svg.innerHTML = '&lt;path d="M20 6L9 17l-5-5"&gt;&lt;/path&gt;';
+        svg.innerHTML = '<path d="M20 6L9 17l-5-5"></path>';
       } else {
-        svg.innerHTML = '&lt;path d="M12 20h9"&gt;&lt;/path&gt;&lt;path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"&gt;&lt;/path&gt;';
+        svg.innerHTML = '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>';
       }
       // Toggle delete buttons
       document.querySelectorAll('.del-btn').forEach(elem => {
@@ -2612,7 +2606,7 @@ Rules:
       if (currentBranch.length === 0) {
         const chatBoxContainer = chatBox.querySelector('.max-w-3xl');
         if (chatBoxContainer) {
-          chatBoxContainer.innerHTML = '&lt;div id="welcomeMessage" class="text-center py-10 text-gray-500"&gt;&lt;h2 class="text-2xl mb-4"&gt;How can I help you today?</h2>&lt;p class="text-sm"&gt;Start a conversation by typing a message below</p>&lt;/div&gt;';
+          chatBoxContainer.innerHTML = '<div id="welcomeMessage" class="text-center py-10 text-gray-500"><h2 class="text-2xl mb-4">How can I help you today?</h2><p class="text-sm">Start a conversation by typing a message below</p></div>';
         }
       } else {
         // Remove welcome message
@@ -2625,27 +2619,27 @@ Rules:
             const bubble = document.createElement('div');
             bubble.className = 'user-bubble';
             bubble.innerHTML = `
-              &lt;div class="message-content"&gt;
-                &lt;div class="markdown-body"&gt;${marked.parse(m.content)}&lt;/div&gt;
-              &lt;/div&gt;
-              &lt;div class="message-bottom-actions"&gt;
-                &lt;div class="action-buttons"&gt;
-                  &lt;button class="bottom-action-btn" onclick="editMessage(this)" title="Edit"&gt;
-                    &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-                      &lt;path d="M12 20h9"&gt;&lt;/path&gt;
-                      &lt;path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"&gt;&lt;/path&gt;
-                    &lt;/svg&gt;
+              <div class="message-content">
+                <div class="markdown-body">${marked.parse(m.content)}</div>
+              </div>
+              <div class="message-bottom-actions">
+                <div class="action-buttons">
+                  <button class="bottom-action-btn" onclick="editMessage(this)" title="Edit">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 20h9"></path>
+                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
                     Edit
-                  &lt;/button&gt;
-                  &lt;button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy"&gt;
-                    &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-                      &lt;rect x="9" y="9" width="13" height="13" rx="2" ry="2"&gt;&lt;/rect&gt;
-                      &lt;path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"&gt;&lt;/path&gt;
-                    &lt;/svg&gt;
+                  </button>
+                  <button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
                     Copy
-                  &lt;/button&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
+                  </button>
+                </div>
+              </div>
             `;
             bubble.dataset.role = 'user';
             
@@ -2661,28 +2655,28 @@ Rules:
             const response = document.createElement('div');
             response.className = 'assistant-response';
             response.innerHTML = `
-              &lt;div class="message-content"&gt;
-                &lt;div class="markdown-body"&gt;${marked.parse(m.content)}&lt;/div&gt;
-              &lt;/div&gt;
-              &lt;div class="message-bottom-actions"&gt;
-                &lt;div class="action-buttons"&gt;
-                  &lt;button class="bottom-action-btn" onclick="regenerateMessage(this)" title="Regenerate"&gt;
-                    &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-                      &lt;polyline points="23,4 23,10 17,10"&gt;&lt;/polyline&gt;
-                      &lt;polyline points="1,20 1,14 7,14"&gt;&lt;/polyline&gt;
-                      &lt;path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"&gt;&lt;/path&gt;
-                    &lt;/svg&gt;
+              <div class="message-content">
+                <div class="markdown-body">${marked.parse(m.content)}</div>
+              </div>
+              <div class="message-bottom-actions">
+                <div class="action-buttons">
+                  <button class="bottom-action-btn" onclick="regenerateMessage(this)" title="Regenerate">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="23,4 23,10 17,10"></polyline>
+                      <polyline points="1,20 1,14 7,14"></polyline>
+                      <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
+                    </svg>
                     Regenerate
-                  &lt;/button&gt;
-                  &lt;button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy"&gt;
-                    &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-                      &lt;rect x="9" y="9" width="13" height="13" rx="2" ry="2"&gt;&lt;/rect&gt;
-                      &lt;path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"&gt;&lt;/path&gt;
-                    &lt;/svg&gt;
+                  </button>
+                  <button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
                     Copy
-                  &lt;/button&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
+                  </button>
+                </div>
+              </div>
             `;
             response.dataset.role = 'assistant';
             
@@ -2718,7 +2712,7 @@ Rules:
       };
       chats.push(newChat);
       localStorage.setItem('chat_history', JSON.stringify(chats));
-      chatBox.innerHTML=`&lt;div class="max-w-3xl mx-auto"&gt;&lt;div id="welcomeMessage" class="text-center py-10 text-gray-500"&gt;&lt;h2 class="text-2xl mb-4"&gt;How can I help you today?</h2>&lt;p class="text-sm"&gt;Start a conversation by typing a message below</p>&lt;/div&gt;&lt;/div&gt;`;
+      chatBox.innerHTML=`<div class="max-w-3xl mx-auto"><div id="welcomeMessage" class="text-center py-10 text-gray-500"><h2 class="text-2xl mb-4">How can I help you today?</h2><p class="text-sm">Start a conversation by typing a message below</p></div></div>`;
       loadChatHistory();
     }
     
@@ -2753,27 +2747,27 @@ Rules:
       const bubble = document.createElement('div');
       bubble.className = 'user-bubble';
       bubble.innerHTML = `
-        &lt;div class="message-content"&gt;
-          &lt;div class="markdown-body"&gt;${marked.parse(content)}&lt;/div&gt;
-        &lt;/div&gt;
-        &lt;div class="message-bottom-actions"&gt;
-          &lt;div class="action-buttons"&gt;
-            &lt;button class="bottom-action-btn" onclick="editMessage(this)" title="Edit"&gt;
-              &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-                &lt;path d="M12 20h9"&gt;&lt;/path&gt;
-                &lt;path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"&gt;&lt;/path&gt;
-              &lt;/svg&gt;
+        <div class="message-content">
+          <div class="markdown-body">${marked.parse(content)}</div>
+        </div>
+        <div class="message-bottom-actions">
+          <div class="action-buttons">
+            <button class="bottom-action-btn" onclick="editMessage(this)" title="Edit">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+              </svg>
               Edit
-            &lt;/button&gt;
-            &lt;button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy"&gt;
-              &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-                &lt;rect x="9" y="9" width="13" height="13" rx="2" ry="2"&gt;&lt;/rect&gt;
-                &lt;path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"&gt;&lt;/path&gt;
-              &lt;/svg&gt;
+            </button>
+            <button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
               Copy
-            &lt;/button&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
+            </button>
+          </div>
+        </div>
       `;
       bubble.dataset.role = 'user';
       chatBox.appendChild(bubble);
@@ -2861,19 +2855,19 @@ Rules:
       const controls = document.createElement('div');
       controls.className = 'inline-edit-actions';
       controls.innerHTML = `
-        &lt;button class="inline-edit-btn save"&gt;
-          &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-            &lt;polyline points="20,6 9,17 4,12"&gt;&lt;/polyline&gt;
-          &lt;/svg&gt;
+        <button class="inline-edit-btn save">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20,6 9,17 4,12"></polyline>
+          </svg>
           Save
-        &lt;/button&gt;
-        &lt;button class="inline-edit-btn cancel"&gt;
-          &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-            &lt;line x1="18" y1="6" x2="6" y2="18"&gt;&lt;/line&gt;
-            &lt;line x1="6" y1="6" x2="18" y2="18"&gt;&lt;/line&gt;
-          &lt;/svg&gt;
+        </button>
+        <button class="inline-edit-btn cancel">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
           Cancel
-        &lt;/button&gt;
+        </button>
       `;
       
       // Auto-resize function
@@ -3173,7 +3167,7 @@ Rules:
 
       const prevBtn = document.createElement('button');
       prevBtn.className = 'branch-btn';
-      prevBtn.innerHTML = '&lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;polyline points="15,18 9,12 15,6"&gt;&lt;/polyline&gt;&lt;/svg&gt;';
+      prevBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"></polyline></svg>';
       prevBtn.disabled = chat.currentBranch === 0;
 
       const branchIndicator = document.createElement('span');
@@ -3182,7 +3176,7 @@ Rules:
 
       const nextBtn = document.createElement('button');
       nextBtn.className = 'branch-btn';
-      nextBtn.innerHTML = '&lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;polyline points="9,18 15,12 9,6"&gt;&lt;/polyline&gt;&lt;/svg&gt;';
+      nextBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"></polyline></svg>';
       nextBtn.disabled = chat.currentBranch === chat.branches.length - 1;
 
       prevBtn.addEventListener('click', () => switchToBranch(chat, chat.currentBranch - 1));
@@ -3218,7 +3212,7 @@ Rules:
       // Create streaming container
       const streamingResponse = document.createElement('div');
       streamingResponse.className = 'assistant-response streaming';
-      streamingResponse.innerHTML = '&lt;div class="text-sm text-indigo-300"&gt;Thinking...&lt;/div&gt;';
+      streamingResponse.innerHTML = '<div class="text-sm text-indigo-300">Thinking...</div>';
       chatBox.appendChild(streamingResponse);
       chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -3232,14 +3226,14 @@ Rules:
 
       if(!token || !token.trim() || token.trim()=="" || token == "") {
         streamingResponse.classList.remove('streaming');
-        streamingResponse.innerHTML = '&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4"&gt;❌ No authentication token found. Please sign in with GitHub.&lt;/div&gt;';
+        streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No authentication token found. Please sign in with GitHub.</div>';
         resetSendButton();
         return;
       }
 
       if(!model || !model.id) {
         streamingResponse.classList.remove('streaming');
-        streamingResponse.innerHTML = '&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4"&gt;❌ No valid model selected. Please select a model from the dropdown.&lt;/div&gt;';
+        streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No valid model selected. Please select a model from the dropdown.</div>';
         resetSendButton();
         return;
       }
@@ -3247,7 +3241,7 @@ Rules:
       const chat = chats.find(c => c.id === currentChatId);
       if(!chat) {
         streamingResponse.classList.remove('streaming');
-        streamingResponse.innerHTML = '&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4"&gt;❌ No chat found.&lt;/div&gt;';
+        streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No chat found.</div>';
         resetSendButton();
         return;
       }
@@ -3297,28 +3291,28 @@ Rules:
               // Finalize the message
               streamingResponse.classList.remove('streaming');
               streamingResponse.innerHTML = `
-                &lt;div class="markdown-body"&gt;${marked.parse(fullContent || '*No response received*')}&lt;/div&gt;
-                &lt;div class="message-actions"&gt;
-                  &lt;button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate"&gt;
-                    &lt;svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-                      &lt;polyline points="23,4 23,10 17,10"&gt;&lt;/polyline&gt;
-                      &lt;polyline points="1,20 1,14 7,14"&gt;&lt;/polyline&gt;
-                      &lt;path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"&gt;&lt;/path&gt;
-                    &lt;/svg&gt;
-                  &lt;/button&gt;
-                  &lt;button class="action-btn" onclick="copyMessage(this)" title="Copy"&gt;
-                    &lt;svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-                      &lt;rect x="9" y="9" width="13" height="13" rx="2" ry="2"&gt;&lt;/rect&gt;
-                      &lt;path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"&gt;&lt;/path&gt;
-                    &lt;/svg&gt;
-                  &lt;/button&gt;
-                  &lt;button class="action-btn" onclick="deleteMessage(this)" title="Delete"&gt;
-                    &lt;svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-                      &lt;polyline points="3,6 5,6 21,6"&gt;&lt;/polyline&gt;
-                      &lt;path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"&gt;&lt;/path&gt;
-                    &lt;/svg&gt;
-                  &lt;/button&gt;
-                &lt;/div&gt;
+                <div class="markdown-body">${marked.parse(fullContent || '*No response received*')}</div>
+                <div class="message-actions">
+                  <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="23,4 23,10 17,10"></polyline>
+                      <polyline points="1,20 1,14 7,14"></polyline>
+                      <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
+                    </svg>
+                  </button>
+                  <button class="action-btn" onclick="copyMessage(this)" title="Copy">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </button>
+                  <button class="action-btn" onclick="deleteMessage(this)" title="Delete">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3,6 5,6 21,6"></polyline>
+                      <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
+                    </svg>
+                  </button>
+                </div>
               `;
               streamingResponse.dataset.role = 'assistant';
 
@@ -3350,7 +3344,7 @@ Rules:
                   const content = parsed.choices?.[0]?.delta?.content || '';
                   if(content) {
                     fullContent += content;
-                    streamingResponse.innerHTML = `&lt;div class="markdown-body">${marked.parse(fullContent)}&lt;/div&gt;`;
+                    streamingResponse.innerHTML = `<div class="markdown-body">${marked.parse(fullContent)}</div>`;
                     chatBox.scrollTop = chatBox.scrollHeight;
                   }
                 } catch(e) {
@@ -3363,10 +3357,10 @@ Rules:
           }).catch(error => {
             if (error.name === 'AbortError') {
               streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `&lt;div class="text-yellow-400 text-sm">Generation stopped&lt;/div&gt;`;
+              streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm">Generation stopped</div>`;
             } else {
               streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}&lt;/div&gt;`;
+              streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}</div>`;
             }
             resetSendButton();
           });
@@ -3377,10 +3371,10 @@ Rules:
       .catch(error => {
         if (error.name === 'AbortError') {
           streamingResponse.classList.remove('streaming');
-          streamingResponse.innerHTML = `&lt;div class="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">⚠️ Generation stopped&lt;/div&gt;`;
+          streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">⚠️ Generation stopped</div>`;
         } else {
           streamingResponse.classList.remove('streaming');
-          streamingResponse.innerHTML = `&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Request failed: ${error.message}&lt;/div&gt;`;
+          streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Request failed: ${error.message}</div>`;
         }
         resetSendButton();
       });
@@ -3408,7 +3402,7 @@ Rules:
       // Create streaming container for regeneration
       const streamingResponse = document.createElement('div');
       streamingResponse.className = 'assistant-response streaming';
-      streamingResponse.innerHTML = '&lt;div class="text-sm text-indigo-300">Regenerating response...&lt;/div&gt;';
+      streamingResponse.innerHTML = '<div class="text-sm text-indigo-300">Regenerating response...</div>';
       chatBox.appendChild(streamingResponse);
       chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -3419,13 +3413,13 @@ Rules:
 
       if(!token || !token.trim() || token.trim()=="" || token == "") {
         streamingResponse.classList.remove('streaming');
-        streamingResponse.innerHTML = '&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No authentication token found.&lt;/div&gt;';
+        streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No authentication token found.</div>';
         return;
       }
 
       if(!model || !model.id) {
         streamingResponse.classList.remove('streaming');
-        streamingResponse.innerHTML = '&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No valid model selected.&lt;/div&gt;';
+        streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No valid model selected.</div>';
         return;
       }
 
@@ -3468,28 +3462,28 @@ Rules:
             if(done) {
               streamingResponse.classList.remove('streaming');
               streamingResponse.innerHTML = `
-                &lt;div class="markdown-body"&gt;${marked.parse(fullContent || '*No response received*')}&lt;/div&gt;
-                &lt;div class="message-actions"&gt;
-                  &lt;button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate"&gt;
-                    &lt;svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-                      &lt;polyline points="23,4 23,10 17,10"&gt;&lt;/polyline&gt;
-                      &lt;polyline points="1,20 1,14 7,14"&gt;&lt;/polyline&gt;
-                      &lt;path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"&gt;&lt;/path&gt;
-                    &lt;/svg&gt;
-                  &lt;/button&gt;
-                  &lt;button class="action-btn" onclick="copyMessage(this)" title="Copy"&gt;
-                    &lt;svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-                      &lt;rect x="9" y="9" width="13" height="13" rx="2" ry="2"&gt;&lt;/rect&gt;
-                      &lt;path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"&gt;&lt;/path&gt;
-                    &lt;/svg&gt;
-                  &lt;/button&gt;
-                  &lt;button class="action-btn" onclick="deleteMessage(this)" title="Delete"&gt;
-                    &lt;svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
-                      &lt;polyline points="3,6 5,6 21,6"&gt;&lt;/polyline&gt;
-                      &lt;path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"&gt;&lt;/path&gt;
-                    &lt;/svg&gt;
-                  &lt;/button&gt;
-                &lt;/div&gt;
+                <div class="markdown-body">${marked.parse(fullContent || '*No response received*')}</div>
+                <div class="message-actions">
+                  <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="23,4 23,10 17,10"></polyline>
+                      <polyline points="1,20 1,14 7,14"></polyline>
+                      <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
+                    </svg>
+                  </button>
+                  <button class="action-btn" onclick="copyMessage(this)" title="Copy">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </button>
+                  <button class="action-btn" onclick="deleteMessage(this)" title="Delete">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3,6 5,6 21,6"></polyline>
+                      <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
+                    </svg>
+                  </button>
+                </div>
               `;
               streamingResponse.dataset.role = 'assistant';
 
@@ -3516,7 +3510,7 @@ Rules:
                   const content = parsed.choices?.[0]?.delta?.content || '';
                   if(content) {
                     fullContent += content;
-                    streamingResponse.innerHTML = `&lt;div class="markdown-body">${marked.parse(fullContent)}&lt;/div&gt;`;
+                    streamingResponse.innerHTML = `<div class="markdown-body">${marked.parse(fullContent)}</div>`;
                     chatBox.scrollTop = chatBox.scrollHeight;
                   }
                 } catch(e) {
@@ -3529,10 +3523,10 @@ Rules:
           }).catch(error => {
             if (error.name === 'AbortError') {
               streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `&lt;div class="text-yellow-400 text-sm">Generation stopped&lt;/div&gt;`;
+              streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm">Generation stopped</div>`;
             } else {
               streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}&lt;/div&gt;`;
+              streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}</div>`;
             }
             resetSendButton();
           });
@@ -3543,10 +3537,10 @@ Rules:
       .catch(error => {
         if (error.name === 'AbortError') {
           streamingResponse.classList.remove('streaming');
-          streamingResponse.innerHTML = `&lt;div class="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">⚠️ Generation stopped&lt;/div&gt;`;
+          streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">⚠️ Generation stopped</div>`;
         } else {
           streamingResponse.classList.remove('streaming');
-          streamingResponse.innerHTML = `&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Request failed: ${error.message}&lt;/div&gt;`;
+          streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Request failed: ${error.message}</div>`;
         }
         resetSendButton();
       });
