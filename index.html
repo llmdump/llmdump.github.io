@@ -1664,6 +1664,31 @@
 
   <script>
   (()=>{
+    // Test with minimal authentication functions
+    console.log('Starting minimal script');
+    
+    function startOAuth(){
+      console.log('startOAuth called');
+      alert('OAuth function works!');
+    }
+    
+    function handleOAuthCallback(){
+      console.log('handleOAuthCallback called');
+    }
+    
+    function fetchModels(){
+      console.log('fetchModels called');
+    }
+    
+    // Attach event listeners
+    document.getElementById('githubLogin')?.addEventListener('click', (e)=>{ 
+      e.preventDefault(); 
+      startOAuth(); 
+    });
+    
+    console.log('Minimal script completed');
+  })();
+  </script>
     // Backend configuration
     const DEFAULT_API_BASE = 'https://tanjim.ddns.net';
     let API_BASE = (localStorage.getItem('api_base')||DEFAULT_API_BASE||'').trim();
