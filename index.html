@@ -1983,68 +1983,6 @@
       const q = query.toLowerCase();
       renderTitleDropdownItems(models.filter(m => m.name.toLowerCase().includes(q) || m.publisher.toLowerCase().includes(q)));
     }
-    
-    function appendUserMessage(content){
-      const welcome=document.getElementById('welcomeMessage');
-      if(welcome) welcome.remove();
-
-      const chat = chats.find(c => c.id === currentChatId);
-      if (!chat) return;
-
-      // Initialize branches if needed
-      initializeBranches(chat);
-      const currentBranch = getCurrentBranch(chat);
-      
-      // Add message to current branch
-      currentBranch.push({role: 'user', content});
-      const messageIndex = currentBranch.length - 1;
-
-      const bubble = document.createElement('div');
-      bubble.className = 'user-bubble';
-      bubble.dataset.role = 'user';
-      bubble.dataset.messageIndex = messageIndex;
-      
-      const branchButtons = renderBranchButtons(chat, messageIndex);
-      
-      bubble.innerHTML = `
-        <div class="message-content">
-          <div class="markdown-body">${marked.parse(content)}</div>
-        </div>
-        <div class="message-bottom-actions">
-          <div class="branch-navigation" style="display: ${branchButtons ? 'flex' : 'none'}">
-            <span class="branch-indicator">Branch:</span>
-            <div class="branch-buttons">${branchButtons}</div>
-          </div>
-          <div class="action-buttons">
-            <button class="bottom-action-btn" onclick="editMessage(this)" title="Edit">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 20h9"></path>
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-              </svg>
-              Edit
-            </button>
-            <button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              Copy
-            </button>
-          </div>
-        </div>
-      `;
-      
-      chatBox.appendChild(bubble);
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      // Save to localStorage
-      localStorage.setItem('chat_history', JSON.stringify(chats));
-
-      // Generate title for new chats after first user message
-      if (chat.title === 'New Chat' && currentBranch.filter(m => m.role === 'user').length === 1) {
-        updateChatTitle(currentChatId, content);
-      }
-    }
 
     function appendAssistantMessage(content){
       const welcome=document.getElementById('welcomeMessage');
