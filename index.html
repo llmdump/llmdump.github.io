@@ -1050,84 +1050,6 @@
       gap: 8px;
     }
 
-    .branch-navigation {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: #94a3b8;
-    }
-
-    .branch-indicator {
-      font-weight: 500;
-      color: #e2e8f0;
-    }
-
-    .branch-buttons {
-      display: flex;
-      gap: 4px;
-    }
-
-    .branch-btn {
-      background: rgba(99, 102, 241, 0.2);
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      color: #94a3b8;
-      padding: 2px 6px;
-      border-radius: 12px;
-      font-size: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
-      min-width: 20px;
-      text-align: center;
-    }
-
-    .branch-btn:hover {
-      background: rgba(99, 102, 241, 0.4);
-      color: #e2e8f0;
-    }
-
-    .branch-btn.active {
-      background: rgba(99, 102, 241, 0.6);
-      border-color: rgba(99, 102, 241, 0.8);
-      color: #fff;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-
-    .bottom-action-btn {
-      background: rgba(30, 41, 59, 0.6);
-      border: 1px solid rgba(99, 102, 241, 0.2);
-      color: #94a3b8;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 11px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .bottom-action-btn:hover {
-      background: rgba(99, 102, 241, 0.3);
-      color: #e2e8f0;
-      border-color: rgba(99, 102, 241, 0.5);
-    }
-
-    .bottom-action-btn svg {
-      width: 12px;
-      height: 12px;
-    }
-
-    /* Hide old message actions */
-    .message-actions {
-      display: none !important;
-    }
-
     /* Message content wrapper */
     .message-content {
       position: relative;
@@ -2527,64 +2449,13 @@ Rules:
       if (newMessage) {
         newBranch.push(newMessage);
       }
-    window.editMessage = (btn) => {
-      const container = btn.closest('.user-bubble, .assistant-response');
-      if (!container || container.querySelector('.inline-edit-container')) return;
       
-      const messageContent = container.querySelector('.message-content .markdown-body');
-      if (!messageContent) return;
-      
-      const originalText = messageContent.innerText.trim();
-      const messageIndex = parseInt(container.dataset.messageIndex);
-      
-      // Create inline editor
-      const editor = document.createElement('textarea');
-      editor.className = 'inline-edit-container';
-      editor.value = originalText;
-      
-      // Auto-resize function
-      const autoResize = () => {
-        editor.style.height = 'auto';
-        editor.style.height = editor.scrollHeight + 'px';
-      };
-      
-      editor.addEventListener('input', autoResize);
-      
-      // Create control buttons
-      const controls = document.createElement('div');
-      controls.className = 'edit-controls';
-      controls.innerHTML = `
-        <button class="edit-btn save">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20,6 9,17 4,12"></polyline>
-          </svg>
-          Save
-        </button>
-        <button class="edit-btn cancel">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-          Cancel
-        </button>
-      `;
-      
-      // Save function
-      const saveEdit = () => {
-        const newText = editor.value.trim();
-        if (!newText) return;
-        
-        const chat = chats.find(c => c.id === currentChatId);
-        if (!chat) return;
-        
-        // Create new branch for the edit
-        const currentBranch = getCurrentBranch(chat);
-        const newMessage = {
-          role: container.dataset.role,
-          content: newText
-        };
-        
-        // Create branch with edited message
+      chat.branches.push(newBranch);
+      chat.currentBranch = chat.branches.length - 1;
+      return chat.currentBranch;
+    }
+    
+    // Continue with next functions...
         const branchIndex = createNewBranch(chat, messageIndex, newMessage);
         
         // Update display
@@ -2966,6 +2837,34 @@ Rules:
       navigator.clipboard.writeText(txt);
     };
 
+    window.deleteMessage = (btn) => {
+      const container = btn.closest('.user-bubble, .assistant-response');
+      if (!container) return;
+      
+      if (confirm('Are you sure you want to delete this message?')) {
+        const messageIndex = Array.from(chatBox.querySelectorAll('.user-bubble, .assistant-response')).indexOf(container);
+        
+        const chat = chats.find(c => c.id === currentChatId);
+        if (chat) {
+          // Initialize branches if needed
+          if (!chat.branches) {
+            chat.branches = [chat.messages || []];
+            chat.currentBranch = 0;
+            delete chat.messages;
+          }
+          
+          const currentBranch = chat.branches[chat.currentBranch];
+          
+          // Remove the message and all messages after it
+          currentBranch.splice(messageIndex, currentBranch.length - messageIndex);
+          localStorage.setItem('chat_history', JSON.stringify(chats));
+          
+          // Reload the chat to reflect changes
+          loadChat(currentChatId);
+        }
+      }
+    };
+
     window.editMessage = (btn) => {
       const container = btn.closest('.user-bubble');
       if (!container || container.dataset.role !== 'user') return;
@@ -3291,10 +3190,6 @@ Rules:
     systemPromptToggle?.addEventListener('click',()=> systemPromptEditor?.classList.toggle('show'));
 
     // Message actions (global functions)
-    window.copyMessage = (btn)=>{
-      const container = btn.closest('.user-bubble, .assistant-response');
-      if(!container) return;
-      const txt = container.querySelector('.markdown-body').innerText.trim();
     function rebuildMessagesFromDOM(){
       const containers = chatBox.querySelectorAll('.user-bubble, .assistant-response');
       const rebuilt = [];
@@ -3360,7 +3255,13 @@ Rules:
       const sys = document.getElementById('systemPromptText')?.value.trim();
       if(sys && (!messages[0] || messages[0].role !== 'system')) {
         messages.unshift({role: 'system', content: sys});
-      }onst chat = chats.find(c => c.id === currentChatId);
+      }
+      
+      // Find message index logic here
+      return -1; // placeholder
+    }
+    
+    function switchToBranch(chat, branchIndex) {
       if (!chat || !chat.branches || branchIndex >= chat.branches.length) return;
 
       chat.currentBranch = branchIndex;
@@ -3368,39 +3269,42 @@ Rules:
       loadChat(currentChatId);
     }
 
-    function renderBranchNavigation(container, messageIndex) {
+    function renderBranchNavigation(messageIndex) {
       const chat = chats.find(c => c.id === currentChatId);
-      if (!chat?.branches || chat.branches.length <= 1) return;
+      if (!chat?.branches || chat.branches.length <= 1) return null;
 
       // Check if this message has branches
       const branchesWithThisMessage = chat.branches.filter(branch => 
         branch.length > messageIndex && branch[messageIndex]
       );
 
-      if (branchesWithThisMessage.length <= 1) return;
+      if (branchesWithThisMessage.length <= 1) return null;
 
       const branchContainer = document.createElement('div');
-      branchContainer.className = 'branch-container';
-
-      const branchNav = document.createElement('div');
-      branchNav.className = 'branch-nav';
+      branchContainer.className = 'branch-navigation';
 
       const prevBtn = document.createElement('button');
       prevBtn.className = 'branch-btn';
-      prevBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"></polyline></svg>';
+      prevBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"></polyline></svg>';
       prevBtn.disabled = chat.currentBranch === 0;
 
-      const branchCount = document.createElement('span');
-      branchCount.className = 'branch-count';
-      branchCount.textContent = `${chat.currentBranch + 1}/${chat.branches.length}`;
+      const branchIndicator = document.createElement('span');
+      branchIndicator.className = 'branch-indicator';
+      branchIndicator.textContent = `${chat.currentBranch + 1} of ${chat.branches.length}`;
 
       const nextBtn = document.createElement('button');
       nextBtn.className = 'branch-btn';
-      nextBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"></polyline></svg>';
+      nextBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"></polyline></svg>';
       nextBtn.disabled = chat.currentBranch === chat.branches.length - 1;
 
-      prevBtn.addEventListener('click', () => switchToBranch(chat.currentBranch - 1));
-      nextBtn.addEventListener('click', () => switchToBranch(chat.currentBranch + 1));
+      prevBtn.addEventListener('click', () => switchToBranch(chat, chat.currentBranch - 1));
+      nextBtn.addEventListener('click', () => switchToBranch(chat, chat.currentBranch + 1));
+
+      branchContainer.appendChild(prevBtn);
+      branchContainer.appendChild(branchIndicator);
+      branchContainer.appendChild(nextBtn);
+
+      return branchContainer;
 
       branchNav.appendChild(prevBtn);
       branchNav.appendChild(branchCount);
@@ -3526,7 +3430,10 @@ Rules:
       const sys = document.getElementById('systemPromptText')?.value.trim();
       if(sys && (!messages[0] || messages[0].role !== 'system')) {
         messages.unshift({role: 'system', content: sys});
-      }f(chat){
+      }
+      
+      const chat = chats.find(c => c.id === currentChatId);
+      if(chat){
         const sys = document.getElementById('systemPromptText')?.value.trim();
         chat.messages = sys ? [{role:'system', content:sys}, ...rebuilt.filter(m => m.role !== 'system')] : rebuilt;
         localStorage.setItem('chat_history', JSON.stringify(chats));
