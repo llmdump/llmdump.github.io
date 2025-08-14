@@ -1351,7 +1351,7 @@
 <body class="m-0 p-0">
   <div class="bg-blobs">
     <div class="blob b1"></div>
-  </div>
+  &lt;/div&gt;
 
   <!-- Login Page -->
   <div id="loginPage" class="flex flex-col min-h-screen items-center justify-center px-4">
@@ -1369,13 +1369,13 @@
             <rect x="0" y="0" width="100" height="100" rx="24" ry="24" fill="url(#lgMain)" />
             <path fill="#fff" fill-opacity=".95" d="M50 20 20 35l30 15 30-15L50 20Zm0 15-30 15 30 15 30-15-30-15Zm0 15-30 15 30 15 30-15-30-15Z" />
           </svg>
-        </div>
+        &lt;/div&gt;
         <div class="logo-word" style="font-size:52px; line-height:1;">
           <span class="pre">llm</span><span class="cursor">|</span><span class="post">dump</span>
-        </div>
-      </div>
-      <div class="login-subtext">Login to LLM Dump</div>
-    </div>
+        &lt;/div&gt;
+      &lt;/div&gt;
+      <div class="login-subtext">Login to LLM Dump&lt;/div&gt;
+    &lt;/div&gt;
 
     <div class="glass p-6 w-full max-w-md">
       <button id="githubLogin" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-3 rounded w-full flex items-center justify-center gap-2 mb-4">
@@ -1390,8 +1390,8 @@
         <div class="tooltip">
           <span class="text-xs bg-gray-700 rounded-full w-5 h-5 flex items-center justify-center cursor-help">i</span>
           <span class="tooltiptext">Create a GitHub Personal Access Token with 'models' scope at github.com/settings/tokens</span>
-        </div>
-      </div>
+        &lt;/div&gt;
+      &lt;/div&gt;
 
       <input type="password" id="patToken" class="w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-700 mb-3" placeholder="github_pat_..." />
       <button id="usePat" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-3 rounded w-full flex items-center justify-center gap-2">
@@ -1400,8 +1400,8 @@
         </svg>
         Use Token
       </button>
-    </div>
-  </div>
+    &lt;/div&gt;
+  &lt;/div&gt;
 
   <!-- Chat Page -->
   <div id="chatPage" class="flex h-screen hidden">
@@ -1428,30 +1428,30 @@
             <rect width="100" height="100" rx="24" ry="24" fill="url(#lgMobile)" />
             <path fill="#fff" fill-opacity=".95" d="M50 20 20 35l30 15 30-15L50 20Zm0 15-30 15 30 15 30-15-30-15Zm0 15-30 15 30 15 30-15-30-15Z" />
           </svg>
-        </div>
+        &lt;/div&gt;
         <span style="font-family:'Roboto Mono', monospace; font-size:16px; font-weight:500;">llm|dump</span>
-      </div>
+      &lt;/div&gt;
 
       <div class="mobile-model-selector">
         <div class="custom-dropdown">
           <div id="mobileDropdownSelected" class="dropdown-selected">
             <div id="mobileSelectedModelIcon" class="model-icon bg-gray-700 flex items-center justify-center">
               <span style="font-size:10px;">G</span>
-            </div>
+            &lt;/div&gt;
             <span id="mobileSelectedModelName" style="font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">GPT</span>
-          </div>
+          &lt;/div&gt;
           <div id="mobileDropdownContent" class="dropdown-content">
             <div class="dropdown-search-container">
               <svg class="search-icon" viewBox="0 0 24 24">
                 <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
               </svg>
               <input type="text" id="mobileDropdownSearch" class="dropdown-search" placeholder="Search models...">
-            </div>
+            &lt;/div&gt;
             <div id="mobileDropdownItems"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
 
     <!-- Sidebar (with glass) -->
     <div id="sidebar" class="w-64 glass-sidebar flex flex-col relative">
@@ -1470,12 +1470,12 @@
                 <rect width="100" height="100" rx="24" ry="24" fill="url(#lgSide)" />
                 <path fill="#fff" fill-opacity=".95" d="M50 20 20 35l30 15 30-15L50 20Zm0 15-30 15 30 15 30-15-30-15Zm0 15-30 15 30 15 30-15-30-15Z" />
               </svg>
-            </div>
+            &lt;/div&gt;
             <div class="logo-word" style="font-size:22px;">
               <span class="pre">llm</span><span class="cursor">|</span><span class="post">dump</span>
-            </div>
-          </div>
-        </div>
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
 
         <div class="flex items-center justify-between mb-4 mt-6">
           <h3 class="font-semibold">Chat History</h3>
@@ -1485,7 +1485,7 @@
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
             </svg>
           </button>
-        </div>
+        &lt;/div&gt;
 
         <button id="newChat" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-4 rounded-lg mb-4 flex items-center justify-center gap-2">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1496,7 +1496,7 @@
         </button>
 
         <div id="chatHistory" class="space-y-2 overflow-y-auto"></div>
-      </div>
+      &lt;/div&gt;
 
       <div class="p-4 border-t border-gray-800 mt-auto">
         <button id="userProfile" class="flex items-center gap-3 w-full text-left p-2 hover:bg-gray-800 rounded-lg">
@@ -1505,11 +1505,11 @@
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
-          </div>
+          &lt;/div&gt;
           <span id="usernameDisplay">Account</span>
         </button>
-      </div>
-    </div>
+      &lt;/div&gt;
+    &lt;/div&gt;
 
     <!-- Main Chat Area -->
     <div class="flex-1 flex flex-col">
@@ -1520,23 +1520,23 @@
             <div id="dropdownSelected" class="dropdown-selected">
               <div id="selectedModelIcon" class="model-icon bg-gray-700 flex items-center justify-center">
                 <span>G</span>
-              </div>
+              &lt;/div&gt;
               <span id="selectedModelName">Select Model</span>
-            </div>
+            &lt;/div&gt;
             <div id="dropdownContent" class="dropdown-content">
               <div class="dropdown-search-container">
                 <svg class="search-icon" viewBox="0 0 24 24">
                   <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
                 </svg>
                 <input type="text" id="dropdownSearch" class="dropdown-search" placeholder="Search models...">
-              </div>
+              &lt;/div&gt;
               <div id="dropdownItems"></div>
-            </div>
-          </div>
+            &lt;/div&gt;
+          &lt;/div&gt;
           <div id="rateLimitInfo" class="text-sm text-gray-400 flex items-center gap-2"></div>
           <div id="networkStatus" class="text-xs px-2 py-1 rounded bg-red-900/40 text-red-300 hidden"></div>
-        </div>
-      </div>
+        &lt;/div&gt;
+      &lt;/div&gt;
 
       <!-- Chat Box -->
       <div id="chatBox" class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-900 to-slate-900">
@@ -1544,9 +1544,9 @@
           <div id="welcomeMessage" class="text-center py-10 text-gray-500">
             <h2 class="text-2xl mb-4">How can I help you today?</h2>
             <p class="text-sm">Start a conversation by typing a message below</p>
-          </div>
-        </div>
-      </div>
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
 
       <!-- Input Area (glass textbox only) -->
       <div class="p-4">
@@ -1559,15 +1559,15 @@
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
               </svg>
               System Prompt
-            </div>
+            &lt;/div&gt;
             <div class="system-prompt-editor" id="systemPromptEditor">
               <textarea
                 id="systemPromptText"
                 class="system-prompt-textarea"
                 placeholder="Enter system prompt..."
               >You are a helpful AI assistant. Be concise, accurate, and helpful in your responses.</textarea>
-            </div>
-          </div>
+            &lt;/div&gt;
+          &lt;/div&gt;
           <!-- Input Textarea -->
           <div class="glass-textbox relative">
             <textarea
@@ -1585,10 +1585,10 @@
             <button id="stopBtn" class="absolute right-3 bottom-3 rounded p-2 stop-btn">
 
           </button>
-        </div>
-      </div>
-    </div>
-  </div>
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
 
   <!-- Profile Menu -->
   <div id="profileMenu" class="profile-menu hidden">
@@ -1607,7 +1607,7 @@
       </svg>
       Sign Out
     </button>
-  </div>
+  &lt;/div&gt;
 
   <!-- Settings Modal -->
   <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
@@ -1627,20 +1627,20 @@
           <div id="titleDropdownSelected" class="dropdown-selected">
             <div id="titleSelectedModelIcon" class="model-icon bg-gray-700 flex items-center justify-center">
               <span style="font-size:10px;">G</span>
-            </div>
+            &lt;/div&gt;
             <span id="titleSelectedModelName">GPT-4.1 Mini</span>
-          </div>
+          &lt;/div&gt;
           <div id="titleDropdownContent" class="dropdown-content">
             <div class="dropdown-search-container">
               <svg class="search-icon" viewBox="0 0 24 24">
                 <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
               </svg>
               <input type="text" id="titleDropdownSearch" class="dropdown-search" placeholder="Search models...">
-            </div>
+            &lt;/div&gt;
             <div id="titleDropdownItems"></div>
-          </div>
-        </div>
-      </div>
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
 
       <div class="mb-6">
         <label class="block mb-2">Edit Personal Access Token</label>
@@ -1648,7 +1648,7 @@
         <button id="saveToken" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded w-full">
           Save Token
         </button>
-      </div>
+      &lt;/div&gt;
 
       <div class="flex gap-2 mb-4">
         <button id="exportAll" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded">
@@ -1657,9 +1657,9 @@
         <button id="importChats" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded">
           Import Chats
         </button>
-      </div>
-    </div>
-  </div>
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
 
   <script>
   (()=>{
@@ -1817,7 +1817,7 @@
     function loadUserProfile(){
       const token=localStorage.getItem('gh_token');
       if(!token || !token.trim() || token.trim()=="" || token == "") return;
-      fetch('https://api.github.com/user',{headers:{Authorization:`Bearer ${token}`}})
+      fetch('https://api.github.com/user',{headers:{Authorization:'Bearer ' + token}})
         .then(r=> r.ok ? r.json(): Promise.reject())
         .then(u=>{
           if(u.login){ document.getElementById('usernameDisplay').textContent=u.login; }
@@ -2051,10 +2051,7 @@
         }
       }
     }
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="23,4 23,10 17,10"></polyline>
-                      <polyline points="1,20 1,14 7,14"></polyline>
-                      <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
+
     window.editMessage = (btn) => {
       const container = btn.closest('.user-bubble, .assistant-response');
       if (!container || container.querySelector('.inline-edit-container')) return;
@@ -2173,7 +2170,10 @@
           actionContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       }, 10);
-    };const logos = {
+    };
+    
+    function getPublisherLogo(publisher) {
+      const logos = {
         'OpenAI': `&lt;span style="font-size:16px; font-weight:bold; color: #0ea5e9;"&gt;AI&lt;/span&gt;`,
         'xAI': `&lt;span style="font-size:12px; font-weight:bold; color: #6366f1;"&gt;xAI&lt;/span&gt;`,
         'Meta': `&lt;span style="font-size:12px; font-weight:bold; color: #3b82f6;"&gt;Meta&lt;/span&gt;`,
@@ -2359,7 +2359,7 @@ Rules:
         const branchIndex = chat.branches.indexOf(branch);
         const branchNumber = branchIndex + 1;
         const isActive = branchIndex === chat.currentBranch;
-        return `<button class="branch-btn ${isActive ? 'active' : ''}" onclick="switchToBranch(chats.find(c => c.id === '${chat.id}'), ${branchIndex})">${branchNumber}</button>`;
+        return '&lt;button class="branch-btn ' + (isActive ? 'active' : '') + '" onclick="switchToBranch(chats.find(c => c.id === \'' + chat.id + '\'), ' + branchIndex + ')"&gt;' + branchNumber + '&lt;/button&gt;';
       }).join('');
     }
 
@@ -2460,7 +2460,7 @@ Rules:
       return fetch('https://models.github.ai/inference/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': 'Bearer ' + token,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -2527,7 +2527,7 @@ Rules:
       if (currentBranch.length === 0) {
         const chatBoxContainer = chatBox.querySelector('.max-w-3xl');
         if (chatBoxContainer) {
-          chatBoxContainer.innerHTML = '&lt;div id="welcomeMessage" class="text-center py-10 text-gray-500"&gt;&lt;h2 class="text-2xl mb-4"&gt;How can I help you today?&lt;/h2&gt;&lt;p class="text-sm"&gt;Start a conversation by typing a message below&lt;/p&gt;&lt;/div&gt;';
+          chatBoxContainer.innerHTML = '&lt;div id="welcomeMessage" class="text-center py-10 text-gray-500"&gt;&lt;h2 class="text-2xl mb-4"&gt;How can I help you today?</h2>&lt;p class="text-sm"&gt;Start a conversation by typing a message below</p>&lt;/div&gt;';
         }
       } else {
         // Remove welcome message
@@ -2540,27 +2540,27 @@ Rules:
             const bubble = document.createElement('div');
             bubble.className = 'user-bubble';
             bubble.innerHTML = `
-              <div class="message-content">
-                <div class="markdown-body">${marked.parse(m.content)}</div>
-              </div>
-              <div class="message-bottom-actions">
-                <div class="action-buttons">
-                  <button class="bottom-action-btn" onclick="editMessage(this)" title="Edit">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M12 20h9"></path>
-                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                    </svg>
+              &lt;div class="message-content"&gt;
+                &lt;div class="markdown-body"&gt;${marked.parse(m.content)}&lt;/div&gt;
+              &lt;/div&gt;
+              &lt;div class="message-bottom-actions"&gt;
+                &lt;div class="action-buttons"&gt;
+                  &lt;button class="bottom-action-btn" onclick="editMessage(this)" title="Edit"&gt;
+                    &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+                      &lt;path d="M12 20h9"&gt;&lt;/path&gt;
+                      &lt;path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"&gt;&lt;/path&gt;
+                    &lt;/svg&gt;
                     Edit
-                  </button>
-                  <button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
+                  &lt;/button&gt;
+                  &lt;button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy"&gt;
+                    &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+                      &lt;rect x="9" y="9" width="13" height="13" rx="2" ry="2"&gt;&lt;/rect&gt;
+                      &lt;path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"&gt;&lt;/path&gt;
+                    &lt;/svg&gt;
                     Copy
-                  </button>
-                </div>
-              </div>
+                  &lt;/button&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
             `;
             bubble.dataset.role = 'user';
             
@@ -2576,28 +2576,28 @@ Rules:
             const response = document.createElement('div');
             response.className = 'assistant-response';
             response.innerHTML = `
-              <div class="message-content">
-                <div class="markdown-body">${marked.parse(m.content)}</div>
-              </div>
-              <div class="message-bottom-actions">
-                <div class="action-buttons">
-                  <button class="bottom-action-btn" onclick="regenerateMessage(this)" title="Regenerate">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="23,4 23,10 17,10"></polyline>
-                      <polyline points="1,20 1,14 7,14"></polyline>
-                      <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
-                    </svg>
+              &lt;div class="message-content"&gt;
+                &lt;div class="markdown-body"&gt;${marked.parse(m.content)}&lt;/div&gt;
+              &lt;/div&gt;
+              &lt;div class="message-bottom-actions"&gt;
+                &lt;div class="action-buttons"&gt;
+                  &lt;button class="bottom-action-btn" onclick="regenerateMessage(this)" title="Regenerate"&gt;
+                    &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+                      &lt;polyline points="23,4 23,10 17,10"&gt;&lt;/polyline&gt;
+                      &lt;polyline points="1,20 1,14 7,14"&gt;&lt;/polyline&gt;
+                      &lt;path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"&gt;&lt;/path&gt;
+                    &lt;/svg&gt;
                     Regenerate
-                  </button>
-                  <button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
+                  &lt;/button&gt;
+                  &lt;button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy"&gt;
+                    &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+                      &lt;rect x="9" y="9" width="13" height="13" rx="2" ry="2"&gt;&lt;/rect&gt;
+                      &lt;path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"&gt;&lt;/path&gt;
+                    &lt;/svg&gt;
                     Copy
-                  </button>
-                </div>
-              </div>
+                  &lt;/button&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
             `;
             response.dataset.role = 'assistant';
             
@@ -2633,7 +2633,7 @@ Rules:
       };
       chats.push(newChat);
       localStorage.setItem('chat_history', JSON.stringify(chats));
-      chatBox.innerHTML=`&lt;div class="max-w-3xl mx-auto"&gt;&lt;div id="welcomeMessage" class="text-center py-10 text-gray-500"&gt;&lt;h2 class="text-2xl mb-4"&gt;How can I help you today?&lt;/h2&gt;&lt;p class="text-sm"&gt;Start a conversation by typing a message below&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;`;
+      chatBox.innerHTML=`&lt;div class="max-w-3xl mx-auto"&gt;&lt;div id="welcomeMessage" class="text-center py-10 text-gray-500"&gt;&lt;h2 class="text-2xl mb-4"&gt;How can I help you today?</h2>&lt;p class="text-sm"&gt;Start a conversation by typing a message below</p>&lt;/div&gt;&lt;/div&gt;`;
       loadChatHistory();
     }
     
@@ -2668,27 +2668,27 @@ Rules:
       const bubble = document.createElement('div');
       bubble.className = 'user-bubble';
       bubble.innerHTML = `
-        <div class="message-content">
-          <div class="markdown-body">${marked.parse(content)}</div>
-        </div>
-        <div class="message-bottom-actions">
-          <div class="action-buttons">
-            <button class="bottom-action-btn" onclick="editMessage(this)" title="Edit">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 20h9"></path>
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-              </svg>
+        &lt;div class="message-content"&gt;
+          &lt;div class="markdown-body"&gt;${marked.parse(content)}&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="message-bottom-actions"&gt;
+          &lt;div class="action-buttons"&gt;
+            &lt;button class="bottom-action-btn" onclick="editMessage(this)" title="Edit"&gt;
+              &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+                &lt;path d="M12 20h9"&gt;&lt;/path&gt;
+                &lt;path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"&gt;&lt;/path&gt;
+              &lt;/svg&gt;
               Edit
-            </button>
-            <button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
+            &lt;/button&gt;
+            &lt;button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy"&gt;
+              &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+                &lt;rect x="9" y="9" width="13" height="13" rx="2" ry="2"&gt;&lt;/rect&gt;
+                &lt;path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"&gt;&lt;/path&gt;
+              &lt;/svg&gt;
               Copy
-            </button>
-          </div>
-        </div>
+            &lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
       `;
       bubble.dataset.role = 'user';
       chatBox.appendChild(bubble);
@@ -2776,19 +2776,19 @@ Rules:
       const controls = document.createElement('div');
       controls.className = 'inline-edit-actions';
       controls.innerHTML = `
-        <button class="inline-edit-btn save">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20,6 9,17 4,12"></polyline>
-          </svg>
+        &lt;button class="inline-edit-btn save"&gt;
+          &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+            &lt;polyline points="20,6 9,17 4,12"&gt;&lt;/polyline&gt;
+          &lt;/svg&gt;
           Save
-        </button>
-        <button class="inline-edit-btn cancel">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
+        &lt;/button&gt;
+        &lt;button class="inline-edit-btn cancel"&gt;
+          &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+            &lt;line x1="18" y1="6" x2="6" y2="18"&gt;&lt;/line&gt;
+            &lt;line x1="6" y1="6" x2="18" y2="18"&gt;&lt;/line&gt;
+          &lt;/svg&gt;
           Cancel
-        </button>
+        &lt;/button&gt;
       `;
       
       // Auto-resize function
@@ -3238,7 +3238,7 @@ Rules:
       fetch('https://models.github.ai/inference/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': 'Bearer ' + token,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -3264,7 +3264,7 @@ Rules:
               // Finalize the message
               streamingResponse.classList.remove('streaming');
               streamingResponse.innerHTML = `
-                <div class="markdown-body">${marked.parse(fullContent || '*No response received*')}</div>
+                <div class="markdown-body">${marked.parse(fullContent || '*No response received*')}&lt;/div&gt;
                 <div class="message-actions">
                   <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -3285,7 +3285,7 @@ Rules:
                       <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
                     </svg>
                   </button>
-                </div>
+                &lt;/div&gt;
               `;
               streamingResponse.dataset.role = 'assistant';
 
@@ -3317,7 +3317,7 @@ Rules:
                   const content = parsed.choices?.[0]?.delta?.content || '';
                   if(content) {
                     fullContent += content;
-                    streamingResponse.innerHTML = `<div class="markdown-body">${marked.parse(fullContent)}</div>`;
+                    streamingResponse.innerHTML = `&lt;div class="markdown-body">${marked.parse(fullContent)}&lt;/div&gt;`;
                     chatBox.scrollTop = chatBox.scrollHeight;
                   }
                 } catch(e) {
@@ -3330,10 +3330,10 @@ Rules:
           }).catch(error => {
             if (error.name === 'AbortError') {
               streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm">Generation stopped</div>`;
+              streamingResponse.innerHTML = `&lt;div class="text-yellow-400 text-sm">Generation stopped&lt;/div&gt;`;
             } else {
               streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}</div>`;
+              streamingResponse.innerHTML = `&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}&lt;/div&gt;`;
             }
             resetSendButton();
           });
@@ -3344,10 +3344,10 @@ Rules:
       .catch(error => {
         if (error.name === 'AbortError') {
           streamingResponse.classList.remove('streaming');
-          streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">⚠️ Generation stopped</div>`;
+          streamingResponse.innerHTML = `&lt;div class="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">⚠️ Generation stopped&lt;/div&gt;`;
         } else {
           streamingResponse.classList.remove('streaming');
-          streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Request failed: ${error.message}</div>`;
+          streamingResponse.innerHTML = `&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Request failed: ${error.message}&lt;/div&gt;`;
         }
         resetSendButton();
       });
@@ -3375,7 +3375,7 @@ Rules:
       // Create streaming container for regeneration
       const streamingResponse = document.createElement('div');
       streamingResponse.className = 'assistant-response streaming';
-      streamingResponse.innerHTML = '<div class="text-sm text-indigo-300">Regenerating response...</div>';
+      streamingResponse.innerHTML = '&lt;div class="text-sm text-indigo-300">Regenerating response...&lt;/div&gt;';
       chatBox.appendChild(streamingResponse);
       chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -3386,13 +3386,13 @@ Rules:
 
       if(!token || !token.trim() || token.trim()=="" || token == "") {
         streamingResponse.classList.remove('streaming');
-        streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No authentication token found.</div>';
+        streamingResponse.innerHTML = '&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No authentication token found.&lt;/div&gt;';
         return;
       }
 
       if(!model || !model.id) {
         streamingResponse.classList.remove('streaming');
-        streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No valid model selected.</div>';
+        streamingResponse.innerHTML = '&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No valid model selected.&lt;/div&gt;';
         return;
       }
 
@@ -3412,7 +3412,7 @@ Rules:
       fetch('https://models.github.ai/inference/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': 'Bearer ' + token,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -3435,7 +3435,7 @@ Rules:
             if(done) {
               streamingResponse.classList.remove('streaming');
               streamingResponse.innerHTML = `
-                <div class="markdown-body">${marked.parse(fullContent || '*No response received*')}</div>
+                <div class="markdown-body">${marked.parse(fullContent || '*No response received*')}&lt;/div&gt;
                 <div class="message-actions">
                   <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -3456,7 +3456,7 @@ Rules:
                       <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
                     </svg>
                   </button>
-                </div>
+                &lt;/div&gt;
               `;
               streamingResponse.dataset.role = 'assistant';
 
@@ -3483,7 +3483,7 @@ Rules:
                   const content = parsed.choices?.[0]?.delta?.content || '';
                   if(content) {
                     fullContent += content;
-                    streamingResponse.innerHTML = `<div class="markdown-body">${marked.parse(fullContent)}</div>`;
+                    streamingResponse.innerHTML = `&lt;div class="markdown-body">${marked.parse(fullContent)}&lt;/div&gt;`;
                     chatBox.scrollTop = chatBox.scrollHeight;
                   }
                 } catch(e) {
@@ -3496,10 +3496,10 @@ Rules:
           }).catch(error => {
             if (error.name === 'AbortError') {
               streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm">Generation stopped</div>`;
+              streamingResponse.innerHTML = `&lt;div class="text-yellow-400 text-sm">Generation stopped&lt;/div&gt;`;
             } else {
               streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}</div>`;
+              streamingResponse.innerHTML = `&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}&lt;/div&gt;`;
             }
             resetSendButton();
           });
@@ -3510,10 +3510,10 @@ Rules:
       .catch(error => {
         if (error.name === 'AbortError') {
           streamingResponse.classList.remove('streaming');
-          streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">⚠️ Generation stopped</div>`;
+          streamingResponse.innerHTML = `&lt;div class="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">⚠️ Generation stopped&lt;/div&gt;`;
         } else {
           streamingResponse.classList.remove('streaming');
-          streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Request failed: ${error.message}</div>`;
+          streamingResponse.innerHTML = `&lt;div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Request failed: ${error.message}&lt;/div&gt;`;
         }
         resetSendButton();
       });
@@ -3563,7 +3563,7 @@ Rules:
       // TODO: Add Cerebras models when external API keys are implemented
       // Cerebras offers better rate limits per model (especially for less used models like llama 70B)
       const fallback = [{"id":"openai/gpt-4.1","name":"OpenAI GPT-4.1","publisher":"OpenAI","summary":"gpt-4.1 outperforms gpt-4o across the board, with major gains in coding, instruction following, and long-context understanding","rate_limit_tier":"high","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-04-14","capabilities":["streaming","tool-calling"],"limits":{"max_input_tokens":1048576,"max_output_tokens":32768},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4-1"},{"id":"openai/gpt-4.1-mini","name":"OpenAI GPT-4.1-mini","publisher":"OpenAI","summary":"gpt-4.1-mini outperform gpt-4o-mini across the board, with major gains in coding, instruction following, and long-context handling","rate_limit_tier":"low","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-04-14","capabilities":["streaming","tool-calling"],"limits":{"max_input_tokens":1048576,"max_output_tokens":32768},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4-1-mini"},{"id":"openai/gpt-4.1-nano","name":"OpenAI GPT-4.1-nano","publisher":"OpenAI","summary":"gpt-4.1-nano provides gains in coding, instruction following, and long-context handling along with lower latency and cost","rate_limit_tier":"low","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-04-14","capabilities":["streaming","tool-calling"],"limits":{"max_input_tokens":1048576,"max_output_tokens":32768},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4-1-nano"},{"id":"openai/gpt-4o","name":"OpenAI GPT-4o","publisher":"OpenAI","summary":"OpenAI's most advanced multimodal model in the gpt-4o family. Can handle both text and image inputs.","rate_limit_tier":"high","supported_input_modalities":["text","image","audio"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2024-11-20","capabilities":["agents","assistants","streaming","tool-calling"],"limits":{"max_input_tokens":131072,"max_output_tokens":16384},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4o"},{"id":"openai/gpt-4o-mini","name":"OpenAI GPT-4o mini","publisher":"OpenAI","summary":"An affordable, efficient AI solution for diverse text and image tasks.","rate_limit_tier":"low","supported_input_modalities":["text","image","audio"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2024-07-18","capabilities":["agents","assistants","streaming","tool-calling"],"limits":{"max_input_tokens":131072,"max_output_tokens":4096},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4o-mini"},{"id":"openai/gpt-5","name":"OpenAI gpt-5","publisher":"OpenAI","summary":"gpt-5 is designed for logic-heavy and multi-step tasks. ","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5"},{"id":"openai/gpt-5-chat","name":"OpenAI gpt-5-chat (preview)","publisher":"OpenAI","summary":"gpt-5-chat (preview) is an advanced, natural, multimodal, and context-aware conversations for enterprise applications.","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5-chat"},{"id":"openai/gpt-5-mini","name":"OpenAI gpt-5-mini","publisher":"OpenAI","summary":"gpt-5-mini is a lightweight version for cost-sensitive applications.","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5-mini"},{"id":"openai/gpt-5-nano","name":"OpenAI gpt-5-nano","publisher":"OpenAI","summary":"gpt-5-nano is optimized for speed, ideal for applications requiring low latency. ","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5-nano"},{"id":"openai/o1","name":"OpenAI o1","publisher":"OpenAI","summary":"Focused on advanced reasoning and solving complex problems, including math and science tasks. Ideal for applications that require deep contextual understanding and agentic workflows.","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["reasoning","multilingual","coding"],"registry":"azure-openai","version":"2024-12-17","capabilities":["reasoning","tool-calling"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/o1"},{"id":"openai/o1-mini","name":"OpenAI o1-mini","publisher":"OpenAI","summary":"Smaller, faster, and 80% cheaper than o1-preview, performs well at code generation and small context operations.","rate_limit_tier":"custom","supported_input_modalities":["text"],"supported_output_modalities":["text"],"tags":["reasoning","multilingual","coding"],"registry":"azure-openai","version":"2024-09-12","capabilities":["reasoning","streaming"],"limits":{"max_input_tokens":128000,"max_output_tokens":65536},"html_url":"https://github.com/marketplace/models/azure-openai/o1-mini"}]
-      fetch(`${API_BASE}/api/models`,{headers:{Authorization:`Bearer ${token}`}})
+      fetch(`${API_BASE}/api/models`,{headers:{Authorization:'Bearer ' + token}})
         .then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
         .then(data=>{
           models = Array.isArray(data)? data : (data.models||fallback);
