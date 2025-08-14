@@ -1684,8 +1684,8 @@
 
     // Data initialization
     let models = [];
-    let chats = JSON.parse(localStorage.getItem('chat_history') || '[]');
-    let currentChatId = null;
+    window.chats = JSON.parse(localStorage.getItem('chat_history') || '[]');
+    window.currentChatId = null;
     let currentAbortController = null;
 
     // Helper functions
@@ -1823,9 +1823,10 @@
         return;
       }
 
-      // Simple message sending - just alert for now
-      alert(`Would send message: "${msg}" using model: ${model.name}`);
+      // Send the message
+      appendUserMessage(msg);
       messageInput.value = '';
+      generateAssistantForLastUser();
     }
 
     document.getElementById('githubLogin')?.addEventListener('click', (e)=>{ e.preventDefault(); startOAuth(); });
@@ -1833,1895 +1834,223 @@
 
     // Event Listeners
     sendBtn?.addEventListener('click', sendMessage);
-    newChatBtn?.addEventListener('click', () => alert('New chat functionality'));
+    newChatBtn?.addEventListener('click', createNewChat);
 
     messageInput?.addEventListener('keydown', e=>{
       if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
     });
 
-    console.log('LLM Dump authentication system loaded successfully');
-  })();
-  </script>
+    // Chat management functions
+    if(!window.chats) window.chats = [];
+    if(!window.currentChatId) window.currentChatId = null;
 
-  <script>
-    // Backend configuration
-    const DEFAULT_API_BASE = 'https://tanjim.ddns.net';
-    let API_BASE = (localStorage.getItem('api_base')||DEFAULT_API_BASE||'').trim();
-    if(API_BASE.endsWith('/')) API_BASE = API_BASE.slice(0,-1);
-
-    // DOM Elements
-    const loginPage = document.getElementById('loginPage');
-    const chatPage = document.getElementById('chatPage');
-    const chatBox = document.getElementById('chatBox');
-    const messageInput = document.getElementById('messageInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const chatHistory = document.getElementById('chatHistory');
-    const newChatBtn = document.getElementById('newChat');
-    const userProfile = document.getElementById('userProfile');
-    const profileMenu = document.getElementById('profileMenu');
-    const settingsModal = document.getElementById('settingsModal');
-    const dropdownSelected = document.getElementById('dropdownSelected');
-    const dropdownContent = document.getElementById('dropdownContent');
-    const dropdownSearch = document.getElementById('dropdownSearch');
-    const dropdownItems = document.getElementById('dropdownItems');
-    const rateLimitInfo = document.getElementById('rateLimitInfo');
-    const sidebarSettings = document.getElementById('sidebarSettings');
-
-    // Enhanced marked renderer for codeblocks
-    const renderer = new marked.Renderer();
-    const originalCode = renderer.code;
-
-    renderer.code = function(code, language, escaped) {
-      const lang = language || 'text';
-      const langDisplay = lang.charAt(0).toUpperCase() + lang.slice(1);
-      const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
-
-      // Apply syntax highlighting if hljs is available
-      let highlightedCode = escaped ? code : marked.escapeTest(code);
-      if (typeof hljs !== 'undefined' && lang !== 'text') {
-        try {
-          highlightedCode = hljs.highlight(code, { language: lang }).value;
-        } catch (e) {
-          // Fall back to plain text if language not supported
-          highlightedCode = escaped ? code : marked.escapeTest(code);
-        }
-      }
-
-      const copyIcon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
-      const downloadIcon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7,10 12,15 17,10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
-      const wrapIcon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"></polyline></svg>`;
-      
-      return `
-        <pre class="enhanced-codeblock">
-          <div class="code-header">
-            <span class="code-language">${langDisplay}</span>
-            <div class="code-actions">
-              <button class="code-action-btn" onclick="copyCode('${codeId}')" title="Copy code">
-                ${copyIcon}
-                Copy
-              </button>
-              <button class="code-action-btn" onclick="downloadCode('${codeId}', '${lang}')" title="Download as file">
-                ${downloadIcon}
-                Download
-              </button>
-              <button class="code-action-btn" onclick="toggleWrap('${codeId}')" title="Toggle line wrap">
-                ${wrapIcon}
-                Wrap
-              </button>
-            </div>
-          </div>
-          <code id="${codeId}" class="language-${lang}">${highlightedCode}</code>
-        </pre>
-      `;
-    };
-
-    marked.setOptions({ renderer });
-
-    // Codeblock action functions
-    window.copyCode = function(codeId) {
-      const codeElement = document.getElementById(codeId);
-      if (!codeElement) return;
-
-      const code = codeElement.textContent;
-      navigator.clipboard.writeText(code).then(() => {
-        const btn = event.target.closest('.code-action-btn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"></polyline></svg>Copied`;
-        btn.classList.add('success');
-        setTimeout(() => {
-          btn.innerHTML = originalText;
-          btn.classList.remove('success');
-        }, 2000);
-      });
-    };
-
-    window.downloadCode = function(codeId, language) {
-      const codeElement = document.getElementById(codeId);
-      if (!codeElement) return;
-
-      const code = codeElement.textContent;
-      const extensions = {
-        javascript: 'js', typescript: 'ts', python: 'py',
-        java: 'java', cpp: 'cpp', csharp: 'cs',
-        php: 'php', ruby: 'rb', go: 'go', rust: 'rs',
-        html: 'html', css: 'css', sql: 'sql', json: 'json',
-        xml: 'xml', yaml: 'yml', markdown: 'md', shell: 'sh',
-        bash: 'sh', powershell: 'ps1', text: 'txt'
-      };
-
-      const ext = extensions[language.toLowerCase()] || 'txt';
-      const filename = `code.${ext}`;
-
-      const blob = new Blob([code], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    };
-
-    window.toggleWrap = function(codeId) {
-      const codeElement = document.getElementById(codeId);
-      if (!codeElement) return;
-
-      const pre = codeElement.closest('pre');
-      pre.classList.toggle('code-wrap');
-
-      const btn = event.target.closest('.code-action-btn');
-      const isWrapped = pre.classList.contains('code-wrap');
-      btn.innerHTML = isWrapped ?
-        `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18,15 12,9 6,15"></polyline></svg>Unwrap` :
-        `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"></polyline></svg>Wrap`;
-    };
-
-    // State
-    let chats = JSON.parse(localStorage.getItem('chat_history') || '[]');
-    let currentChatId = null;
-    let models = [];
-    let currentAbortController = null;
-
-    // Migrate old chats to support branching
-    chats.forEach(chat => {
-      if (!chat.branches) {
-        // Convert linear messages to branched format
-        chat.branches = [chat.messages || []];
-        chat.currentBranch = 0;
-        delete chat.messages; // Remove old format
-      }
-    });
-
-    // Helper functions
-    function loadUserProfile(){
-      const token=localStorage.getItem('gh_token');
-      if(!token || !token.trim() || token.trim()=="" || token == "") return;
-      fetch('https://api.github.com/user',{headers:{Authorization:'Bearer ' + token}})
-        .then(r=> r.ok ? r.json(): Promise.reject())
-        .then(u=>{
-          if(u.login){ document.getElementById('usernameDisplay').textContent=u.login; }
-          if(u.avatar_url){
-            const av=userProfile.querySelector('div');
-            av.innerHTML=`<img src="${u.avatar_url}&s=80" class="w-8 h-8 rounded-full"/>`;
-          }
-        }).catch(()=>{});
-    }
-
-    function showLoginPage() {
-      loginPage?.classList.remove('hidden');
-      chatPage?.classList.add('hidden');
-    }
-
-    function showChatPage() {
-      loginPage?.classList.add('hidden');
-      chatPage?.classList.remove('hidden');
-    }
-
-    // Auth handlers
-    const patInput = document.getElementById('patToken');
-    document.getElementById('usePat')?.addEventListener('click', () => {
-      const token = patInput.value.trim();
-      if (token.startsWith('github_pat_')) {
-        const octokit = new Octokit({ auth: token });
-        localStorage.setItem('gh_token', token);
-        fetchModels();
-        loadUserProfile();
-        showChatPage();
-
-      } else {
-        alert('Invalid token (must start with github_pat_)');
-      }
-    });
-
-    // Auth init
-    const storedToken = localStorage.getItem('gh_token');
-    if (storedToken) {
-      fetchModels();
-      loadUserProfile();
-      showChatPage();
-    } else {
-      showLoginPage();
-    }
-
-    // Profile menu
-    userProfile?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      profileMenu?.classList.toggle('hidden');
-
-      if(!profileMenu?.classList.contains('hidden')) {
-        const rect = userProfile.getBoundingClientRect();
-        profileMenu.style.left = rect.left + 'px';
-        profileMenu.style.top = (rect.top - profileMenu.offsetHeight - 8) + 'px';
-      }
-    });
-    document.getElementById('signoutBtn')?.addEventListener('click', () => {
-      localStorage.clear(); // Clear all stored data including tokens
-      profileMenu?.classList.add('hidden');
-      showLoginPage();
-    });
-    document.getElementById('settingsBtn')?.addEventListener('click', (e) => {
-      e.stopPropagation(); // Prevent closing the menu because of outside click
-      profileMenu?.classList.add('hidden');
-      settingsModal?.classList.remove('hidden');
-    });
-
-    // Outside click
-    document.addEventListener('click', (e) => {
-      if (profileMenu && !profileMenu.classList.contains('hidden') && !profileMenu.contains(e.target) && e.target !== userProfile) {
-        profileMenu.classList.add('hidden');
-      }
-
-      // Desktop dropdown
-      if (dropdownContent?.classList.contains('show') && !dropdownSelected?.contains(e.target) && !dropdownContent.contains(e.target)) {
-        dropdownContent.classList.remove('show');
-        dropdownSelected?.classList.remove('active');
-      }
-
-      // Title dropdown
-      const titleDropdownContent = document.getElementById('titleDropdownContent');
-      const titleDropdownSelected = document.getElementById('titleDropdownSelected');
-      if (titleDropdownContent?.classList.contains('show') && !titleDropdownSelected?.contains(e.target) && !titleDropdownContent.contains(e.target)) {
-        titleDropdownContent.classList.remove('show');
-        titleDropdownSelected?.classList.remove('active');
-      }
-
-      // Mobile dropdown
-      const mobileContent = document.getElementById('mobileDropdownContent');
-      const mobileSelected = document.getElementById('mobileDropdownSelected');
-      if (mobileContent?.classList.contains('show') && !mobileSelected?.contains(e.target) && !mobileContent.contains(e.target)) {
-        mobileContent.classList.remove('show');
-        mobileSelected?.classList.remove('active');
-      }
-
-      // Mobile sidebar
-      const sidebar = document.getElementById('sidebar');
-      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-      if (sidebar?.classList.contains('mobile-open') && !sidebar.contains(e.target) && e.target !== mobileMenuBtn) {
-        sidebar.classList.remove('mobile-open');
-      }
-
-      if (settingsModal && !settingsModal.classList.contains('hidden')) {
-        const glass = settingsModal.querySelector('.glass');
-        if (glass && !glass.contains(e.target)) {
-          settingsModal.classList.add('hidden');
-        }
-      }
-    });
-
-    // Settings modal
-    document.getElementById('closeSettings')?.addEventListener('click', () => settingsModal?.classList.add('hidden'));
-    document.getElementById('saveToken')?.addEventListener('click', () => {
-      const newToken = document.getElementById('settingsPat').value.trim();
-      if (newToken.startsWith('github_pat_')) {
-        localStorage.setItem('gh_token', newToken);
-        location.reload();
-      } else {
-        alert('Token must start with github_pat_');
-      }
-    });
-    document.getElementById('exportAll')?.addEventListener('click', () => {
-      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(chats, null, 2));
-      const a = document.createElement('a');
-      a.href = dataStr; a.download = 'chat_history.json';
-      document.body.appendChild(a); a.click(); a.remove();
-    });
-    document.getElementById('importChats')?.addEventListener('click', () => {
-      const input = document.createElement('input'); input.type='file'; input.accept='.json';
-      input.onchange = evt => {
-        const file = evt.target.files[0]; if(!file) return;
-        const reader = new FileReader();
-        reader.onload = () => { try { const imported = JSON.parse(reader.result); chats = imported; localStorage.setItem('chat_history', JSON.stringify(chats)); location.reload(); } catch { alert('Invalid JSON'); } };
-        reader.readAsText(file,'utf-8');
-      };
-      input.click();
-    });
-
-    // ESC close
-    document.addEventListener('keydown', (e)=>{
-      if (e.key === 'Escape') {
-        dropdownContent?.classList.remove('show');
-        dropdownSelected?.classList.remove('active');
-        document.getElementById('titleDropdownContent')?.classList.remove('show');
-        document.getElementById('titleDropdownSelected')?.classList.remove('active');
-        document.getElementById('mobileDropdownContent')?.classList.remove('show');
-        document.getElementById('mobileDropdownSelected')?.classList.remove('active');
-        document.getElementById('sidebar')?.classList.remove('mobile-open');
-        profileMenu?.classList.add('hidden');
-        if (!settingsModal?.classList.contains('hidden')) settingsModal.classList.add('hidden');
-      }
-    });
-
-    // Model dropdown
-    dropdownSelected?.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dropdownContent?.classList.toggle('show');
-      dropdownSelected?.classList.toggle('active');
-    });
-    dropdownSearch?.addEventListener('input', e => filterModels(e.target.value));
-
-    // Title generation model dropdown
-    const titleDropdownSelected = document.getElementById('titleDropdownSelected');
-    const titleDropdownContent = document.getElementById('titleDropdownContent');
-    const titleDropdownSearch = document.getElementById('titleDropdownSearch');
-    const titleDropdownItems = document.getElementById('titleDropdownItems');
-
-    titleDropdownSelected?.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      titleDropdownContent?.classList.toggle('show');
-      titleDropdownSelected?.classList.toggle('active');
-    });
-
-    titleDropdownSearch?.addEventListener('input', e => filterTitleModels(e.target.value));
-
-    function filterTitleModels(query) {
-      const q = query.toLowerCase();
-      renderTitleDropdownItems(models.filter(m => m.name.toLowerCase().includes(q) || m.publisher.toLowerCase().includes(q)));
-    }
-
-    function appendAssistantMessage(content){
-      const welcome=document.getElementById('welcomeMessage');
-      if(welcome) welcome.remove();
-
-      const response = document.createElement('div');
-      response.className = 'assistant-response';
-      response.innerHTML = `
-        <div class="message-content">
-          <div class="markdown-body">${marked.parse(content)}</div>
-        </div>
-        <div class="message-bottom-actions">
-          <div class="action-buttons">
-            <button class="bottom-action-btn" onclick="regenerateMessage(this)" title="Regenerate">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="23,4 23,10 17,10"></polyline>
-                <polyline points="1,20 1,14 7,14"></polyline>
-                <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
-              </svg>
-              Regenerate
-            </button>
-            <button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              Copy
-            </button>
-          </div>
-        </div>
-      `;
-      response.dataset.role = 'assistant';
-      chatBox.appendChild(response);
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      const chat = chats.find(c => c.id === currentChatId);
-      if(chat) {
-        // Initialize branches if needed
-        if (!chat.branches) {
-          chat.branches = [chat.messages || []];
-          chat.currentBranch = 0;
-          delete chat.messages;
-        }
-
-        const currentBranch = chat.branches[chat.currentBranch];
-        if(!currentBranch.some(m => m.content === content && m.role === 'assistant')){
-          currentBranch.push({role: 'assistant', content});
-          localStorage.setItem('chat_history', JSON.stringify(chats));
-        }
-      }
-    }
-
-    window.editMessage = (btn) => {
-      const container = btn.closest('.user-bubble, .assistant-response');
-      if (!container || container.querySelector('.inline-edit-container')) return;
-      
-      const chat = chats.find(c => c.id === currentChatId);
-      if (!chat) return;
-      
-      const messageIndex = parseInt(container.dataset.messageIndex);
-      const currentBranch = getCurrentBranch(chat);
-      const message = currentBranch[messageIndex];
-      if (!message) return;
-      
-      const messageContent = container.querySelector('.message-content');
-      const markdownBody = messageContent.querySelector('.markdown-body');
-      const originalText = message.content;
-      
-      // Create inline edit container
-      const editContainer = document.createElement('div');
-      editContainer.className = 'inline-edit-container';
-      
-      // Create textarea with same styling as the message
-      const textarea = document.createElement('textarea');
-      textarea.className = 'inline-edit-textarea';
-      textarea.value = originalText;
-      
-      // Auto-resize function
-      const autoResize = () => {
-        textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 'px';
+    function createNewChat() {
+      const chat = {
+        id: Date.now().toString(),
+        title: `Chat ${window.chats.length + 1}`,
+        branches: [{
+          id: 'main',
+          name: 'Main',
+          messages: [],
+          parent: null
+        }],
+        currentBranch: 'main',
+        createdAt: new Date().toISOString()
       };
       
-      // Create action buttons
-      const actionContainer = document.createElement('div');
-      actionContainer.className = 'inline-edit-actions';
+      window.chats.unshift(chat);
+      window.currentChatId = chat.id;
+      saveChatHistory();
+      renderChatHistory();
+      switchToChat(chat.id);
+    }
+
+    function appendUserMessage(content) {
+      if(!window.currentChatId) return;
       
-      const saveBtn = document.createElement('button');
-      saveBtn.className = 'inline-edit-btn save';
-      saveBtn.innerHTML = `
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
-        </svg>
-        Send
-      `;
+      const chat = window.chats.find(c => c.id === window.currentChatId);
+      if(!chat) return;
       
-      const cancelBtn = document.createElement('button');
-      cancelBtn.className = 'inline-edit-btn cancel';
-      cancelBtn.innerHTML = `
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 6L6 18"></path>
-          <path d="M6 6l12 12"></path>
-        </svg>
-        Cancel
-      `;
+      const branch = chat.branches.find(b => b.id === chat.currentBranch);
+      if(!branch) return;
       
-      // Event handlers
-      const saveEdit = () => {
-        const newContent = textarea.value.trim();
-        if (!newContent) return;
+      const message = {
+        id: Date.now().toString(),
+        role: 'user',
+        content: content,
+        timestamp: new Date().toISOString()
+      };
+      
+      branch.messages.push(message);
+      saveChatHistory();
+      renderCurrentChat();
+    }
+
+    function appendAssistantMessage(content) {
+      if(!window.currentChatId) return;
+      
+      const chat = window.chats.find(c => c.id === window.currentChatId);
+      if(!chat) return;
+      
+      const branch = chat.branches.find(b => b.id === chat.currentBranch);
+      if(!branch) return;
+      
+      const message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: content,
+        timestamp: new Date().toISOString()
+      };
+      
+      branch.messages.push(message);
+      saveChatHistory();
+      renderCurrentChat();
+    }
+
+    async function generateAssistantForLastUser() {
+      if(!authenticated || !selectedModel) {
+        appendAssistantMessage('Please sign in with GitHub and select a model first.');
+        return;
+      }
+      
+      const chat = window.chats.find(c => c.id === window.currentChatId);
+      if(!chat) return;
+      
+      const branch = chat.branches.find(b => b.id === chat.currentBranch);
+      if(!branch || !branch.messages.length) return;
+      
+      const lastMessage = branch.messages[branch.messages.length - 1];
+      if(lastMessage.role !== 'user') return;
+      
+      try {
+        setSendingState(true);
         
-        // Create new branch with edited message
-        const newBranchIndex = createNewBranch(chat, messageIndex, {
-          role: message.role,
-          content: newContent
+        const messagesForAPI = branch.messages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+        
+        const response = await octokit.request('POST /models/{model}/chat/completions', {
+          model: selectedModel.id,
+          messages: messagesForAPI,
+          stream: false,
+          max_tokens: 4000,
+          temperature: 0.7
         });
         
-        // Switch to new branch and reload
-        switchToBranch(chat, newBranchIndex);
-        
-        // If this is a user message and there were assistant messages after it,
-        // generate a new response
-        if (message.role === 'user' && currentBranch.length > messageIndex + 1) {
-          // Wait for the UI to update, then generate new response
-          setTimeout(() => generateAssistantForLastUser(), 100);
+        if(response.data?.choices?.[0]?.message?.content) {
+          appendAssistantMessage(response.data.choices[0].message.content);
+        } else {
+          appendAssistantMessage('I encountered an issue generating a response. Please try again.');
         }
-      };
-      
-      const cancelEdit = () => {
-        editContainer.remove();
-        markdownBody.style.display = 'block';
-        container.classList.remove('message-editing');
-      };
-      
-      const handleKeydown = (e) => {
-        if (e.key === 'Escape') {
-          cancelEdit();
-        } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-          e.preventDefault();
-          saveEdit();
+      } catch(error) {
+        console.error('Generation error:', error);
+        appendAssistantMessage('Sorry, I encountered an error generating a response. Please check your connection and try again.');
+      } finally {
+        setSendingState(false);
+      }
+    }
+
+    function setSendingState(sending) {
+      if(sendBtn) {
+        sendBtn.disabled = sending;
+        sendBtn.textContent = sending ? 'Sending...' : 'Send';
+      }
+      if(messageInput) {
+        messageInput.disabled = sending;
+      }
+    }
+
+    function saveChatHistory() {
+      try {
+        localStorage.setItem('chat_history', JSON.stringify(window.chats));
+      } catch(e) {
+        console.warn('Failed to save chat history:', e);
+      }
+    }
+
+    function loadChatHistory() {
+      try {
+        const saved = localStorage.getItem('chat_history');
+        if(saved) {
+          window.chats = JSON.parse(saved);
+          renderChatHistory();
         }
-      };
-      
-      // Set up event listeners
-      textarea.addEventListener('input', autoResize);
-      textarea.addEventListener('keydown', handleKeydown);
-      saveBtn.addEventListener('click', saveEdit);
-      cancelBtn.addEventListener('click', cancelEdit);
-      
-      // Assemble the edit interface
-      actionContainer.appendChild(saveBtn);
-      actionContainer.appendChild(cancelBtn);
-      editContainer.appendChild(textarea);
-      editContainer.appendChild(actionContainer);
-      
-      // Replace the markdown content with edit interface
-      markdownBody.style.display = 'none';
-      messageContent.appendChild(editContainer);
-      container.classList.add('message-editing');
-      
-      // Focus and resize
-      textarea.focus();
-      autoResize();
-      
-      // Scroll into view if needed
-      setTimeout(() => {
-        if (actionContainer.getBoundingClientRect().bottom > window.innerHeight) {
-          actionContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-      }, 10);
-    };
-    
-    function getPublisherLogo(publisher) {
-      const logos = {
-        'OpenAI': `<span style="font-size:16px; font-weight:bold; color: #0ea5e9;">AI</span>`,
-        'xAI': `<span style="font-size:12px; font-weight:bold; color: #6366f1;">xAI</span>`,
-        'Meta': `<span style="font-size:12px; font-weight:bold; color: #3b82f6;">Meta</span>`,
-        'Mistral AI': `<span style="font-size:12px; font-weight:bold; color: #f59e0b;">M</span>`,
-        'Cohere': `<span style="font-size:12px; font-weight:bold; color: #10b981;">C</span>`,
-        'Core42': `<span style="font-size:12px; font-weight:bold; color: #8b5cf6;">C42</span>`,
-        'JAIS': `<span style="font-size:12px; font-weight:bold; color: #8b5cf6;">J</span>`,
-        'Microsoft': `<span style="font-size:12px; font-weight:bold; color: #0ea5e9;">MS</span>`,
-        'DeepSeek': `<span style="font-size:12px; font-weight:bold; color: #ef4444;">DS</span>`,
-        'Azure': `<span style="font-size:12px; font-weight:bold; color: #0ea5e9;">Az</span>`,
-        'AI21 Labs': `<span style="font-size:12px; font-weight:bold; color: #f59e0b;">AI21</span>`,
-        'Google': `<span style="font-size:12px; font-weight:bold; color: #3b82f6;">G</span>`,
-        'Gemini': `<span style="font-size:12px; font-weight:bold; color: #3b82f6;">G</span>`,
-        'Anthropic': `<span style="font-size:12px; font-weight:bold; color: #f59e0b;">A</span>`
-      };
-
-      return logos[publisher] || `<span style="font-size:10px; font-weight:bold; color: #6366f1;">${publisher?.charAt(0) || '?'}</span>`;
-    }
-    function selectModel(id){
-      const m = models.find(x=>x.id===id);
-      if(!m) return;
-
-      // Store selected model in localStorage
-      localStorage.setItem('selected_model', id);
-
-      // Update desktop dropdown
-      const selectedModelName = document.getElementById('selectedModelName');
-      const selectedModelIcon = document.getElementById('selectedModelIcon');
-      if(selectedModelName) {
-        selectedModelName.textContent = m.name;
-        selectedModelName.dataset.modelId = m.id; // Store the model ID
-      }
-      if(selectedModelIcon) selectedModelIcon.innerHTML = getModelLogo(m.publisher);
-
-      // Update mobile dropdown
-      const mobileSelectedModelName = document.getElementById('mobileSelectedModelName');
-      const mobileSelectedModelIcon = document.getElementById('mobileSelectedModelIcon');
-      if(mobileSelectedModelName) {
-        mobileSelectedModelName.textContent = m.name.length > 8 ? m.name.substring(0, 8) + '...' : m.name;
-        mobileSelectedModelName.dataset.modelId = m.id; // Store the model ID
-      }
-      if(mobileSelectedModelIcon) mobileSelectedModelIcon.innerHTML = getModelLogo(m.publisher);
-
-      updateRateLimitInfo(m);
-    }
-
-    function updateRateLimitInfo(model){
-      if(model?.limits || model?.rate_limit){
-        const tier = (model.rate_limit_tier || model.tier || '?').toLowerCase();
-        const rpd = model.rate_limit?.requests_per_day || model.limits?.requests_per_day || '—';
-        const inTok = model.limits?.max_input_tokens ?? model.limits?.input ?? '—';
-        const outTok = model.limits?.max_output_tokens ?? model.limits?.output ?? '—';
-
-        // Format large numbers with abbreviations
-        const formatNumber = (num) => {
-          if (num === '—' || num === 'N/A') return num;
-          const n = parseInt(num);
-          if (n >= 1000000) return `${Math.floor(n/1000000)}M`;
-          if (n >= 1000) return `${Math.floor(n/1000)}K`;
-          return n.toString();
-        };
-
-        rateLimitInfo.innerHTML = `<div class="text-xs text-gray-400">${tier}: ${rpd} req/day, ${formatNumber(inTok)} in, ${formatNumber(outTok)} out</div>`;
-      } else {
-        rateLimitInfo.innerHTML='';
+      } catch(e) { 
+        console.warn('Failed to load chat history:', e);
+        window.chats = []; 
       }
     }
 
-    // Chat management
-    function loadChatHistory(){
-      chatHistory.innerHTML='';
-      chats.forEach(chat=>{
-        const el=document.createElement('div');
-        el.className='p-2 hover:bg-gray-800 rounded cursor-pointer text-sm truncate flex justify-between items-center chat-history-item relative';
-        el.dataset.chatId = chat.id;
-
-        const title=document.createElement('span');
-        title.className='flex-1 truncate';
-        title.textContent=chat.title||'Untitled Chat';
-
-        const del=document.createElement('button');
-        del.className='text-red-400 ml-2 font-bold del-btn';
-        del.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"></polyline><path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path></svg>';
-        del.addEventListener('click',e=>{ e.stopPropagation(); deleteChat(chat.id); });
-
-        const dragHandle = document.createElement('div');
-        dragHandle.className = 'drag-handle';
-        dragHandle.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>';
-
-        el.appendChild(dragHandle);
-        el.appendChild(title);
-        el.appendChild(del);
-        el.addEventListener('click',()=>loadChat(chat.id));
-        chatHistory.appendChild(el);
-      });
-    }
-
-    // TODO: Replace GPT-4.1 mini with Cerebras models (especially less used ones like llama 70B)
-    // when external API keys get added due to per-model rate limits
-    function generateChatTitle(firstUserMessage) {
-      const token = localStorage.getItem('gh_token');
-      if (!token || !token.trim() || token.trim()=="" || token == "" || !firstUserMessage) return Promise.resolve(null);
-
-      // Use selected title generation model or default to GPT-4.1 Mini
-      const titleGenerationModel = localStorage.getItem('selected_title_model') || 'openai/gpt-4.1-mini';
-
-      const titleSystemPrompt = `You are a chat title generator. Generate a concise, descriptive title (2-10 words) for a conversation based on the user's first message.
-
-Rules:
-- Keep it under 10 words
-- Make it descriptive but not too specific
-- Don't use quotes or special characters
-- Focus on the main topic or intent
-    // Message actions (global functions)
-    window.copyMessage = (btn)=>{
-      const container = btn.closest('.user-bubble, .assistant-response');
-      if(!container) return;
-      const txt = container.querySelector('.markdown-body').innerText.trim();
-      navigator.clipboard.writeText(txt).then(() => {
-        btn.style.color = '#10b981';
-        old_btn = btn.innerHTML;
-        // Change button to checkmark icon
-        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><polyline points="16 2 16 4 8 4 8 2"></polyline><polyline points="8 10 16 10"></polyline><polyline points="8 14 16 14"></polyline><polyline points="8 18 16 18"></polyline></svg>';
-        // Reset button after 1 second
-        setTimeout(() => {btn.style.color = ''; btn.innerHTML = old_btn}, 1000);
-      });
-    };
-
-    // Branching system functions
-    function initializeBranches(chat) {
-      if (!chat.branches) {
-        chat.branches = [chat.messages || []];
-        chat.currentBranch = 0;
-        delete chat.messages;
-      }
-    }
-
-    function getCurrentBranch(chat) {
-      if (!chat.branches) initializeBranches(chat);
-      return chat.branches[chat.currentBranch || 0] || [];
-    }
-
-    function createNewBranch(chat, fromIndex, newMessage) {
-      if (!chat.branches) initializeBranches(chat);
+    function renderChatHistory() {
+      if(!chatHistory) return;
       
-      const currentBranch = getCurrentBranch(chat);
-      const newBranch = currentBranch.slice(0, fromIndex);
-      if (newMessage) {
-        newBranch.push(newMessage);
-      }
+      chatHistory.innerHTML = window.chats.map(chat => `
+        <div class="chat-item ${window.currentChatId === chat.id ? 'active' : ''}" data-chat-id="${chat.id}">
+          <div class="chat-title">${chat.title}</div>
+          <div class="chat-date">${new Date(chat.createdAt).toLocaleDateString()}</div>
+        </div>
+      `).join('');
       
-      chat.branches.push(newBranch);
-      chat.currentBranch = chat.branches.length - 1;
-      
-      localStorage.setItem('chat_history', JSON.stringify(chats));
-      return chat.currentBranch;
-    }
-
-    function switchToBranch(chat, branchIndex) {
-      if (!chat.branches || branchIndex < 0 || branchIndex >= chat.branches.length) return;
-      chat.currentBranch = branchIndex;
-      localStorage.setItem('chat_history', JSON.stringify(chats));
-      loadChat(chat.id);
-    }
-
-    function renderBranchButtons(chat, messageIndex) {
-      if (!chat.branches || chat.branches.length <= 1) return '';
-      
-      const relevantBranches = chat.branches.filter((branch, index) => {
-        if (branch.length <= messageIndex) return false;
-        
-        const currentBranch = getCurrentBranch(chat);
-        return branch.slice(0, messageIndex).every((msg, i) => {
-          return currentBranch[i] && 
-                 msg.content === currentBranch[i].content && 
-                 msg.role === currentBranch[i].role;
+      // Add click listeners
+      document.querySelectorAll('.chat-item').forEach(item => {
+        item.addEventListener('click', () => {
+          switchToChat(item.dataset.chatId);
         });
       });
+    }
+
+    function switchToChat(chatId) {
+      window.currentChatId = chatId;
+      renderCurrentChat();
       
-      if (relevantBranches.length <= 1) return '';
+      // Update active state in sidebar
+      document.querySelectorAll('.chat-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.chatId === chatId);
+      });
+    }
+
+    function renderCurrentChat() {
+      if(!window.currentChatId || !chatBox) return;
       
-      return relevantBranches.map(branch => {
-        const branchIndex = chat.branches.indexOf(branch);
-        const branchNumber = branchIndex + 1;
-        const isActive = branchIndex === chat.currentBranch;
-        return '<button class="branch-btn ' + (isActive ? 'active' : '') + '" onclick="switchToBranch(chats.find(c => c.id === \'' + chat.id + '\'), ' + branchIndex + ')">' + branchNumber + '</button>';
+      const chat = window.chats.find(c => c.id === window.currentChatId);
+      if(!chat) return;
+      
+      const currentBranch = chat.branches.find(b => b.id === chat.currentBranch);
+      if(!currentBranch) return;
+      
+      chatBox.innerHTML = currentBranch.messages.map(msg => {
+        if(msg.role === 'user') {
+          return `
+            <div class="message user-message">
+              <div class="message-content">
+                <div class="message-text">${marked.parse(msg.content)}</div>
+              </div>
+            </div>`;
+        } else {
+          return `
+            <div class="message assistant-message">
+              <div class="message-content">
+                <div class="message-text">${marked.parse(msg.content)}</div>
+              </div>
+            </div>`;
+        }
       }).join('');
-    }
-
-    function updateBranchNavigation() {
-      const chat = chats.find(c => c.id === currentChatId);
-      if (!chat || !chat.branches) return;
       
-      const messageElements = chatBox.querySelectorAll('.user-bubble, .assistant-response');
-      messageElements.forEach((element, index) => {
-        const branchNav = element.querySelector('.branch-navigation');
-        const branchButtons = element.querySelector('.branch-buttons');
-        
-        if (branchNav && branchButtons) {
-          const buttonsHtml = renderBranchButtons(chat, index);
-          branchButtons.innerHTML = buttonsHtml;
-          branchNav.style.display = buttonsHtml ? 'flex' : 'none';
-        }
-      });
-    }
-
-    // Make functions globally available
-    window.switchToBranch = switchToBranch;
-    window.createNewBranch = createNewBranch;
-    window.updateBranchNavigation = updateBranchNavigation;
-    
-    function generateChatTitle(firstUserMessage) {
-    document.getElementById('editChatsBtn')?.addEventListener('click', () => {
-      const sidebar = document.getElementById('sidebar');
-      const btn = document.getElementById('editChatsBtn');
-      sidebar.classList.toggle('editing');
-      btn.classList.toggle('active');
-
-      // Toggle icon between edit and check
-      const svg = btn.querySelector('svg');
-      if (sidebar.classList.contains('editing')) {
-        svg.innerHTML = '<path d="M20 6L9 17l-5-5"></path>';
-      } else {
-        svg.innerHTML = '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>';
+      // Highlight code blocks
+      if(typeof hljs !== 'undefined' && hljs.highlightAll) {
+        hljs.highlightAll();
       }
-      // Toggle delete buttons
-      document.querySelectorAll('.del-btn').forEach(elem => {
-        elem.style.opacity = sidebar.classList.contains('editing') ? '1' : '0';
-      });
-    });
-    
-    function loadChat(id){
-      const chat = chats.find(c=>c.id===id);
-      if(!chat) return;
-      currentChatId = id;
-
-      // Initialize branches if needed (for legacy chat format compatibility)
-      if (!chat.branches && chat.messages) {
-        chat.branches = [chat.messages];
-        chat.currentBranch = 0;
-        delete chat.messages;
-      }
-
-      const currentBranch = chat.branches ? chat.branches[chat.currentBranch || 0] : [];
       
-      // Clear existing messages
-      const existingMessages = chatBox.querySelectorAll('.user-bubble, .assistant-response');
-      existingMessages.forEach(el => el.remove());
-
-      // Show welcome message if chat is empty, otherwise hide it
-      if (currentBranch.length === 0) {
-        const chatBoxContainer = chatBox.querySelector('.max-w-3xl');
-        if (chatBoxContainer) {
-          chatBoxContainer.innerHTML = '<div id="welcomeMessage" class="text-center py-10 text-gray-500"><h2 class="text-2xl mb-4">How can I help you today?</h2><p class="text-sm">Start a conversation by typing a message below</p></div>';
-        }
-      } else {
-        // Remove welcome message
-        const welcomeMessage = document.getElementById('welcomeMessage');
-        if (welcomeMessage) welcomeMessage.remove();
-
-        // Load messages without triggering storage save
-        currentBranch.forEach((m, index) => {
-          if(m.role === 'user') {
-            const bubble = document.createElement('div');
-            bubble.className = 'user-bubble';
-            bubble.innerHTML = `
-              <div class="message-content">
-                <div class="markdown-body">${marked.parse(m.content)}</div>
-              </div>
-              <div class="message-bottom-actions">
-                <div class="action-buttons">
-                  <button class="bottom-action-btn" onclick="editMessage(this)" title="Edit">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M12 20h9"></path>
-                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                    </svg>
-                    Edit
-                  </button>
-                  <button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                    Copy
-                  </button>
-                </div>
-              </div>
-            `;
-            bubble.dataset.role = 'user';
-            
-            // Add branch navigation if applicable
-            const branchNav = renderBranchNavigation(index);
-            if (branchNav) {
-              const bottomActions = bubble.querySelector('.message-bottom-actions');
-              bottomActions.appendChild(branchNav);
-            }
-            
-            chatBox.appendChild(bubble);
-          } else if(m.role === 'assistant') {
-            const response = document.createElement('div');
-            response.className = 'assistant-response';
-            response.innerHTML = `
-              <div class="message-content">
-                <div class="markdown-body">${marked.parse(m.content)}</div>
-              </div>
-              <div class="message-bottom-actions">
-                <div class="action-buttons">
-                  <button class="bottom-action-btn" onclick="regenerateMessage(this)" title="Regenerate">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="23,4 23,10 17,10"></polyline>
-                      <polyline points="1,20 1,14 7,14"></polyline>
-                      <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
-                    </svg>
-                    Regenerate
-                  </button>
-                  <button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                    Copy
-                  </button>
-                </div>
-              </div>
-            `;
-            response.dataset.role = 'assistant';
-            
-            // Add branch navigation if applicable
-            const branchNav = renderBranchNavigation(index);
-            if (branchNav) {
-              const bottomActions = response.querySelector('.message-bottom-actions');
-              bottomActions.appendChild(branchNav);
-            }
-            
-            chatBox.appendChild(response);
-          }
-        });
-      }
-
+      // Scroll to bottom
       chatBox.scrollTop = chatBox.scrollHeight;
-
-      // Highlight the currently selected chat
-      const chatItems = document.querySelectorAll('.chat-history-item');
-      chatItems.forEach(item => item.classList.remove('focused'));
-      const currentItem = document.querySelector(`[data-chat-id="${id}"]`);
-      if (currentItem) currentItem.classList.add('focused');
-    }
-    
-    function createNewChat(){
-      currentChatId='chat_'+Date.now();
-      const newChat={
-        id:currentChatId,
-        title:'New Chat',
-        branches:[[]],
-        currentBranch:0,
-        createdAt:new Date().toISOString()
-      };
-      chats.push(newChat);
-      localStorage.setItem('chat_history', JSON.stringify(chats));
-      chatBox.innerHTML=`<div class="max-w-3xl mx-auto"><div id="welcomeMessage" class="text-center py-10 text-gray-500"><h2 class="text-2xl mb-4">How can I help you today?</h2><p class="text-sm">Start a conversation by typing a message below</p></div></div>`;
-      loadChatHistory();
-    }
-    
-    function goToHomepage() {
-      // Check if there's already an empty "New Chat" available
-      const emptyNewChat = chats.find(c => {
-        if (c.title !== 'New Chat') return false;
-        
-        // Check if it's branches-based
-        if (c.branches) {
-          const currentBranch = c.branches[c.currentBranch || 0];
-          return currentBranch.length === 0;
-        }
-        
-        // Legacy messages format
-        return (c.messages || []).length === 0;
-      });
-
-      if (emptyNewChat) {
-        // Load the existing empty chat
-        loadChat(emptyNewChat.id);
-      } else {
-        // Create a new chat only if no empty one exists
-        createNewChat();
-      }
-    }
-    
-    function appendUserMessage(content){
-      const welcome=document.getElementById('welcomeMessage');
-      if(welcome) welcome.remove();
-
-      const bubble = document.createElement('div');
-      bubble.className = 'user-bubble';
-      bubble.innerHTML = `
-        <div class="message-content">
-          <div class="markdown-body">${marked.parse(content)}</div>
-        </div>
-        <div class="message-bottom-actions">
-          <div class="action-buttons">
-            <button class="bottom-action-btn" onclick="editMessage(this)" title="Edit">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 20h9"></path>
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-              </svg>
-              Edit
-            </button>
-            <button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              Copy
-            </button>
-          </div>
-        </div>
-      `;
-      bubble.dataset.role = 'user';
-      chatBox.appendChild(bubble);
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      const chat = chats.find(c => c.id === currentChatId);
-      if(chat) {
-        // Initialize branches if needed
-        if (!chat.branches) {
-          chat.branches = [chat.messages || []];
-          chat.currentBranch = 0;
-          delete chat.messages;
-        }
-
-        const currentBranch = chat.branches[chat.currentBranch];
-        if(!currentBranch.some(m => m.content === content && m.role === 'user')){
-          currentBranch.push({role: 'user', content});
-          localStorage.setItem('chat_history', JSON.stringify(chats));
-
-          // Generate title for new chats after first user message
-          if (chat.title === 'New Chat' && currentBranch.filter(m => m.role === 'user').length === 1) {
-            updateChatTitle(currentChatId, content);
-          }
-        }
-      }
     }
 
-    // System prompt
-    const systemPromptToggle=document.getElementById('systemPromptToggle');
-    const systemPromptEditor=document.getElementById('systemPromptEditor');
-    systemPromptToggle?.addEventListener('click',()=> systemPromptEditor?.classList.toggle('show'));
-
-    // Message actions (global functions)
-    window.copyMessage = (btn)=>{
-      const container = btn.closest('.user-bubble, .assistant-response');
-      if(!container) return;
-      const txt = container.querySelector('.markdown-body').innerText.trim();
-      navigator.clipboard.writeText(txt);
-    };
-
-    window.deleteMessage = (btn) => {
-      const container = btn.closest('.user-bubble, .assistant-response');
-      if (!container) return;
-      
-      if (confirm('Are you sure you want to delete this message?')) {
-        const messageIndex = Array.from(chatBox.querySelectorAll('.user-bubble, .assistant-response')).indexOf(container);
-        
-        const chat = chats.find(c => c.id === currentChatId);
-        if (chat) {
-          // Initialize branches if needed
-          if (!chat.branches) {
-            chat.branches = [chat.messages || []];
-            chat.currentBranch = 0;
-            delete chat.messages;
-          }
-          
-          const currentBranch = chat.branches[chat.currentBranch];
-          
-          // Remove the message and all messages after it
-          currentBranch.splice(messageIndex, currentBranch.length - messageIndex);
-          localStorage.setItem('chat_history', JSON.stringify(chats));
-          
-          // Reload the chat to reflect changes
-          loadChat(currentChatId);
-        }
-      }
-    };
-
-    window.editMessage = (btn) => {
-      const container = btn.closest('.user-bubble');
-      if (!container || container.dataset.role !== 'user') return;
-      
-      // Don't allow editing if already in edit mode
-      if (container.querySelector('.inline-edit-textarea')) return;
-      
-      const messageContent = container.querySelector('.message-content');
-      const markdownBody = messageContent.querySelector('.markdown-body');
-      const originalText = markdownBody.innerText.trim();
-      
-      // Create inline editing elements
-      const editor = document.createElement('textarea');
-      editor.className = 'inline-edit-textarea';
-      editor.value = originalText;
-      
-      const controls = document.createElement('div');
-      controls.className = 'inline-edit-actions';
-      controls.innerHTML = `
-        <button class="inline-edit-btn save">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20,6 9,17 4,12"></polyline>
-          </svg>
-          Save
-        </button>
-        <button class="inline-edit-btn cancel">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-          Cancel
-        </button>
-      `;
-      
-      // Auto-resize function
-      const autoResize = () => {
-        editor.style.height = 'auto';
-        editor.style.height = editor.scrollHeight + 'px';
-      };
-      
-      editor.addEventListener('input', autoResize);
-      
-      // Save function
-      const saveEdit = () => {
-        const newText = editor.value.trim();
-        if (newText && newText !== originalText) {
-          // Create new branch for the edit
-          const chat = chats.find(c => c.id === currentChatId);
-          if (chat) {
-            // Initialize branches if needed
-            if (!chat.branches) {
-              chat.branches = [chat.messages || []];
-              chat.currentBranch = 0;
-              delete chat.messages;
-            }
-            
-            // Find the message index in current branch
-            const allMessages = chatBox.querySelectorAll('.user-bubble, .assistant-response');
-            const messageIndex = Array.from(allMessages).indexOf(container);
-            
-            // Create new branch from current branch up to the edited message
-            const currentBranch = chat.branches[chat.currentBranch];
-            const newBranch = [...currentBranch.slice(0, messageIndex + 1)];
-            newBranch[messageIndex] = { role: 'user', content: newText };
-            
-            // Add new branch and switch to it
-            chat.branches.push(newBranch);
-            chat.currentBranch = chat.branches.length - 1;
-            
-            // Save and reload
-            localStorage.setItem('chat_history', JSON.stringify(chats));
-            loadChat(currentChatId);
-            
-            // After reload, regenerate assistant response
-            setTimeout(() => generateAssistantForLastUser(), 100);
-          }
-        } else {
-          cancelEdit();
-        }
-      };
-      
-      // Cancel function
-      const cancelEdit = () => {
-        editor.remove();
-        controls.remove();
-        markdownBody.style.display = '';
-      };
-      
-      // Event handlers
-      controls.querySelector('.save').addEventListener('click', saveEdit);
-      controls.querySelector('.cancel').addEventListener('click', cancelEdit);
-      
-      editor.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          cancelEdit();
-        } else if (e.key === 'Enter' && e.ctrlKey) {
-          e.preventDefault();
-          saveEdit();
-        }
-      });
-      
-      // Replace content with editor
-      markdownBody.style.display = 'none';
-      messageContent.appendChild(editor);
-      messageContent.appendChild(controls);
-      
-      // Focus and resize
-      editor.focus();
-      autoResize();
-      const textarea = document.createElement('textarea');
-      textarea.className = 'edit-textarea';
-      textarea.value = originalText;
-      textarea.style.cssText = `
-        width: 100%;
-        background: transparent;
-        border: none;
-        outline: none;
-        resize: none;
-        font-family: inherit;
-        font-size: inherit;
-        line-height: inherit;
-        color: inherit;
-        padding: 0;
-        margin: 0;
-        min-height: 20px;
-      `;
-      
-      // Create action buttons container
-      const buttonsContainer = document.createElement('div');
-      buttonsContainer.className = 'edit-actions';
-      buttonsContainer.style.cssText = `
-        display: flex;
-        gap: 8px;
-        margin-top: 8px;
-        justify-content: flex-end;
-      `;
-      
-      // Create save button
-      const saveBtn = document.createElement('button');
-      saveBtn.className = 'edit-btn save-btn';
-      saveBtn.innerHTML = `
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="20,6 9,17 4,12"></polyline>
-        </svg>
-      `;
-      saveBtn.style.cssText = `
-        background: rgba(34, 197, 94, 0.2);
-        border: 1px solid rgba(34, 197, 94, 0.5);
-        color: #22c55e;
-        border-radius: 4px;
-        padding: 4px 8px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 12px;
-      `;
-      
-      // Create cancel button
-      const cancelBtn = document.createElement('button');
-      cancelBtn.className = 'edit-btn cancel-btn';
-      cancelBtn.innerHTML = `
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      `;
-      cancelBtn.style.cssText = `
-        background: rgba(239, 68, 68, 0.2);
-        border: 1px solid rgba(239, 68, 68, 0.5);
-        color: #ef4444;
-        border-radius: 4px;
-        padding: 4px 8px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 12px;
-      `;
-      
-      // Auto-resize function
-      const autoResize = () => {
-        textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 'px';
-      };
-      
-      // Save function
-      const saveEdit = () => {
-        const newText = textarea.value.trim();
-        if (newText && newText !== originalText) {
-          // Create new branch for the edit
-          const chat = chats.find(c => c.id === currentChatId);
-          if (chat) {
-            // Initialize branches if needed
-            if (!chat.branches) {
-              chat.branches = [chat.messages || []];
-              chat.currentBranch = 0;
-              delete chat.messages;
-            }
-            
-            // Find the message index in current branch
-            const currentBranch = chat.branches[chat.currentBranch];
-            const messageIndex = Array.from(chatBox.querySelectorAll('.user-bubble, .assistant-response'))
-              .indexOf(container);
-            
-            // Create new branch from current branch up to the edited message
-            const newBranch = [...currentBranch.slice(0, messageIndex + 1)];
-            newBranch[messageIndex] = { role: 'user', content: newText };
-            
-            // Add new branch and switch to it
-            chat.branches.push(newBranch);
-            chat.currentBranch = chat.branches.length - 1;
-            
-            // Save and reload
-            localStorage.setItem('chat_history', JSON.stringify(chats));
-            loadChat(currentChatId);
-            
-            // After reload, regenerate assistant response
-            setTimeout(() => generateAssistantForLastUser(), 100);
-          }
-        } else {
-          cancelEdit();
-        }
-      };
-      
-      // Cancel function
-      const cancelEdit = () => {
-        editContainer.remove();
-        markdownBody.style.display = '';
-        actionContainer.style.display = '';
-      };
-      
-      // Event listeners
-      textarea.addEventListener('input', autoResize);
-      textarea.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          cancelEdit();
-        } else if (e.key === 'Enter' && e.ctrlKey) {
-          e.preventDefault();
-          saveEdit();
-        }
-      });
-      
-      saveBtn.addEventListener('click', saveEdit);
-      cancelBtn.addEventListener('click', cancelEdit);
-      
-      // Assemble and insert
-      editContainer.appendChild(textarea);
-      buttonsContainer.appendChild(saveBtn);
-      buttonsContainer.appendChild(cancelBtn);
-      editContainer.appendChild(buttonsContainer);
-      
-      container.appendChild(editContainer);
-      
-      // Focus and auto-resize
-      textarea.focus();
-      autoResize();
-    };
-
-    window.regenerateMessage = (btn)=>{
-      const container = btn.closest('.assistant-response');
-      if(!container) return;
-      container.remove();
-      rebuildMessagesFromDOM();
-      generateAssistantForLastUser();
-    };
-
-    function rebuildMessagesFromDOM(){
-      const containers = chatBox.querySelectorAll('.user-bubble, .assistant-response');
-      const rebuilt = [];
-      containers.forEach(container => {
-        const role = container.dataset.role;
-        if(!role) return;
-        const text = container.querySelector('.markdown-body').innerText.trim();
-        rebuilt.push({role, content: text});
-      });
-      const chat = chats.find(c => c.id === currentChatId);
-      if(chat){
-        // Initialize branches if needed
-        if (!chat.branches) {
-          chat.branches = [chat.messages || []];
-          chat.currentBranch = 0;
-          delete chat.messages;
-        }
-        
-        const sys = document.getElementById('systemPromptText')?.value.trim();
-        const filteredRebuilt = rebuilt.filter(m => m.role !== 'system');
-        chat.branches[chat.currentBranch] = sys ? [{role:'system', content:sys}, ...filteredRebuilt] : filteredRebuilt;
-        localStorage.setItem('chat_history', JSON.stringify(chats));
-      }
-    }
-
-    function findMessageIndex(container) {
-      const chat = chats.find(c => c.id === currentChatId);
-      
-      // Initialize branches if needed
-      if (!chat.branches) {
-        chat.branches = [chat.messages || []];
-        chat.currentBranch = 0;
-        delete chat.messages;
-      }
-
-      const currentBranch = chat.branches[chat.currentBranch];
-      let messages = [...currentBranch];
-      const sys = document.getElementById('systemPromptText')?.value.trim();
-      if(sys && (!messages[0] || messages[0].role !== 'system')) {
-        messages.unshift({role: 'system', content: sys});
-      }
-      
-      // Find message index logic here
-      return -1; // placeholder
-    }
-    
-    function renderBranchNavigation(messageIndex) {
-      const chat = chats.find(c => c.id === currentChatId);
-      if (!chat?.branches || chat.branches.length <= 1) return null;
-
-      // Check if this message has branches
-      const branchesWithThisMessage = chat.branches.filter(branch => 
-        branch.length > messageIndex && branch[messageIndex]
-      );
-
-      if (branchesWithThisMessage.length <= 1) return null;
-
-      const branchContainer = document.createElement('div');
-      branchContainer.className = 'branch-navigation';
-
-      const prevBtn = document.createElement('button');
-      prevBtn.className = 'branch-btn';
-      prevBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"></polyline></svg>';
-      prevBtn.disabled = chat.currentBranch === 0;
-
-      const branchIndicator = document.createElement('span');
-      branchIndicator.className = 'branch-indicator';
-      branchIndicator.textContent = `${chat.currentBranch + 1} of ${chat.branches.length}`;
-
-      const nextBtn = document.createElement('button');
-      nextBtn.className = 'branch-btn';
-      nextBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"></polyline></svg>';
-      nextBtn.disabled = chat.currentBranch === chat.branches.length - 1;
-
-      prevBtn.addEventListener('click', () => switchToBranch(chat, chat.currentBranch - 1));
-      nextBtn.addEventListener('click', () => switchToBranch(chat, chat.currentBranch + 1));
-
-      branchContainer.appendChild(prevBtn);
-      branchContainer.appendChild(branchIndicator);
-      branchContainer.appendChild(nextBtn);
-
-      return branchContainer;
-    }
-
-    window.regenerateMessage = (btn)=>{
-      const container = btn.closest('.assistant-response');
-      if(!container) return;
-      container.remove();
-      rebuildMessagesFromDOM();
-      generateAssistantForLastUser();
-    };
-
-    stopBtn.classList.add('hidden'); // Hide stop button by default
-    function sendMessage(){
-      const msg = messageInput.value.trim();
-      if(!msg) return;
-      if(!currentChatId) createNewChat();
-
-      appendUserMessage(msg);
-
-      // Show stop button, hide send button
-      sendBtn.classList.add('hidden');
-      stopBtn.classList.remove('hidden');
-
-      // Create streaming container
-      const streamingResponse = document.createElement('div');
-      streamingResponse.className = 'assistant-response streaming';
-      streamingResponse.innerHTML = '<div class="text-sm text-indigo-300">Thinking...</div>';
-      chatBox.appendChild(streamingResponse);
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      const token = localStorage.getItem('gh_token');
-      const selectedModelElement = document.getElementById('selectedModelName');
-      const modelId = selectedModelElement?.dataset.modelId;
-      const model = models.find(m => m.id === modelId);
-
-      // TODO: When external API keys are added, implement intelligent model routing
-      // to prefer Cerebras models (especially for less used ones like llama 70B) for better rate limits
-
-      if(!token || !token.trim() || token.trim()=="" || token == "") {
-        streamingResponse.classList.remove('streaming');
-        streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No authentication token found. Please sign in with GitHub.</div>';
-        resetSendButton();
-        return;
-      }
-
-      if(!model || !model.id) {
-        streamingResponse.classList.remove('streaming');
-        streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No valid model selected. Please select a model from the dropdown.</div>';
-        resetSendButton();
-        return;
-      }
-
-      const chat = chats.find(c => c.id === currentChatId);
-      if(!chat) {
-        streamingResponse.classList.remove('streaming');
-        streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No chat found.</div>';
-        resetSendButton();
-        return;
-      }
-
-      // Initialize branches if needed
-      if (!chat.branches) {
-        chat.branches = [chat.messages || []];
-        chat.currentBranch = 0;
-        delete chat.messages;
-      }
-
-      let messages = [...chat.branches[chat.currentBranch]];
-      const sys = document.getElementById('systemPromptText')?.value.trim();
-      if(sys && (!messages[0] || messages[0].role !== 'system')) {
-        messages.unshift({role: 'system', content: sys});
-      }
-
-      // Create abort controller for stopping
-      currentAbortController = new AbortController();
-
-      fetch('https://models.github.ai/inference/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          messages,
-          model: model.id,
-          stream: true,
-//TODO The token limit should be adjustable, but it does not matter for Github Models as they have no TPM/TPD limits
-        }),
-        signal: currentAbortController.signal
-      })
-      .then(response => {
-        if(!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let fullContent = '';
-
-        function readStream() {
-          reader.read().then(({done, value}) => {
-            if(done) {
-              // Finalize the message
-              streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `
-                <div class="markdown-body">${marked.parse(fullContent || '*No response received*')}</div>
-                <div class="message-actions">
-                  <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="23,4 23,10 17,10"></polyline>
-                      <polyline points="1,20 1,14 7,14"></polyline>
-                      <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
-                    </svg>
-                  </button>
-                  <button class="action-btn" onclick="copyMessage(this)" title="Copy">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                  </button>
-                  <button class="action-btn" onclick="deleteMessage(this)" title="Delete">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3,6 5,6 21,6"></polyline>
-                      <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
-                    </svg>
-                  </button>
-                </div>
-              `;
-              streamingResponse.dataset.role = 'assistant';
-
-              // Save to chat history
-              if(fullContent) {
-                const currentBranch = chat.branches[chat.currentBranch];
-                if(!currentBranch.some(m => m.content === fullContent && m.role === 'assistant')) {
-                  currentBranch.push({role: 'assistant', content: fullContent});
-                  localStorage.setItem('chat_history', JSON.stringify(chats));
-                }
-              }
-              resetSendButton();
-              return;
-            }
-
-            const chunk = decoder.decode(value, {stream: true});
-            const lines = chunk.split('\n').filter(line => line.trim() !== '');
-
-            for(const line of lines) {
-              if(line.startsWith('data: ')) {
-                const data = line.slice(6);
-                if(data === '[DONE]') {
-                  // Stream completed - handled above
-                  return;
-                }
-
-                try {
-                  const parsed = JSON.parse(data);
-                  const content = parsed.choices?.[0]?.delta?.content || '';
-                  if(content) {
-                    fullContent += content;
-                    streamingResponse.innerHTML = `<div class="markdown-body">${marked.parse(fullContent)}</div>`;
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                  }
-                } catch(e) {
-                  // Ignore parsing errors
-                }
-              }
-            }
-
-            readStream();
-          }).catch(error => {
-            if (error.name === 'AbortError') {
-              streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm">Generation stopped</div>`;
-            } else {
-              streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}</div>`;
-            }
-            resetSendButton();
-          });
-        }
-
-        readStream();
-      })
-      .catch(error => {
-        if (error.name === 'AbortError') {
-          streamingResponse.classList.remove('streaming');
-          streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">⚠️ Generation stopped</div>`;
-        } else {
-          streamingResponse.classList.remove('streaming');
-          streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Request failed: ${error.message}</div>`;
-        }
-        resetSendButton();
-      });
-
-      messageInput.value = '';
-      messageInput.style.height = '60px';
-    }
-
-    function resetSendButton() {
-      sendBtn.classList.remove('hidden');
-      stopBtn.classList.add('hidden');
-      currentAbortController = null;
-    }
-
-    function stopGeneration() {
-      if (currentAbortController) {
-        currentAbortController.abort();
-      }
-    }
-
-    function generateAssistantForLastUser(){
-      const chat = chats.find(c => c.id === currentChatId);
-      if(!chat) return;
-
-      // Create streaming container for regeneration
-      const streamingResponse = document.createElement('div');
-      streamingResponse.className = 'assistant-response streaming';
-      streamingResponse.innerHTML = '<div class="text-sm text-indigo-300">Regenerating response...</div>';
-      chatBox.appendChild(streamingResponse);
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      const token = localStorage.getItem('gh_token');
-      const selectedModelElement = document.getElementById('selectedModelName');
-      const modelId = selectedModelElement?.dataset.modelId;
-      const model = models.find(m => m.id === modelId);
-
-      if(!token || !token.trim() || token.trim()=="" || token == "") {
-        streamingResponse.classList.remove('streaming');
-        streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No authentication token found.</div>';
-        return;
-      }
-
-      if(!model || !model.id) {
-        streamingResponse.classList.remove('streaming');
-        streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No valid model selected.</div>';
-        return;
-      }
-
-      // Initialize branches if needed
-      if (!chat.branches) {
-        chat.branches = [chat.messages || []];
-        chat.currentBranch = 0;
-        delete chat.messages;
-      }
-
-      let messages = [...chat.branches[chat.currentBranch]];
-      const sys = document.getElementById('systemPromptText')?.value.trim();
-      if(sys && (!messages[0] || messages[0].role !== 'system')) {
-        messages.unshift({role: 'system', content: sys});
-      }
-
-      fetch('https://models.github.ai/inference/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          messages,
-          model: model.id,
-          stream: true
-        })
-      })
-      .then(response => {
-        if(!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let fullContent = '';
-
-        function readStream() {
-          reader.read().then(({done, value}) => {
-            if(done) {
-              streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `
-                <div class="markdown-body">${marked.parse(fullContent || '*No response received*')}</div>
-                <div class="message-actions">
-                  <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="23,4 23,10 17,10"></polyline>
-                      <polyline points="1,20 1,14 7,14"></polyline>
-                      <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
-                    </svg>
-                  </button>
-                  <button class="action-btn" onclick="copyMessage(this)" title="Copy">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                  </button>
-                  <button class="action-btn" onclick="deleteMessage(this)" title="Delete">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3,6 5,6 21,6"></polyline>
-                      <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
-                    </svg>
-                  </button>
-                </div>
-              `;
-              streamingResponse.dataset.role = 'assistant';
-
-              if(fullContent) {
-                const currentBranch = chat.branches[chat.currentBranch];
-                currentBranch.push({role: 'assistant', content: fullContent});
-                localStorage.setItem('chat_history', JSON.stringify(chats));
-              }
-              return;
-            }
-
-            const chunk = decoder.decode(value, {stream: true});
-            const lines = chunk.split('\n').filter(line => line.trim() !== '');
-
-            for(const line of lines) {
-              if(line.startsWith('data: ')) {
-                const data = line.slice(6);
-                if(data === '[DONE]') {
-                  return;
-                }
-
-                try {
-                  const parsed = JSON.parse(data);
-                  const content = parsed.choices?.[0]?.delta?.content || '';
-                  if(content) {
-                    fullContent += content;
-                    streamingResponse.innerHTML = `<div class="markdown-body">${marked.parse(fullContent)}</div>`;
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                  }
-                } catch(e) {
-                  // Ignore parsing errors
-                }
-              }
-            }
-
-            readStream();
-          }).catch(error => {
-            if (error.name === 'AbortError') {
-              streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm">Generation stopped</div>`;
-            } else {
-              streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}</div>`;
-            }
-            resetSendButton();
-          });
-        }
-
-        readStream();
-      })
-      .catch(error => {
-        if (error.name === 'AbortError') {
-          streamingResponse.classList.remove('streaming');
-          streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">⚠️ Generation stopped</div>`;
-        } else {
-          streamingResponse.classList.remove('streaming');
-          streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Request failed: ${error.message}</div>`;
-        }
-        resetSendButton();
-      });
-
-      messageInput.value = '';
-      messageInput.style.height = '60px';
-    }
-
-    // OAuth & Fetch
-    const GITHUB_CLIENT_ID = 'Ov23li2MmzqUhjwLwwMB';
-    const OAUTH_REDIRECT_URI = window.location.origin + window.location.pathname;
-
-    function startOAuth(){
-      if(location.protocol==='file:') { alert('Serve over http:// (not file://) for OAuth'); return; }
-      const state = crypto.randomUUID();
-      localStorage.setItem('oauth_state', state);
-      const scope = 'read:user read:org models';
-      const authUrl = `https://github.com/login/oauth/authorize?client_id=${encodeURIComponent(GITHUB_CLIENT_ID)}&redirect_uri=${encodeURIComponent(OAUTH_REDIRECT_URI)}&scope=${encodeURIComponent(scope)}&state=${encodeURIComponent(state)}`;
-      window.location = authUrl;
-    }
-
-    function handleOAuthCallback(){
-      const params = new URLSearchParams(location.search);
-      const code = params.get('code');
-      const state = params.get('state');
-      if(!code) return;
-      const expected = localStorage.getItem('oauth_state');
-      if(!state || state !== expected){ alert('OAuth state mismatch. Retry sign in.'); return; }
-
-      fetch(`${API_BASE}/api/exchange?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`)
-        .then(r=>{ if(!r.ok) throw new Error('Exchange failed'); return r.json(); })
-        .then(data=>{
-          if(!data.access_token){ throw new Error('No access token in response'); }
-          localStorage.setItem('gh_token', data.access_token);
-          const octokit = new Octokit({ auth: data.access_token });
-          history.replaceState({}, document.title, OAUTH_REDIRECT_URI);
-          fetchModels(); loadUserProfile(); showChatPage();
-        })
-        .catch(err=>{ console.error(err); alert('OAuth exchange error: '+err.message); });
-    }
-
-    function fetchModels(){
-      const token = localStorage.getItem('gh_token');
-      if(!token || !token.trim() || token.trim()=="" || token == "") return;
-      const statusEl = document.getElementById('networkStatus');
-
-      // TODO: Add Cerebras models when external API keys are implemented
-      // Cerebras offers better rate limits per model (especially for less used models like llama 70B)
-      const fallback = [{"id":"openai/gpt-4.1","name":"OpenAI GPT-4.1","publisher":"OpenAI","summary":"gpt-4.1 outperforms gpt-4o across the board, with major gains in coding, instruction following, and long-context understanding","rate_limit_tier":"high","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-04-14","capabilities":["streaming","tool-calling"],"limits":{"max_input_tokens":1048576,"max_output_tokens":32768},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4-1"},{"id":"openai/gpt-4.1-mini","name":"OpenAI GPT-4.1-mini","publisher":"OpenAI","summary":"gpt-4.1-mini outperform gpt-4o-mini across the board, with major gains in coding, instruction following, and long-context handling","rate_limit_tier":"low","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-04-14","capabilities":["streaming","tool-calling"],"limits":{"max_input_tokens":1048576,"max_output_tokens":32768},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4-1-mini"},{"id":"openai/gpt-4.1-nano","name":"OpenAI GPT-4.1-nano","publisher":"OpenAI","summary":"gpt-4.1-nano provides gains in coding, instruction following, and long-context handling along with lower latency and cost","rate_limit_tier":"low","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-04-14","capabilities":["streaming","tool-calling"],"limits":{"max_input_tokens":1048576,"max_output_tokens":32768},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4-1-nano"},{"id":"openai/gpt-4o","name":"OpenAI GPT-4o","publisher":"OpenAI","summary":"OpenAI's most advanced multimodal model in the gpt-4o family. Can handle both text and image inputs.","rate_limit_tier":"high","supported_input_modalities":["text","image","audio"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2024-11-20","capabilities":["agents","assistants","streaming","tool-calling"],"limits":{"max_input_tokens":131072,"max_output_tokens":16384},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4o"},{"id":"openai/gpt-4o-mini","name":"OpenAI GPT-4o mini","publisher":"OpenAI","summary":"An affordable, efficient AI solution for diverse text and image tasks.","rate_limit_tier":"low","supported_input_modalities":["text","image","audio"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2024-07-18","capabilities":["agents","assistants","streaming","tool-calling"],"limits":{"max_input_tokens":131072,"max_output_tokens":4096},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4o-mini"},{"id":"openai/gpt-5","name":"OpenAI gpt-5","publisher":"OpenAI","summary":"gpt-5 is designed for logic-heavy and multi-step tasks. ","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5"},{"id":"openai/gpt-5-chat","name":"OpenAI gpt-5-chat (preview)","publisher":"OpenAI","summary":"gpt-5-chat (preview) is an advanced, natural, multimodal, and context-aware conversations for enterprise applications.","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5-chat"},{"id":"openai/gpt-5-mini","name":"OpenAI gpt-5-mini","publisher":"OpenAI","summary":"gpt-5-mini is a lightweight version for cost-sensitive applications.","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5-mini"},{"id":"openai/gpt-5-nano","name":"OpenAI gpt-5-nano","publisher":"OpenAI","summary":"gpt-5-nano is optimized for speed, ideal for applications requiring low latency. ","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5-nano"},{"id":"openai/o1","name":"OpenAI o1","publisher":"OpenAI","summary":"Focused on advanced reasoning and solving complex problems, including math and science tasks. Ideal for applications that require deep contextual understanding and agentic workflows.","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["reasoning","multilingual","coding"],"registry":"azure-openai","version":"2024-12-17","capabilities":["reasoning","tool-calling"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/o1"},{"id":"openai/o1-mini","name":"OpenAI o1-mini","publisher":"OpenAI","summary":"Smaller, faster, and 80% cheaper than o1-preview, performs well at code generation and small context operations.","rate_limit_tier":"custom","supported_input_modalities":["text"],"supported_output_modalities":["text"],"tags":["reasoning","multilingual","coding"],"registry":"azure-openai","version":"2024-09-12","capabilities":["reasoning","streaming"],"limits":{"max_input_tokens":128000,"max_output_tokens":65536},"html_url":"https://github.com/marketplace/models/azure-openai/o1-mini"}]
-      fetch(`${API_BASE}/api/models`,{headers:{Authorization:'Bearer ' + token}})
-        .then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
-        .then(data=>{
-          models = Array.isArray(data)? data : (data.models||fallback);
-          renderDropdownItems(models);
-          renderTitleDropdownItems(models);
-
-          // Restore previously selected model or select first available
-          const savedModelId = localStorage.getItem('selected_model');
-          const modelToSelect = savedModelId && models.find(m => m.id === savedModelId)
-            ? savedModelId
-            : (models.length ? models[0].id : null);
-
-          if(modelToSelect) selectModel(modelToSelect);
-
-          // Restore previously selected title model or select GPT-4.1 Mini as default
-          const savedTitleModelId = localStorage.getItem('selected_title_model');
-          const titleModelToSelect = savedTitleModelId && models.find(m => m.id === savedTitleModelId)
-            ? savedTitleModelId
-            : models.find(m => m.id === 'openai/gpt-4.1-mini')?.id || (models.length ? models[0].id : null);
-
-          if(titleModelToSelect) selectTitleModel(titleModelToSelect);
-
-          statusEl?.classList.add('hidden');
-        })
-        .catch(err=>{
-          console.warn('Model fetch failed', err);
-          models = fallback;
-          renderDropdownItems(models);
-          renderTitleDropdownItems(models);
-
-          // Restore previously selected model or select first available
-          const savedModelId = localStorage.getItem('selected_model');
-          const modelToSelect = savedModelId && models.find(m => m.id === savedModelId)
-            ? savedModelId
-            : (models.length ? models[0].id : null);
-
-          if(modelToSelect) selectModel(modelToSelect);
-
-          // Restore previously selected title model or select GPT-4.1 Mini as default
-          const savedTitleModelId = localStorage.getItem('selected_title_model');
-          const titleModelToSelect = savedTitleModelId && models.find(m => m.id === savedTitleModelId)
-            ? savedTitleModelId
-            : models.find(m => m.id === 'openai/gpt-4.1-mini')?.id || (models.length ? models[0].id : null);
-
-          if(titleModelToSelect) selectTitleModel(titleModelToSelect);
-
-          if(statusEl){ statusEl.textContent = 'Using fallback models'; statusEl.classList.remove('hidden'); }
-        });
-    }
-
-    document.getElementById('githubLogin')?.addEventListener('click', (e)=>{ e.preventDefault(); startOAuth(); });
-    handleOAuthCallback();
-
-    // Event Listeners
-    sendBtn?.addEventListener('click', sendMessage);
-    stopBtn?.addEventListener('click', stopGeneration);
-    newChatBtn?.addEventListener('click', goToHomepage);
-
-
-    // Mobile dropdown
-    document.getElementById('mobileDropdownSelected')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const mobileContent = document.getElementById('mobileDropdownContent');
-      const mobileSelected = document.getElementById('mobileDropdownSelected');
-      mobileContent?.classList.toggle('show');
-      mobileSelected?.classList.toggle('active');
-    });
-
-    // Mobile hamburger menu
-    document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
-      const sidebar = document.getElementById('sidebar');
-      sidebar?.classList.toggle('mobile-open');
-    });
-
-    dropdownSearch?.addEventListener('input', e => filterModels(e.target.value));
-    document.getElementById('mobileDropdownSearch')?.addEventListener('input', e => filterModels(e.target.value));
-
-    messageInput?.addEventListener('keydown', e=>{
-      if(e.key==='Enter'){
-        if(e.ctrlKey){ e.preventDefault(); sendMessage(); }
-        else if(e.shiftKey){
-          const start=messageInput.selectionStart;
-          const end=messageInput.selectionEnd;
-          messageInput.value=messageInput.value.substring(0,start)+'\n'+messageInput.value.substring(end);
-          messageInput.selectionStart=messageInput.selectionEnd=start+1;
-          // Auto-resize after adding newline
-          setTimeout(() => {
-            messageInput.style.height = 'auto';
-            messageInput.style.height = messageInput.scrollHeight + 'px';
-          }, 0);
-          e.preventDefault();
-        }
-        else { e.preventDefault(); sendMessage(); }
-      }
-    });
-
-    // Auto-resize textarea on input
-    messageInput?.addEventListener('input', function(){
-      this.style.height='auto';
-      this.style.height=Math.min(this.scrollHeight, 200)+'px';
-    });
-
-    // Keyboard navigation
-    let historyFocusIndex=-1;
-    document.addEventListener('keydown', e=>{
-      if(e.altKey && e.key==='n'){ e.preventDefault(); newChatBtn?.click(); }
-      if(e.altKey && e.key==='m'){ e.preventDefault(); dropdownSelected?.click(); }
-      if(e.altKey && e.key==='/'){ e.preventDefault(); messageInput?.focus(); }
-      if(e.altKey && (e.key==='ArrowDown'||e.key==='ArrowUp')){
-        e.preventDefault();
-        const items=[...chatHistory.querySelectorAll('.chat-history-item')];
-        if(!items.length) return;
-        historyFocusIndex = e.key==='ArrowDown' ? (historyFocusIndex+1)%items.length : (historyFocusIndex-1+items.length)%items.length;
-        items.forEach(i=>i.classList.remove('focused'));
-        const t=items[historyFocusIndex];
-        t.classList.add('focused');
-        t.scrollIntoView({block:'nearest'});
-        if(e.altKey&&e.shiftKey) t.click();
-      }
-    });
-
-    // Initialize
-    if (typeof hljs !== 'undefined') {
-      hljs.highlightAll();
-    }
-
+    // Initialize chat system
     loadChatHistory();
-    if(!chats.length) createNewChat();
+    if(!window.chats.length) createNewChat();
+
+    console.log('LLM Dump authentication system loaded successfully');
   })();
   </script>
 </body>
