@@ -1982,6 +1982,8 @@
     function filterTitleModels(query) {
       const q = query.toLowerCase();
       renderTitleDropdownItems(models.filter(m => m.name.toLowerCase().includes(q) || m.publisher.toLowerCase().includes(q)));
+    }
+    
     function appendUserMessage(content){
       const welcome=document.getElementById('welcomeMessage');
       if(welcome) welcome.remove();
@@ -2094,28 +2096,6 @@
         }
       }
     }
-              </div>
-            `;
-            chatBox.appendChild(bubble);
-          } else if(m.role === 'assistant') {
-            const response = document.createElement('div');
-            response.className = 'assistant-response';
-            response.dataset.role = 'assistant';
-            response.dataset.messageIndex = index;
-            
-            const branchButtons = renderBranchButtons(chat, index);
-            
-            response.innerHTML = `
-              <div class="message-content">
-                <div class="markdown-body">${marked.parse(m.content)}</div>
-              </div>
-              <div class="message-bottom-actions">
-                <div class="branch-navigation" style="display: ${branchButtons ? 'flex' : 'none'}">
-                  <span class="branch-indicator">Branch:</span>
-                  <div class="branch-buttons">${branchButtons}</div>
-                </div>
-                <div class="action-buttons">
-                  <button class="bottom-action-btn" onclick="regenerateMessage(this)" title="Regenerate">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="23,4 23,10 17,10"></polyline>
                       <polyline points="1,20 1,14 7,14"></polyline>
@@ -2780,57 +2760,6 @@ Rules:
         }
       }
     }
-    
-    function appendAssistantMessage(content){
-      const welcome=document.getElementById('welcomeMessage');
-      if(welcome) welcome.remove();
-
-      const response = document.createElement('div');
-      response.className = 'assistant-response';
-      response.innerHTML = `
-        <div class="message-content">
-          <div class="markdown-body">${marked.parse(content)}</div>
-        </div>
-        <div class="message-bottom-actions">
-          <div class="action-buttons">
-            <button class="bottom-action-btn" onclick="regenerateMessage(this)" title="Regenerate">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="23,4 23,10 17,10"></polyline>
-                <polyline points="1,20 1,14 7,14"></polyline>
-                <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
-              </svg>
-              Regenerate
-            </button>
-            <button class="bottom-action-btn" onclick="copyMessage(this)" title="Copy">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              Copy
-            </button>
-          </div>
-        </div>
-      `;
-      response.dataset.role = 'assistant';
-      chatBox.appendChild(response);
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      const chat = chats.find(c => c.id === currentChatId);
-      if(chat) {
-        // Initialize branches if needed
-        if (!chat.branches) {
-          chat.branches = [chat.messages || []];
-          chat.currentBranch = 0;
-          delete chat.messages;
-        }
-
-        const currentBranch = chat.branches[chat.currentBranch];
-        if(!currentBranch.some(m => m.content === content && m.role === 'assistant')){
-          currentBranch.push({role: 'assistant', content});
-          localStorage.setItem('chat_history', JSON.stringify(chats));
-        }
-      }
-    }
 
     // System prompt
     const systemPromptToggle=document.getElementById('systemPromptToggle');
@@ -3132,72 +3061,16 @@ Rules:
       // Focus and auto-resize
       textarea.focus();
       autoResize();
-    };= chats.find(c => c.id === currentChatId);
-      if(chat && !chat.messages.some(m => m.content === content && m.role === 'user')){
-        chat.messages.push({role: 'user', content});
-        localStorage.setItem('chat_history', JSON.stringify(chats));
+    };
 
-        // Generate title for new chats after first user message
-        if (chat.title === 'New Chat' && chat.messages.filter(m => m.role === 'user').length === 1) {
-          updateChatTitle(currentChatId, content);
-        }
-      }
-    }
+    window.regenerateMessage = (btn)=>{
+      const container = btn.closest('.assistant-response');
+      if(!container) return;
+      container.remove();
+      rebuildMessagesFromDOM();
+      generateAssistantForLastUser();
+    };
 
-    function appendAssistantMessage(content){
-      const welcome=document.getElementById('welcomeMessage');
-      if(welcome) welcome.remove();
-
-      const response = document.createElement('div');
-      response.className = 'assistant-response';
-      response.innerHTML = `
-        <div class="markdown-body">${marked.parse(content)}</div>
-        <div class="message-actions">
-          <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="23,4 23,10 17,10"></polyline>
-              <polyline points="1,20 1,14 7,14"></polyline>
-              <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
-            </svg>
-          </button>
-          <button class="action-btn" onclick="copyMessage(this)" title="Copy">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-          </button>
-          <button class="action-btn" onclick="deleteMessage(this)" title="Delete">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3,6 5,6 21,6"></polyline>
-      const chat = chats.find(c => c.id === currentChatId);
-      if(chat){
-        // Initialize branches if needed
-        if (!chat.branches) {
-          chat.branches = [chat.messages || []];
-          chat.currentBranch = 0;
-          delete chat.messages;
-        }
-
-        const sys = document.getElementById('systemPromptText')?.value.trim();
-        chat.branches[chat.currentBranch] = sys ? [{role:'system', content:sys}, ...rebuilt.filter(m => m.role !== 'system')] : rebuilt;
-        localStorage.setItem('chat_history', JSON.stringify(chats));
-      }esponse.dataset.role = 'assistant';
-      chatBox.appendChild(response);
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      const chat = chats.find(c => c.id === currentChatId);
-      if(chat && !chat.messages.some(m => m.content === content && m.role === 'assistant')){
-        chat.messages.push({role: 'assistant', content});
-        localStorage.setItem('chat_history', JSON.stringify(chats));
-      }
-    }
-
-    // System prompt
-    const systemPromptToggle=document.getElementById('systemPromptToggle');
-    const systemPromptEditor=document.getElementById('systemPromptEditor');
-    systemPromptToggle?.addEventListener('click',()=> systemPromptEditor?.classList.toggle('show'));
-
-    // Message actions (global functions)
     function rebuildMessagesFromDOM(){
       const containers = chatBox.querySelectorAll('.user-bubble, .assistant-response');
       const rebuilt = [];
@@ -3221,31 +3094,6 @@ Rules:
         chat.branches[chat.currentBranch] = sys ? [{role:'system', content:sys}, ...filteredRebuilt] : filteredRebuilt;
         localStorage.setItem('chat_history', JSON.stringify(chats));
       }
-    }   chat.currentBranch = 0;
-        delete chat.messages;
-      }
-
-      // Find the message index in the current branch
-      const messageIndex = findMessageIndex(originalContainer);
-      if (messageIndex === -1) return;
-
-      // Create new branch from current state up to edit point
-      const currentBranch = chat.branches[chat.currentBranch];
-      const newBranch = [
-        ...currentBranch.slice(0, messageIndex),
-        { role: 'user', content: newContent }
-      ];
-
-      // Add new branch and switch to it
-      chat.branches.push(newBranch);
-      chat.currentBranch = chat.branches.length - 1;
-
-      // Save and reload
-      localStorage.setItem('chat_history', JSON.stringify(chats));
-      loadChat(currentChatId);
-
-      // Generate new assistant response for the edited message
-      generateAssistantForLastUser();
     }
 
     function findMessageIndex(container) {
@@ -3313,89 +3161,7 @@ Rules:
       branchContainer.appendChild(nextBtn);
 
       return branchContainer;
-
-      branchNav.appendChild(prevBtn);
-      branchNav.appendChild(branchCount);
-      branchNav.appendChild(nextBtn);
-      branchContainer.appendChild(branchNav);
-
-      return branchContainer;
     }
-
-              // Save to chat history
-              if(fullContent) {
-                // Initialize branches if needed
-                if (!chat.branches) {
-                  chat.branches = [chat.messages || []];
-                  chat.currentBranch = 0;
-                  delete chat.messages;
-                }
-
-                const currentBranch = chat.branches[chat.currentBranch];
-                if(!currentBranch.some(m => m.content === fullContent && m.role === 'assistant')) {
-                  currentBranch.push({role: 'assistant', content: fullContent});
-                  localStorage.setItem('chat_history', JSON.stringify(chats));
-                }
-              }kdownBody = container.querySelector('.markdown-body');
-      const orig = markdownBody.innerText.trim();
-      
-      // Create inline editing container
-      const editContainer = document.createElement('div');
-      editContainer.className = 'inline-edit-container';
-      
-      const textarea = document.createElement('textarea');
-      textarea.className = 'inline-edit-textarea';
-      textarea.value = orig;
-      textarea.style.height = markdownBody.offsetHeight + 'px';
-      
-      const sendBtn = document.createElement('button');
-      sendBtn.className = 'inline-edit-send';
-      sendBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-      </svg>`;
-      
-      editContainer.appendChild(textarea);
-      editContainer.appendChild(sendBtn);
-      
-      // Replace content with editor
-      markdownBody.style.display = 'none';
-      markdownBody.parentNode.insertBefore(editContainer, markdownBody);
-      
-      // Auto-resize textarea
-      const autoResize = () => {
-        textarea.style.height = 'auto';
-        textarea.style.height = Math.max(textarea.scrollHeight, markdownBody.offsetHeight) + 'px';
-      };
-      
-      textarea.addEventListener('input', autoResize);
-      textarea.focus();
-      
-      // Handle save/cancel
-      const saveEdit = () => {
-        const newValue = textarea.value.trim();
-        if (newValue && newValue !== orig) {
-          createMessageBranch(container, newValue);
-        }
-        cancelEdit();
-      };
-      
-      const cancelEdit = () => {
-        editContainer.remove();
-        markdownBody.style.display = 'block';
-      };
-      
-      // Event listeners
-      sendBtn.addEventListener('click', saveEdit);
-      textarea.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          cancelEdit();
-        } else if (e.key === 'Enter' && e.ctrlKey) {
-          e.preventDefault();
-          saveEdit();
-        }
-      });
-    };
 
     window.regenerateMessage = (btn)=>{
       const container = btn.closest('.assistant-response');
@@ -3407,11 +3173,28 @@ Rules:
 
     function rebuildMessagesFromDOM(){
       const containers = chatBox.querySelectorAll('.user-bubble, .assistant-response');
-        streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No valid model selected.</div>';
-        return;
+      const rebuilt = [];
+      containers.forEach(container => {
+        const role = container.dataset.role;
+        if(!role) return;
+        const text = container.querySelector('.markdown-body').innerText.trim();
+        rebuilt.push({role, content: text});
+      });
+      const chat = chats.find(c => c.id === currentChatId);
+      if(chat){
+        // Initialize branches if needed
+        if (!chat.branches) {
+          chat.branches = [chat.messages || []];
+          chat.currentBranch = 0;
+          delete chat.messages;
+        }
+        
+        const sys = document.getElementById('systemPromptText')?.value.trim();
+        const filteredRebuilt = rebuilt.filter(m => m.role !== 'system');
+        chat.branches[chat.currentBranch] = sys ? [{role:'system', content:sys}, ...filteredRebuilt] : filteredRebuilt;
+        localStorage.setItem('chat_history', JSON.stringify(chats));
       }
-
-      // Initialize branches if needed
+    }
       if (!chat.branches) {
         chat.branches = [chat.messages || []];
         chat.currentBranch = 0;
@@ -3469,20 +3252,26 @@ Rules:
       if(!model || !model.id) {
         streamingResponse.classList.remove('streaming');
         streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No valid model selected. Please select a model from the dropdown.</div>';
-              streamingResponse.dataset.role = 'assistant';
+        resetSendButton();
+        return;
+      }
 
-              if(fullContent) {
-                // Initialize branches if needed
-                if (!chat.branches) {
-                  chat.branches = [chat.messages || []];
-                  chat.currentBranch = 0;
-                  delete chat.messages;
-                }
+      const chat = chats.find(c => c.id === currentChatId);
+      if(!chat) {
+        streamingResponse.classList.remove('streaming');
+        streamingResponse.innerHTML = '<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ No chat found.</div>';
+        resetSendButton();
+        return;
+      }
 
-                const currentBranch = chat.branches[chat.currentBranch];
-                currentBranch.push({role: 'assistant', content: fullContent});
-                localStorage.setItem('chat_history', JSON.stringify(chats));
-              }ges = [...chat.messages];
+      // Initialize branches if needed
+      if (!chat.branches) {
+        chat.branches = [chat.messages || []];
+        chat.currentBranch = 0;
+        delete chat.messages;
+      }
+
+      let messages = [...chat.branches[chat.currentBranch]];
       const sys = document.getElementById('systemPromptText')?.value.trim();
       if(sys && (!messages[0] || messages[0].role !== 'system')) {
         messages.unshift({role: 'system', content: sys});
@@ -3546,9 +3335,12 @@ Rules:
               streamingResponse.dataset.role = 'assistant';
 
               // Save to chat history
-              if(fullContent && !chat.messages.some(m => m.content === fullContent && m.role === 'assistant')) {
-                chat.messages.push({role: 'assistant', content: fullContent});
-                localStorage.setItem('chat_history', JSON.stringify(chats));
+              if(fullContent) {
+                const currentBranch = chat.branches[chat.currentBranch];
+                if(!currentBranch.some(m => m.content === fullContent && m.role === 'assistant')) {
+                  currentBranch.push({role: 'assistant', content: fullContent});
+                  localStorage.setItem('chat_history', JSON.stringify(chats));
+                }
               }
               resetSendButton();
               return;
@@ -3649,7 +3441,14 @@ Rules:
         return;
       }
 
-      let messages = [...chat.messages];
+      // Initialize branches if needed
+      if (!chat.branches) {
+        chat.branches = [chat.messages || []];
+        chat.currentBranch = 0;
+        delete chat.messages;
+      }
+
+      let messages = [...chat.branches[chat.currentBranch]];
       const sys = document.getElementById('systemPromptText')?.value.trim();
       if(sys && (!messages[0] || messages[0].role !== 'system')) {
         messages.unshift({role: 'system', content: sys});
@@ -3707,7 +3506,8 @@ Rules:
               streamingResponse.dataset.role = 'assistant';
 
               if(fullContent) {
-                chat.messages.push({role: 'assistant', content: fullContent});
+                const currentBranch = chat.branches[chat.currentBranch];
+                currentBranch.push({role: 'assistant', content: fullContent});
                 localStorage.setItem('chat_history', JSON.stringify(chats));
               }
               return;
@@ -3739,17 +3539,32 @@ Rules:
 
             readStream();
           }).catch(error => {
-            streamingResponse.classList.remove('streaming');
-            streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}</div>`;
+            if (error.name === 'AbortError') {
+              streamingResponse.classList.remove('streaming');
+              streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm">Generation stopped</div>`;
+            } else {
+              streamingResponse.classList.remove('streaming');
+              streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}</div>`;
+            }
+            resetSendButton();
           });
         }
 
         readStream();
       })
       .catch(error => {
-        streamingResponse.classList.remove('streaming');
-        streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Request failed: ${error.message}</div>`;
+        if (error.name === 'AbortError') {
+          streamingResponse.classList.remove('streaming');
+          streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">⚠️ Generation stopped</div>`;
+        } else {
+          streamingResponse.classList.remove('streaming');
+          streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Request failed: ${error.message}</div>`;
+        }
+        resetSendButton();
       });
+
+      messageInput.value = '';
+      messageInput.style.height = '60px';
     }
 
     // OAuth & Fetch
