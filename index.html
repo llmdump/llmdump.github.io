@@ -1664,29 +1664,188 @@
 
   <script>
   (()=>{
-    // Test with minimal authentication functions
-    console.log('Starting minimal script');
-    
-    function startOAuth(){
-      console.log('startOAuth called');
-      alert('OAuth function works!');
+    // Backend configuration
+    const DEFAULT_API_BASE = 'https://tanjim.ddns.net';
+    let API_BASE = (localStorage.getItem('api_base')||DEFAULT_API_BASE||'').trim();
+    if(API_BASE.endsWith('/')) API_BASE = API_BASE.slice(0,-1);
+
+    // DOM Elements
+    const loginPage = document.getElementById('loginPage');
+    const chatPage = document.getElementById('chatPage');
+    const chatBox = document.getElementById('chatBox');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const chatHistory = document.getElementById('chatHistory');
+    const newChatBtn = document.getElementById('newChat');
+    const userProfile = document.getElementById('userProfile');
+    const profileMenu = document.getElementById('profileMenu');
+    const settingsModal = document.getElementById('settingsModal');
+    const dropdownSelected = document.getElementById('dropdownSelected');
+    const dropdownContent = document.getElementById('dropdownContent');
+    const dropdownSearch = document.getElementById('dropdownSearch');
+    const dropdownItems = document.getElementById('dropdownItems');
+    const rateLimitInfo = document.getElementById('rateLimitInfo');
+    const sidebarSettings = document.getElementById('sidebarSettings');
+
+    // Data initialization
+    let models = [];
+    let chats = JSON.parse(localStorage.getItem('chat_history') || '[]');
+    let currentChatId = null;
+    let currentAbortController = null;
+
+    // Helper functions
+    function loadUserProfile(){
+      const token=localStorage.getItem('gh_token');
+      if(!token || !token.trim() || token.trim()=="" || token == "") return;
+      fetch('https://api.github.com/user',{headers:{Authorization:'Bearer ' + token}})
+        .then(r=> r.ok ? r.json(): Promise.reject())
+        .then(u=>{
+          if(u.login){ document.getElementById('usernameDisplay').textContent=u.login; }
+          if(u.avatar_url){
+            const av=userProfile.querySelector('div');
+            av.innerHTML=`&lt;img src="${u.avatar_url}&s=80" class="w-8 h-8 rounded-full"/&gt;`;
+          }
+        }).catch(()=>{});
     }
-    
-    function handleOAuthCallback(){
-      console.log('handleOAuthCallback called');
+
+    function showLoginPage() {
+      loginPage?.classList.remove('hidden');
+      chatPage?.classList.add('hidden');
     }
-    
-    function fetchModels(){
-      console.log('fetchModels called');
+
+    function showChatPage() {
+      loginPage?.classList.add('hidden');
+      chatPage?.classList.remove('hidden');
     }
-    
-    // Attach event listeners
-    document.getElementById('githubLogin')?.addEventListener('click', (e)=>{ 
-      e.preventDefault(); 
-      startOAuth(); 
+
+    // Check for stored token on load
+    const token = localStorage.getItem('gh_token');
+    if (token && token.trim() && token.trim()!="" && token != "") {
+      loadUserProfile();
+      fetchModels();
+      showChatPage();
+    } else {
+      showLoginPage();
+    }
+
+    // Auth handlers
+    const patInput = document.getElementById('patToken');
+    document.getElementById('usePat')?.addEventListener('click', () => {
+      const token = patInput.value.trim();
+      if (token.startsWith('github_pat_')) {
+        localStorage.setItem('gh_token', token);
+        patInput.value = '';
+        fetchModels();
+        loadUserProfile();
+        showChatPage();
+      } else {
+        alert('Please enter a valid GitHub Personal Access Token that starts with "github_pat_"');
+      }
     });
-    
-    console.log('Minimal script completed');
+
+    // OAuth & Fetch
+    const GITHUB_CLIENT_ID = 'Ov23li2MmzqUhjwLwwMB';
+    const OAUTH_REDIRECT_URI = window.location.origin + window.location.pathname;
+
+    function startOAuth(){
+      if(location.protocol==='file:') { alert('Serve over http:// (not file://) for OAuth'); return; }
+      const state = crypto.randomUUID();
+      localStorage.setItem('oauth_state', state);
+      const scope = 'read:user read:org models';
+      const authUrl = `https://github.com/login/oauth/authorize?client_id=${encodeURIComponent(GITHUB_CLIENT_ID)}&redirect_uri=${encodeURIComponent(OAUTH_REDIRECT_URI)}&scope=${encodeURIComponent(scope)}&state=${encodeURIComponent(state)}`;
+      window.location = authUrl;
+    }
+
+    function handleOAuthCallback(){
+      const params = new URLSearchParams(location.search);
+      const code = params.get('code');
+      const state = params.get('state');
+      if(!code) return;
+      const expected = localStorage.getItem('oauth_state');
+      if(!state || state !== expected){ alert('OAuth state mismatch. Retry sign in.'); return; }
+
+      fetch(`${API_BASE}/api/exchange?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`)
+        .then(r=>{ if(!r.ok) throw new Error('Exchange failed'); return r.json(); })
+        .then(data=>{
+          if(!data.access_token){ throw new Error('No access token in response'); }
+          localStorage.setItem('gh_token', data.access_token);
+          const octokit = new Octokit({ auth: data.access_token });
+          history.replaceState({}, document.title, OAUTH_REDIRECT_URI);
+          fetchModels(); loadUserProfile(); showChatPage();
+        })
+        .catch(err=>{ console.error(err); alert('OAuth exchange error: '+err.message); });
+    }
+
+    function fetchModels(){
+      const token = localStorage.getItem('gh_token');
+      if(!token || !token.trim() || token.trim()=="" || token == "") return;
+      
+      const fallback = [{"id":"openai/gpt-4.1","name":"OpenAI GPT-4.1","publisher":"OpenAI","rate_limit_tier":"high","limits":{"max_input_tokens":1048576,"max_output_tokens":32768}},{"id":"openai/gpt-4.1-mini","name":"OpenAI GPT-4.1-mini","publisher":"OpenAI","rate_limit_tier":"low","limits":{"max_input_tokens":1048576,"max_output_tokens":32768}}];
+      
+      fetch(`${API_BASE}/api/models`,{headers:{Authorization:'Bearer ' + token}})
+        .then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+        .then(data=>{
+          models = Array.isArray(data)? data : (data.models||fallback);
+          const savedModelId = localStorage.getItem('selected_model');
+          const modelToSelect = savedModelId && models.find(m => m.id === savedModelId) ? savedModelId : (models.length ? models[0].id : null);
+          if(modelToSelect) selectModel(modelToSelect);
+        })
+        .catch(err=>{
+          console.warn('Model fetch failed', err);
+          models = fallback;
+          if(models.length) selectModel(models[0].id);
+        });
+    }
+
+    function selectModel(id){
+      const m = models.find(model=>model.id===id);
+      if(!m) return;
+      
+      const selectedModelName = document.getElementById('selectedModelName');
+      if(selectedModelName) {
+        selectedModelName.textContent = m.name;
+        selectedModelName.dataset.modelId = m.id;
+      }
+      localStorage.setItem('selected_model', m.id);
+    }
+
+    function sendMessage(){
+      const msg = messageInput.value.trim();
+      if(!msg) return;
+      
+      const token = localStorage.getItem('gh_token');
+      const selectedModelElement = document.getElementById('selectedModelName');
+      const modelId = selectedModelElement?.dataset.modelId;
+      const model = models.find(m => m.id === modelId);
+
+      if(!token || !token.trim()) {
+        alert('Please sign in with GitHub first');
+        return;
+      }
+
+      if(!model || !model.id) {
+        alert('Please select a model first');
+        return;
+      }
+
+      // Simple message sending - just alert for now
+      alert(`Would send message: "${msg}" using model: ${model.name}`);
+      messageInput.value = '';
+    }
+
+    document.getElementById('githubLogin')?.addEventListener('click', (e)=>{ e.preventDefault(); startOAuth(); });
+    handleOAuthCallback();
+
+    // Event Listeners
+    sendBtn?.addEventListener('click', sendMessage);
+    newChatBtn?.addEventListener('click', () => alert('New chat functionality'));
+
+    messageInput?.addEventListener('keydown', e=>{
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
+    });
+
+    console.log('LLM Dump authentication system loaded successfully');
   })();
   </script>
     // Backend configuration
