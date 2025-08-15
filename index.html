@@ -391,10 +391,10 @@ Prism.plugins.toolbar.registerButton("download", env => {
       word-wrap: break-word;
       color: white;
     }
-    .assistant-response.message-actions {
+    .assistant-response ~ .message-actions {
       justify-content: flex-start;
     }
-    .user-bubble.message-actions{
+    .user-bubble ~ .message-actions{
       justify-content: flex-end;
     }
 
@@ -1096,7 +1096,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
     }
 
     /* Additional CSS for new features */
-    .chat-history-item.focused { background: rgba(79,70,229,0.4)!important; outline: 1px solid #6366f1; }
+    .chat-history-item.focused { background: rgba(79,70,229,0.4)!important; outline: 0px solid #6366f1; }
 
     .chat-history-edit-toggle {
       position: relative;
@@ -2462,7 +2462,6 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
     window.deleteMessage = (bubble, btn)=>{
       const buttonEl = btn || bubble;
       const root = buttonEl?.closest?.('.bubble-container');
-      // Prefer explicit bubble if valid; else locate within the bubble-container
       const target = bubble?.closest?.('.user-bubble, .assistant-response') || root?.querySelector?.('.user-bubble, .assistant-response');
       if(!target) return;
       const messageActions = root?.querySelector?.('.message-actions');
@@ -2470,6 +2469,125 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       if(messageActions) messageActions.remove();
       rebuildMessagesFromDOM();
     };
+
+    // Inline edit for user messages (restored)
+    window.editMessage = (bubble, btn)=>{
+      const container = bubble?.closest?.('.user-bubble') || null;
+      if(!container || container.dataset.role !== 'user' || container.querySelector('.inline-edit-container')) return;
+      const markdownBody = container.querySelector('.markdown-body');
+      const orig = (markdownBody?.innerText || '').trim();
+
+      const editContainer = document.createElement('div');
+      editContainer.className = 'inline-edit-container';
+
+      const textarea = document.createElement('textarea');
+      textarea.className = 'inline-edit-textarea';
+      textarea.value = orig;
+      textarea.style.minHeight = (markdownBody?.offsetHeight || 0) + 'px';
+
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'inline-edit-actions';
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'inline-edit-btn save';
+      saveBtn.textContent = 'Send';
+      saveBtn.title = 'Ctrl+Enter';
+
+      const saveOnlyBtn = document.createElement('button');
+      saveOnlyBtn.className = 'inline-edit-btn save-only';
+      saveOnlyBtn.textContent = 'Save';
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'inline-edit-btn cancel';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.title = 'Escape';
+
+      actionsDiv.appendChild(saveOnlyBtn);
+      actionsDiv.appendChild(cancelBtn);
+      actionsDiv.appendChild(saveBtn);
+
+      editContainer.appendChild(textarea);
+      editContainer.appendChild(actionsDiv);
+
+      if(markdownBody) markdownBody.style.display = 'none';
+      container.insertBefore(editContainer, markdownBody || container.firstChild);
+      textarea.focus();
+
+      const autoResize = () => {
+        textarea.style.height = 'auto';
+        const base = markdownBody?.offsetHeight || 0;
+        textarea.style.height = Math.max(textarea.scrollHeight, base) + 'px';
+      };
+      textarea.addEventListener('input', autoResize);
+      autoResize();
+
+      const cancelEdit = () => {
+        editContainer.remove();
+        if(markdownBody) markdownBody.style.display = 'block';
+      };
+
+      const saveAndRegenerate = () => {
+        const newValue = textarea.value.trim();
+        if(newValue && newValue !== orig) {
+          createBranchFromEdit(container, newValue);
+          regenerateAfterEdit();
+        }
+        cancelEdit();
+      };
+
+      const saveOnly = () => {
+        const newValue = textarea.value.trim();
+        if(newValue && newValue !== orig) {
+          if(markdownBody) markdownBody.innerHTML = renderMd(newValue);
+          rebuildMessagesFromDOM();
+        }
+        cancelEdit();
+      };
+
+      saveBtn.addEventListener('click', saveAndRegenerate);
+      saveOnlyBtn.addEventListener('click', saveOnly);
+      cancelBtn.addEventListener('click', cancelEdit);
+
+      textarea.addEventListener('keydown', e => {
+        if(e.key === 'Escape') { e.preventDefault(); cancelEdit(); }
+        if(e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); saveAndRegenerate(); }
+      });
+    };
+
+    function createBranchFromEdit(editedContainer, newContent) {
+      const chat = chats.find(c => c.id === currentChatId);
+      if(!chat) return;
+      const allContainers = chatBox.querySelectorAll('.user-bubble, .assistant-response');
+      let editIndex = -1;
+      allContainers.forEach((c, idx) => { if(c === editedContainer) editIndex = idx; });
+      if(editIndex === -1) return;
+
+      const currentBranch = chat.branches[chat.currentBranch || 0] || [];
+      const newBranch = [];
+      for(let i = 0; i <= editIndex; i++) {
+        const c = allContainers[i];
+        const role = c.dataset.role;
+        if(role) {
+          if(i === editIndex) {
+            newBranch.push({role, content: newContent});
+          } else {
+            const text = c.querySelector('.markdown-body')?.innerText?.trim() || '';
+            newBranch.push({role, content: text});
+          }
+        }
+      }
+      chat.branches.push(newBranch);
+      chat.currentBranch = chat.branches.length - 1;
+      localStorage.setItem('chat_history', JSON.stringify(chats));
+
+      const markdownBody = editedContainer.querySelector('.markdown-body');
+      if(markdownBody) markdownBody.innerHTML = renderMd(newContent);
+      loadChat(currentChatId);
+    }
+
+    function regenerateAfterEdit() {
+      generateAssistantForLastUser();
+    }
 
     window.regenerateMessage = function(){
       const args = Array.from(arguments);
@@ -2836,149 +2954,16 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
         .then(data=>{
           if(!data.access_token){ throw new Error('No access token in response'); }
           localStorage.setItem('gh_token', data.access_token);
-          const octokit = new Octokit({ auth: data.access_token });
-          history.replaceState({}, document.title, OAUTH_REDIRECT_URI);
-          fetchModels(); loadUserProfile(); showChatPage();
+          // After successful exchange, load chat history and ensure there's a chat
+          loadChatHistory();
+          if(!chats.length) createNewChat();
         })
-        .catch(err=>{ console.error(err); alert('OAuth exchange error: '+err.message); });
+        .catch(()=>{ /* ignore exchange errors */ });
     }
 
-    function fetchModels(){
-      const token = localStorage.getItem('gh_token');
-      if(!token || !token.trim() || token.trim()=="" || token == "") return;
-      const statusEl = document.getElementById('networkStatus');
-
-      // TODO: Add Cerebras models when external API keys are implemented
-      // Cerebras offers better rate limits per model (especially for less used models like llama 70B)
-      const fallback = [{"id":"openai/gpt-4.1","name":"OpenAI GPT-4.1","publisher":"OpenAI","summary":"gpt-4.1 outperforms gpt-4o across the board, with major gains in coding, instruction following, and long-context understanding","rate_limit_tier":"high","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-04-14","capabilities":["streaming","tool-calling"],"limits":{"max_input_tokens":1048576,"max_output_tokens":32768},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4-1"},{"id":"openai/gpt-4.1-mini","name":"OpenAI GPT-4.1-mini","publisher":"OpenAI","summary":"gpt-4.1-mini outperform gpt-4o-mini across the board, with major gains in coding, instruction following, and long-context handling","rate_limit_tier":"low","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-04-14","capabilities":["streaming","tool-calling"],"limits":{"max_input_tokens":1048576,"max_output_tokens":32768},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4-1-mini"},{"id":"openai/gpt-4.1-nano","name":"OpenAI GPT-4.1-nano","publisher":"OpenAI","summary":"gpt-4.1-nano provides gains in coding, instruction following, and long-context handling along with lower latency and cost","rate_limit_tier":"low","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-04-14","capabilities":["streaming","tool-calling"],"limits":{"max_input_tokens":1048576,"max_output_tokens":32768},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4-1-nano"},{"id":"openai/gpt-4o","name":"OpenAI GPT-4o","publisher":"OpenAI","summary":"OpenAI's most advanced multimodal model in the gpt-4o family. Can handle both text and image inputs.","rate_limit_tier":"high","supported_input_modalities":["text","image","audio"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2024-11-20","capabilities":["agents","assistants","streaming","tool-calling"],"limits":{"max_input_tokens":131072,"max_output_tokens":16384},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4o"},{"id":"openai/gpt-4o-mini","name":"OpenAI GPT-4o mini","publisher":"OpenAI","summary":"An affordable, efficient AI solution for diverse text and image tasks.","rate_limit_tier":"low","supported_input_modalities":["text","image","audio"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2024-07-18","capabilities":["agents","assistants","streaming","tool-calling"],"limits":{"max_input_tokens":131072,"max_output_tokens":4096},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-4o-mini"},{"id":"openai/gpt-5","name":"OpenAI gpt-5","publisher":"OpenAI","summary":"gpt-5 is designed for logic-heavy and multi-step tasks. ","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5"},{"id":"openai/gpt-5-chat","name":"OpenAI gpt-5-chat (preview)","publisher":"OpenAI","summary":"gpt-5-chat (preview) is an advanced, natural, multimodal, and context-aware conversations for enterprise applications.","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5-chat"},{"id":"openai/gpt-5-mini","name":"OpenAI gpt-5-mini","publisher":"OpenAI","summary":"gpt-5-mini is a lightweight version for cost-sensitive applications.","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5-mini"},{"id":"openai/gpt-5-nano","name":"OpenAI gpt-5-nano","publisher":"OpenAI","summary":"gpt-5-nano is optimized for speed, ideal for applications requiring low latency. ","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["multipurpose","multilingual","multimodal"],"registry":"azure-openai","version":"2025-08-07","capabilities":["reasoning","tool-calling","streaming"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/gpt-5-nano"},{"id":"openai/o1","name":"OpenAI o1","publisher":"OpenAI","summary":"Focused on advanced reasoning and solving complex problems, including math and science tasks. Ideal for applications that require deep contextual understanding and agentic workflows.","rate_limit_tier":"custom","supported_input_modalities":["text","image"],"supported_output_modalities":["text"],"tags":["reasoning","multilingual","coding"],"registry":"azure-openai","version":"2024-12-17","capabilities":["reasoning","tool-calling"],"limits":{"max_input_tokens":200000,"max_output_tokens":100000},"html_url":"https://github.com/marketplace/models/azure-openai/o1"},{"id":"openai/o1-mini","name":"OpenAI o1-mini","publisher":"OpenAI","summary":"Smaller, faster, and 80% cheaper than o1-preview, performs well at code generation and small context operations.","rate_limit_tier":"custom","supported_input_modalities":["text"],"supported_output_modalities":["text"],"tags":["reasoning","multilingual","coding"],"registry":"azure-openai","version":"2024-09-12","capabilities":["reasoning","streaming"],"limits":{"max_input_tokens":128000,"max_output_tokens":65536},"html_url":"https://github.com/marketplace/models/azure-openai/o1-mini"}]
-      fetch(`${API_BASE}/api/models`,{headers:{Authorization:`Bearer ${token}`}})
-        .then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
-        .then(data=>{
-          models = Array.isArray(data)? data : (data.models||fallback);
-          renderDropdownItems(models);
-          renderTitleDropdownItems(models);
-
-          // Restore previously selected model or select first available
-          const savedModelId = localStorage.getItem('selected_model');
-          const modelToSelect = savedModelId && models.find(m => m.id === savedModelId)
-            ? savedModelId
-            : (models.length ? models[0].id : null);
-
-          if(modelToSelect) selectModel(modelToSelect);
-
-          // Restore previously selected title model or select GPT-4.1 Mini as default
-          const savedTitleModelId = localStorage.getItem('selected_title_model');
-          const titleModelToSelect = savedTitleModelId && models.find(m => m.id === savedTitleModelId)
-            ? savedTitleModelId
-            : models.find(m => m.id === 'openai/gpt-4.1-mini')?.id || (models.length ? models[0].id : null);
-
-          if(titleModelToSelect) selectTitleModel(titleModelToSelect);
-
-          statusEl?.classList.add('hidden');
-        })
-        .catch(err=>{
-          console.warn('Model fetch failed', err);
-          models = fallback;
-          renderDropdownItems(models);
-          renderTitleDropdownItems(models);
-
-          // Restore previously selected model or select first available
-          const savedModelId = localStorage.getItem('selected_model');
-          const modelToSelect = savedModelId && models.find(m => m.id === savedModelId)
-            ? savedModelId
-            : (models.length ? models[0].id : null);
-
-          if(modelToSelect) selectModel(modelToSelect);
-
-          // Restore previously selected title model or select GPT-4.1 Mini as default
-          const savedTitleModelId = localStorage.getItem('selected_title_model');
-          const titleModelToSelect = savedTitleModelId && models.find(m => m.id === savedTitleModelId)
-            ? savedTitleModelId
-            : models.find(m => m.id === 'openai/gpt-4.1-mini')?.id || (models.length ? models[0].id : null);
-
-          if(titleModelToSelect) selectTitleModel(titleModelToSelect);
-
-          if(statusEl){ statusEl.textContent = 'Using fallback models'; statusEl.classList.remove('hidden'); }
-        });
-    }
-
-    document.getElementById('githubLogin')?.addEventListener('click', (e)=>{ e.preventDefault(); startOAuth(); });
+    // Handle OAuth callback if present
     handleOAuthCallback();
 
-    // Event Listeners
-    sendBtn?.addEventListener('click', sendMessage);
-    stopBtn?.addEventListener('click', stopGeneration);
-    newChatBtn?.addEventListener('click', goToHomepage);
-
-
-    // Mobile dropdown
-    document.getElementById('mobileDropdownSelected')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const mobileContent = document.getElementById('mobileDropdownContent');
-      const mobileSelected = document.getElementById('mobileDropdownSelected');
-      mobileContent?.classList.toggle('show');
-      mobileSelected?.classList.toggle('active');
-    });
-
-    // Mobile hamburger menu
-    document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
-      const sidebar = document.getElementById('sidebar');
-      sidebar?.classList.toggle('mobile-open');
-    });
-
-    dropdownSearch?.addEventListener('input', e => filterModels(e.target.value));
-    document.getElementById('mobileDropdownSearch')?.addEventListener('input', e => filterModels(e.target.value));
-
-    messageInput?.addEventListener('keydown', e=>{
-      if(e.key==='Enter'){
-        if(e.ctrlKey){ e.preventDefault(); sendMessage(); }
-        else if(e.shiftKey){
-          const start=messageInput.selectionStart;
-          const end=messageInput.selectionEnd;
-          messageInput.value=messageInput.value.substring(0,start)+'\n'+messageInput.value.substring(end);
-          messageInput.selectionStart=messageInput.selectionEnd=start+1;
-          // Auto-resize after adding newline
-          setTimeout(() => {
-            messageInput.style.height = 'auto';
-            messageInput.style.height = messageInput.scrollHeight + 'px';
-          }, 0);
-          e.preventDefault();
-        }
-        else { e.preventDefault(); sendMessage(); }
-      }
-    });
-
-    // Auto-resize textarea on input
-    messageInput?.addEventListener('input', function(){
-      this.style.height='auto';
-      this.style.height=Math.min(this.scrollHeight, 200)+'px';
-    });
-
-    // Keyboard navigation
-    let historyFocusIndex=-1;
-    document.addEventListener('keydown', e=>{
-      if(e.altKey && e.key==='n'){ e.preventDefault(); newChatBtn?.click(); }
-      if(e.altKey && e.key==='m'){ e.preventDefault(); dropdownSelected?.click(); }
-      if(e.altKey && e.key==='/'){ e.preventDefault(); messageInput?.focus(); }
-      if(e.altKey && (e.key==='ArrowDown'||e.key==='ArrowUp')){
-        e.preventDefault();
-        const items=[...chatHistory.querySelectorAll('.chat-history-item')];
-        if(!items.length) return;
-        historyFocusIndex = e.key==='ArrowDown' ? (historyFocusIndex+1)%items.length : (historyFocusIndex-1+items.length)%items.length;
-        items.forEach(i=>i.classList.remove('focused'));
-        const t=items[historyFocusIndex];
-        t.classList.add('focused');
-        t.scrollIntoView({block:'nearest'});
-        if(e.altKey&&e.shiftKey) t.click();
-      }
-    });
-
-    // Initialize
-    try { if (window.Prism && chatBox) Prism.highlightAllUnder(chatBox); } catch(_){}
-
-    loadChatHistory();
-    if(!chats.length) createNewChat();
   })();
   </script>
 </body>
