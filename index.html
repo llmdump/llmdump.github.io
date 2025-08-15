@@ -249,10 +249,11 @@ Prism.plugins.toolbar.registerButton("download", env => {
     background: linear-gradient(180deg, rgba(99, 102, 241, 0) 0%, rgba(99, 102, 241, 1) 50%, rgba(99, 102, 241, 0) 100%);
 }
 
-    .desktop-header {
+	.desktop-header {
     background: linear-gradient(90deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0) 100%);
     backdrop-filter: blur(15px);
     border-radius: 0;
+    z-index: 9; /* Ensure it stays above other elements */
 }
 
     .desktop-header::before {
@@ -3137,4 +3138,5 @@ const octokit = new Octokit({ auth: data.access_token });
   })();
   </script>
 </body>
+
 </html>
