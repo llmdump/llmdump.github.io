@@ -388,9 +388,14 @@ Prism.plugins.toolbar.registerButton("download", env => {
       margin-bottom: 16px;
       opacity: 0;
       transition: opacity 0.2s;
-      justify-content: flex-end;
       word-wrap: break-word;
       color: white;
+    }
+    .assistant-response.message-actions {
+      justify-content: flex-start;
+    }
+    .user-bubble.message-actions{
+      justify-content: flex-end;
     }
 
     .user-bubble:hover ~ .message-actions,
@@ -457,7 +462,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
     }
 
     .inline-edit-btn.save-only {
-      background: rgb(60 255 130 / 58%);
+      background: rgba(255, 255, 255, 0);
       margin-right: auto
     }
 
@@ -1030,6 +1035,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
         top: 0;
         z-index: 10;
         background: rgba(30, 41, 59, 0.9);
+        backdrop-filter: blur(20px);
       }
 
       .chat-bubble {
@@ -1578,9 +1584,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
     function highlightWithin(root){
       try { if (window.Prism && root) Prism.highlightAllUnder(root); } catch(_) {}
     }
-    if(typeof renderMd === 'undefined'){
-      window.renderMd = (text) => (window.renderMarkdown ? window.renderMarkdown(text || '') : (text || ''));
-    }
+    const renderMd = (text) => (window.renderMarkdown ? window.renderMarkdown(text || '') : (text || ''));
 
     // DOM Elements
     const loginPage = document.getElementById('loginPage');
@@ -1600,10 +1604,6 @@ Prism.plugins.toolbar.registerButton("download", env => {
     const dropdownItems = document.getElementById('dropdownItems');
     const rateLimitInfo = document.getElementById('rateLimitInfo');
     const sidebarSettings = document.getElementById('sidebarSettings');
-
-    // Helpers for markdown rendering and code highlighting
-    const renderMd = (text) => (window.renderMarkdown ? window.renderMarkdown(text) : (text || ''));
-    const highlightWithin = (el) => { try { if (window.Prism && el) Prism.highlightAllUnder(el); } catch(_){} };
 
     // State
     let chats = JSON.parse(localStorage.getItem('chat_history') || '[]');
@@ -1934,11 +1934,18 @@ Prism.plugins.toolbar.registerButton("download", env => {
             'openai/o1-preview' : ['N/A','8','10','12'],
             'openai/o1' : ['N/A','8','10','12'],
             'openai/o3' : ['N/A','8','10','12'],
+            'openai/gpt-5' : ['N/A','8','10','12'],
             'openai/o1-mini' : ['N/A','12','15','20'],
             'openai/o3-mini' : ['N/A','12','15','20'],
             'openai/o4-mini' : ['N/A','12','15','20'],
+            'openai/gpt-5-mini' : ['N/A','12','15','20'],
+            'openai/gpt-5-nano' : ['N/A','12','15','20'],
+            'openai/gpt-5-chat' : ['N/A','12','15','20'],
             'xai/grok-3' : ['15','15','20','30'],
-            'xai/grok-3-mini' : ['30','30','40','50']
+            'xai/grok-3-mini' : ['30','30','40','50'],
+            'deepseek/deepseek-r1' : ['8','8','10','12'],
+            'deepseek/deepseek-r1-0528' : ['8','8','10','12'],
+            'microsoft/mai-ds-r1' : ['8','8','10','12'],
         }
         const tier = model.rate_limit_tier || model.tier || 'Unknown';
         var rpds = RPDLookupTable[tier] || ['Unknown', 'Unknown', 'Unknown', 'Unknown'];
@@ -2053,7 +2060,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
     function updateRateLimitInfo(model){
       if(model?.limits || model?.rate_limit){
         const tier = (model.rate_limit_tier || model.tier || '?').toLowerCase();
-        const rpd = model.rate_limit?.requests_per_day || model.limits?.requests_per_day || '—';
+        const rpd = getModelRPDString(model)
         const inTok = model.limits?.max_input_tokens ?? model.limits?.input ?? '—';
         const outTok = model.limits?.max_output_tokens ?? model.limits?.output ?? '—';
 
