@@ -252,6 +252,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
       overflow: hidden;
       margin: 0;
       padding: 0;
+      
     }
 
     .glass {
@@ -275,7 +276,30 @@ Prism.plugins.toolbar.registerButton("download", env => {
       height: 100%;
       background: linear-gradient(180deg,
         rgba(99, 102, 241, 0) 0%,
-        rgba(99, 102, 241, 0.8) 50%,
+        rgba(99, 102, 241, 0) 6.7%,
+        rgba(99, 102, 241, 1) 7.3%,
+        rgba(99, 102, 241, 0) 100%);
+    }
+
+    .desktop-header {
+      background: linear-gradient(90deg,
+        rgba(99, 102, 241, 0) 0%,
+        rgba(99, 102, 241, 0.1) 50%,
+        rgba(99, 102, 241, 0) 100%);
+      backdrop-filter: blur(15px);
+      border-radius: 0;
+    }
+
+    .desktop-header::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(0deg,
+        rgba(99, 102, 241, 0) 0%,
+        rgba(99, 102, 241, 1) 50%,
         rgba(99, 102, 241, 0) 100%);
     }
 
@@ -2080,6 +2104,29 @@ Prism.plugins.toolbar.registerButton("download", env => {
     }
 
     // Chat management
+    function toggleEditing() {
+      const sidebar = document.getElementById('sidebar');
+      const btn = document.getElementById('editChatsBtn');
+      sidebar.classList.toggle('editing');
+      btn.classList.toggle('active');
+
+      // Toggle icon between edit and check
+      const svg = btn.querySelector('svg');
+      if (sidebar.classList.contains('editing')) {
+        svg.innerHTML = '<path d="M20 6L9 17l-5-5"></path>';
+      } else {
+        svg.innerHTML = '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>';
+      }
+      // Toggle delete buttons
+      document.querySelectorAll('.del-btn').forEach(elem => {
+        elem.style.opacity = sidebar.classList.contains('editing') ? '1' : '0';
+      });
+    }
+    function showHideChatHistoryEditButtons(show=true){
+      document.querySelectorAll('.del-btn').forEach(elem => {
+        elem.style.opacity = show ? '1' : '0';
+      });
+    }
     function loadChatHistory(){
       chatHistory.innerHTML='';
       chats.forEach(chat=>{
@@ -2094,12 +2141,12 @@ Prism.plugins.toolbar.registerButton("download", env => {
         const del=document.createElement('button');
         del.className='text-red-400 ml-2 font-bold del-btn';
         del.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"></polyline><path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4"></path></svg>';
-        del.addEventListener('click',e=>{ e.stopPropagation(); deleteChat(chat.id); });
+        del.addEventListener('click',e=>{ e.stopPropagation(); deleteChat(chat.id); showHideChatHistoryEditButtons(true);});
 
         const dragHandle = document.createElement('div');
         dragHandle.className = 'drag-handle';
         dragHandle.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>';
-
+        
         el.appendChild(dragHandle);
         el.appendChild(title);
         el.appendChild(del);
@@ -2120,7 +2167,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
       const titleSystemPrompt = `You are a chat title generator. Generate a concise, descriptive title (2-10 words) for a conversation based on the user's first message.
 
 Rules:
-- Keep it under 10 words
+- Keep it under 3 words if possible, 5 words if not
 - Make it descriptive but not too specific
 - Don't use quotes or special characters
 - Focus on the main topic or intent
@@ -2162,24 +2209,8 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       });
     }
     // Edit functionality for chat history
-    document.getElementById('editChatsBtn')?.addEventListener('click', () => {
-      const sidebar = document.getElementById('sidebar');
-      const btn = document.getElementById('editChatsBtn');
-      sidebar.classList.toggle('editing');
-      btn.classList.toggle('active');
-
-      // Toggle icon between edit and check
-      const svg = btn.querySelector('svg');
-      if (sidebar.classList.contains('editing')) {
-        svg.innerHTML = '<path d="M20 6L9 17l-5-5"></path>';
-      } else {
-        svg.innerHTML = '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>';
-      }
-      // Toggle delete buttons
-      document.querySelectorAll('.del-btn').forEach(elem => {
-        elem.style.opacity = sidebar.classList.contains('editing') ? '1' : '0';
-      });
-    });
+    
+    document.getElementById('editChatsBtn')?.addEventListener('click', toggleEditing);
 
     function deleteChat(id){
       chats = chats.filter(c=>c.id!==id);
