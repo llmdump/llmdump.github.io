@@ -5,16 +5,243 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LLM Dump</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
   <script type="module">
-  import { Octokit } from "https://esm.sh/@octokit/core";
+    import { Octokit } from "https://esm.sh/@octokit/core";
+  </script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/prism.min.js"></script>
+<link href="/prism_theme.css" rel="stylesheet"> <!-- VSCode Dark+-->
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/inline-color/prism-inline-color.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/inline-color/prism-inline-color.min.css">
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/diff-highlight/prism-diff-highlight.min.css">
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/diff-highlight/prism-diff-highlight.min.js"></script>
+<script>
+// Prism JS config
+Prism.plugins.autoloader.languages_path = 'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/';
+Prism.plugins.toolbar.registerButton("copy", env => {
+	let button = document.createElement("button");
+  button.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>
+  `;
+
+  button.setAttribute('aria-label', 'Copy');
+  button.title = 'Copy';
+  button.style.height = '26px'
+	button.addEventListener("click", (e) => {
+    const codeEl = (env.element && env.element.tagName && env.element.tagName.toLowerCase() === 'code')
+      ? env.element
+      : (env.element && env.element.querySelector ? env.element.querySelector('code') : null) || env.element;
+    const textToCopy = (codeEl?.innerText || codeEl?.textContent || '').trim();
+    if (!textToCopy) return;
+
+    // remember original icon so we can restore it
+    const originalIcon = button.innerHTML;
+
+    // helper to show success state then restore
+    const showSuccess = () => {
+      button.style.color = '#10b981'; // green
+      button.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>`;
+      setTimeout(() => {
+        button.style.color = '#ffffff'; // white copy icon as requested
+        button.innerHTML = originalIcon;
+      }, 1000);
+    };
+
+    // try navigator.clipboard first, fallback to textarea + execCommand
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy).then(showSuccess).catch(() => {
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = textToCopy;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          showSuccess();
+        } catch (e) {
+          alert('Copy failed');
+        }
+        ta.remove();
+      });
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = textToCopy;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showSuccess();
+      } catch (e) {
+        alert('Copy failed');
+      }
+      ta.remove();
+    }
+	});
+
+	return button;
+});
+
+Prism.plugins.toolbar.registerButton("download", env => {
+	let button = document.createElement("button");
+  button.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+      <polyline points="7 10 12 15 17 10"></polyline>
+      <path d="M12 15V3"></path>
+    </svg>
+  `;
+
+  button.setAttribute('aria-label', 'Download');
+  button.title = 'Download';
+  button.style.height = '26px'
+  button.style.margin = '0px 5px';
+  button.addEventListener("click", async (e) => {
+    const codeEl = (env.element && env.element.tagName && env.element.tagName.toLowerCase() === 'code')
+      ? env.element
+      : (env.element && env.element.querySelector ? env.element.querySelector('code') : null) || env.element;
+    const textToDownload = (codeEl?.innerText || codeEl?.textContent || '').trim();
+    if (!textToDownload) return;
+
+    // remember original icon so we can restore it
+    const originalIcon = button.innerHTML;
+
+    // helper to show success state then restore
+    const showSuccess = () => {
+      button.style.color = '#10b981'; // green
+      button.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>`;
+      setTimeout(() => {
+        button.style.color = '#ffffff'; // white copy icon as requested
+        button.innerHTML = originalIcon;
+      }, 1000);
+    };
+
+    // Determine file extension based on language (env.language comes from Prism/markdown)
+    const rawLang = (env.language || '').toLowerCase().trim();
+    const langMap = {
+      'js': '.js', 'javascript': '.js',
+      'ts': '.ts', 'typescript': '.ts',
+      'py': '.py', 'python': '.py',
+      'rb': '.rb', 'ruby': '.rb',
+      'java': '.java',
+      'c': '.c', 'cpp': '.cpp', 'c++': '.cpp', 'h': '.h',
+      'css': '.css',
+      'html': '.html', 'xml': '.xml',
+      'json': '.json',
+      'md': '.md', 'markdown': '.md',
+      'sh': '.sh', 'bash': '.sh',
+      'sql': '.sql',
+      'go': '.go',
+      'rs': '.rs', 'rust': '.rs',
+      'php': '.php',
+      'jsx': '.jsx',
+      'tsx': '.tsx',
+      'yaml': '.yaml', 'yml': '.yaml',
+      'txt': '.txt'
+    };
+    const ext = langMap[rawLang] || (rawLang ? `.${rawLang.replace(/[^a-z0-9]+/gi, '')}` : '.txt');
+
+    // MIME type hints for the File System Access API and blob (best-effort)
+    const mimeMap = {
+      '.json': 'application/json;charset=utf-8',
+      '.md': 'text/markdown;charset=utf-8',
+      '.html': 'text/html;charset=utf-8',
+      '.xml': 'application/xml;charset=utf-8',
+      '.js': 'text/javascript;charset=utf-8',
+      '.ts': 'text/typescript;charset=utf-8',
+      '.py': 'text/x-python;charset=utf-8',
+      '.css': 'text/css;charset=utf-8',
+      '.sh': 'application/x-sh;charset=utf-8',
+      '.sql': 'text/x-sql;charset=utf-8'
+    };
+    const mime = mimeMap[ext] || 'text/plain;charset=utf-8';
+
+    // Sanitize a friendly suggested name
+    const baseName = rawLang ? `${rawLang}_code` : 'code';
+    const suggestedName = `${baseName}${ext}`;
+
+    const blob = new Blob([textToDownload], { type: mime });
+
+    // Prefer File System Access API when available (better UX, no fake-click)
+    if (window.showSaveFilePicker) {
+      try {
+      const opts = {
+        suggestedName,
+        types: [
+        {
+          description: 'File',
+          accept: { [mime.split(';')[0]]: [ext] }
+        }
+        ]
+      };
+      const handle = await window.showSaveFilePicker(opts);
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      showSuccess();
+      return;
+
+      } catch (err) {
+      // If user cancels (AbortError), return
+      if (typeof err === "AbortError" || `${err}`.includes("AbortError")){return}
+      // If the API fails, fall back to anchor download
+      console.debug('showSaveFilePicker failed:', err);
+      }
+    }
+
+    // Fallback: create object URL and download via anchor (widely supported)
+    const url = URL.createObjectURL(blob);
+    const aelem = document.createElement('a');
+    aelem.href = url;
+    aelem.download = suggestedName;
+    // append not strictly required in all browsers but ensures compatibility
+    aelem.style.display = 'none';
+    document.body.appendChild(aelem);
+    aelem.click();
+    aelem.remove();
+    // revoke after a short delay to ensure download started in all browsers
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showSuccess();
+    });
+
+	return button;
+});
+</script>
+
+  <script type="module">
+    import markdownIt from 'https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/+esm'
+    // Expose a global markdown-it renderer configured for Prism
+    const md = markdownIt({
+      html: false,
+      linkify: true,
+      breaks: true,
+      highlight: (str, lang) => {
+        try {
+          if (window.Prism && lang && Prism.languages[lang]) {
+            return Prism.highlight(str, Prism.languages[lang], lang);
+          }
+        } catch (e) { /* noop */ }
+        return ''; // use default escaping and classes
+      }
+    });
+    window.md = md;
+    window.renderMarkdown = (text) => (window.md ? window.md.render(text || '') : (text || ''));
   </script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.0/github-markdown-dark.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop stop-color='%236366f1'/%3E%3Cstop offset='55%25' stop-color='%238b5cf6'/%3E%3Cstop offset='100%25' stop-color='%230ea5e9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect rx='24' ry='24' width='100' height='100' fill='url(%23g)'/%3E%3Cpath fill='%23fff' fill-opacity='.95' d='M50 20 20 35l30 15 30-15L50 20Zm0 15-30 15 30 15 30-15-30-15Zm0 15-30 15 30 15 30-15-30-15Z'/%3E%3C/svg%3E" />
-
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
@@ -1367,120 +1594,11 @@
     const rateLimitInfo = document.getElementById('rateLimitInfo');
     const sidebarSettings = document.getElementById('sidebarSettings');
 
-    // Enhanced marked renderer for codeblocks
-    const renderer = new marked.Renderer();
-    const originalCode = renderer.code;
+    // Helpers for markdown rendering and code highlighting
+    const renderMd = (text) => (window.renderMarkdown ? window.renderMarkdown(text) : (text || ''));
+    const highlightWithin = (el) => { try { if (window.Prism && el) Prism.highlightAllUnder(el); } catch(_){} };
 
-    renderer.code = function(code, language, escaped) {
-      const lang = language || 'text';
-      const langDisplay = lang.charAt(0).toUpperCase() + lang.slice(1);
-      const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
-
-      // Apply syntax highlighting if hljs is available
-      let highlightedCode = escaped ? code : marked.escapeTest(code);
-      if (typeof hljs !== 'undefined' && lang !== 'text') {
-        try {
-          highlightedCode = hljs.highlight(code, { language: lang }).value;
-        } catch (e) {
-          // Fall back to plain text if language not supported
-          highlightedCode = escaped ? code : marked.escapeTest(code);
-        }
-      }
-
-      return `
-        <pre class="enhanced-codeblock">
-          <div class="code-header">
-            <span class="code-language">${langDisplay}</span>
-            <div class="code-actions">
-              <button class="code-action-btn" onclick="copyCode('${codeId}')" title="Copy code">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-                Copy
-              </button>
-              <button class="code-action-btn" onclick="downloadCode('${codeId}', '${lang}')" title="Download as file">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7,10 12,15 17,10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                Download
-              </button>
-              <button class="code-action-btn" onclick="toggleWrap('${codeId}')" title="Toggle line wrap">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="6,9 12,15 18,9"></polyline>
-                </svg>
-                Wrap
-              </button>
-            </div>
-          </div>
-          <code id="${codeId}" class="language-${lang}">${highlightedCode}</code>
-        </pre>
-      `;
-    };
-
-    marked.setOptions({ renderer });
-
-    // Codeblock action functions
-    window.copyCode = function(codeId) {
-      const codeElement = document.getElementById(codeId);
-      if (!codeElement) return;
-
-      const code = codeElement.textContent;
-      navigator.clipboard.writeText(code).then(() => {
-        const btn = event.target.closest('.code-action-btn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"></polyline></svg>Copied`;
-        btn.classList.add('success');
-        setTimeout(() => {
-          btn.innerHTML = originalText;
-          btn.classList.remove('success');
-        }, 2000);
-      });
-    };
-
-    window.downloadCode = function(codeId, language) {
-      const codeElement = document.getElementById(codeId);
-      if (!codeElement) return;
-
-      const code = codeElement.textContent;
-      const extensions = {
-        javascript: 'js', typescript: 'ts', python: 'py',
-        java: 'java', cpp: 'cpp', csharp: 'cs',
-        php: 'php', ruby: 'rb', go: 'go', rust: 'rs',
-        html: 'html', css: 'css', sql: 'sql', json: 'json',
-        xml: 'xml', yaml: 'yml', markdown: 'md', shell: 'sh',
-        bash: 'sh', powershell: 'ps1', text: 'txt'
-      };
-
-      const ext = extensions[language.toLowerCase()] || 'txt';
-      const filename = `code.${ext}`;
-
-      const blob = new Blob([code], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    };
-
-    window.toggleWrap = function(codeId) {
-      const codeElement = document.getElementById(codeId);
-      if (!codeElement) return;
-
-      const pre = codeElement.closest('pre');
-      pre.classList.toggle('code-wrap');
-
-      const btn = event.target.closest('.code-action-btn');
-      const isWrapped = pre.classList.contains('code-wrap');
-      btn.innerHTML = isWrapped ?
-        `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18,15 12,9 6,15"></polyline></svg>Unwrap` :
-        `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"></polyline></svg>Wrap`;
-    };    // State
+    // State
     let chats = JSON.parse(localStorage.getItem('chat_history') || '[]');
     let currentChatId = null;
     let models = [];
@@ -1501,7 +1619,8 @@
         }
       });
       localStorage.setItem('chat_history', JSON.stringify(chats));
-    }    // Run migration on startup
+    }
+    // Run migration on startup
     migrateToBranches();
 
     // Branch management functions
@@ -2059,7 +2178,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       currentChatId = id;
 
       // Clear any existing message content to prevent duplication
-      const existingMessages = chatBox.querySelectorAll('.user-bubble, .assistant-response');
+      const existingMessages = chatBox.querySelectorAll('.user-bubble, .assistant-response, .message-actions');
       existingMessages.forEach(el => el.remove());
 
       // Get current branch messages
@@ -2087,7 +2206,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
             bubble.className = 'bubble-container';
             bubble.innerHTML = `
             <div class='user-bubble' data-role='user'>
-              <div class="markdown-body">${marked.parse(m.content)}</div>
+              <div class="markdown-body">${renderMd(m.content)}</div>
             </div>
               <div class="message-actions">
                 <button class="action-btn" onclick="editMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Edit">
@@ -2111,14 +2230,16 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                 ${renderBranchNavigation(chat, messageIndex)}
               </div>
               
-            `;            bubble.dataset.role = 'user-container';
+            `;
+            bubble.dataset.role = 'user-container';
             chatBox.appendChild(bubble);
+            highlightWithin(bubble);
           } else if(m.role === 'assistant') {
             const response = document.createElement('span');
             response.className = 'bubble-container';
             response.innerHTML = `
             <div class='assistant-response' data-role='assistant'>
-              <div class="markdown-body">${marked.parse(m.content)}</div>
+              <div class="markdown-body">${renderMd(m.content)}</div>
             </div>
               <div class="message-actions">
                 <button class="action-btn" onclick="regenerateMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Regenerate">
@@ -2146,6 +2267,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
             `;
             response.dataset.role = 'assistant-container';
             chatBox.appendChild(response);
+            highlightWithin(response);
           }
         });
       }
@@ -2157,7 +2279,8 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       chatItems.forEach(item => item.classList.remove('focused'));
       const currentItem = document.querySelector(`[data-chat-id="${id}"]`);
       if (currentItem) currentItem.classList.add('focused');
-    }    function createNewChat(){
+    }   
+    function createNewChat(){
       currentChatId='chat_'+Date.now();
       const newChat={
         id:currentChatId,
@@ -2210,7 +2333,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       bubble.className = 'bubble-container';
       bubble.innerHTML = `
       <div class='user-bubble' data-role='user'>
-        <div class="markdown-body">${marked.parse(content)}</div>
+        <div class="markdown-body">${renderMd(content)}</div>
       </div>
         <div class="message-actions">
           <button class="action-btn" onclick="editMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Edit">
@@ -2235,7 +2358,9 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       `;
       bubble.dataset.role = 'user-container';
       chatBox.appendChild(bubble);
-      chatBox.scrollTop = chatBox.scrollHeight;      const chat = chats.find(c => c.id === currentChatId);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      highlightWithin(bubble);
+      const chat = chats.find(c => c.id === currentChatId);
       if(chat) {
         const currentBranch = chat.branches[chat.currentBranch || 0];
         if(!currentBranch.some(m => m.content === content && m.role === 'user')) {
@@ -2259,7 +2384,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       response.className = 'bubble-container';
       response.innerHTML = `
       <div class='assistant-response' data-role='assistant'>
-        <div class="markdown-body">${marked.parse(content)}</div>
+        <div class="markdown-body">${renderMd(content)}</div>
       </div>
         <div class="message-actions">
           <button class="action-btn" onclick="regenerateMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Regenerate">
@@ -2269,13 +2394,13 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
               <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
             </svg>
           </button>
-          <button class="action-btn" onclick="copyMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Copy">
+          <button class="action-btn" onclick="copyMessage(this.closest('.bubble-container').querySelector('.assistant-response'),this)" title="Copy">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
           </button>
-          <button class="action-btn" onclick="deleteMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Delete">
+          <button class="action-btn" onclick="deleteMessage(this.closest('.bubble-container').querySelector('.assistant-response'),this)" title="Delete">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="3,6 5,6 21,6"></polyline>
               <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
@@ -2285,7 +2410,9 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       `;
       response.dataset.role = 'assistant-container';
       chatBox.appendChild(response);
-      chatBox.scrollTop = chatBox.scrollHeight;      const chat = chats.find(c => c.id === currentChatId);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      highlightWithin(response);
+      const chat = chats.find(c => c.id === currentChatId);
       if(chat) {
         const currentBranch = chat.branches[chat.currentBranch || 0];
         if(!currentBranch.some(m => m.content === content && m.role === 'assistant')) {
@@ -2319,9 +2446,9 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
 
     window.deleteMessage = (bubble,btn)=>{
       const container = bubble.closest('.user-bubble, .assistant-response');
+      const messageActions = bubble.closest('.message-actions');
       if(!container) return;
       container.remove();
-      const messageActions = bubble.closest('.message-actions');
       if(messageActions) messageActions.remove();
       rebuildMessagesFromDOM();
     };
@@ -2396,7 +2523,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       const saveOnly = () => {
         const newValue = textarea.value.trim();
         if(newValue && newValue !== orig) {
-          markdownBody.innerHTML = marked.parse(newValue);
+          markdownBody.innerHTML = renderMd(newValue);
           rebuildMessagesFromDOM();
         }
         cancelEdit();
@@ -2466,12 +2593,14 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       
       // Update the edited message content in the current view
       const markdownBody = editedContainer.querySelector('.markdown-body');
-      markdownBody.innerHTML = marked.parse(newContent);
-      
+      markdownBody.innerHTML = renderMd(newContent);
+      // Load the new branch with the edit
+      loadChat(currentChatId)
       // Remove all messages after the edited one
+      /*
       for(let i = allContainers.length - 1; i > editIndex; i--) {
         allContainers[i].remove();
-      }
+      }*/
     }
     
     // Helper function to regenerate after edit
@@ -2486,7 +2615,8 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       container.remove();
       rebuildMessagesFromDOM();
       generateAssistantForLastUser();
-    };    function rebuildMessagesFromDOM(){
+    };
+    function rebuildMessagesFromDOM(){
       const containers = chatBox.querySelectorAll('.user-bubble, .assistant-response');
       const rebuilt = [];
       containers.forEach(container => {
@@ -2501,6 +2631,10 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
         const currentBranch = chat.branches[chat.currentBranch || 0];
         const newMessages = sys ? [{role:'system', content:sys}, ...rebuilt.filter(m => m.role !== 'system')] : rebuilt;
         chat.branches[chat.currentBranch || 0] = newMessages;
+        console.log(chat)
+        // Save the updated chat to chats
+        chats = chats.map(c => c.id === currentChatId ? chat : c);
+        // Update localStorage
         localStorage.setItem('chat_history', JSON.stringify(chats));
       }
     }
@@ -2519,7 +2653,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       // Create streaming container
       const streamingResponse = document.createElement('span');
       streamingResponse.className = 'bubble-container streaming';
-      streamingResponse.innerHTML = '<div class="assistant-response streaming"><div class="text-sm text-indigo-300">Planning Response...</div></div>';
+      streamingResponse.innerHTML = '<div class="text-sm text-indigo-300">Planning Response...</div>';
       chatBox.appendChild(streamingResponse);
       chatBox.scrollTop = chatBox.scrollHeight;
       const token = localStorage.getItem('gh_token');
@@ -2575,15 +2709,63 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let fullContent = '';
-
+        
         function readStream() {
+          var doneDetected = false; // If the reader does not detect done
+          var doneHandled = false
           reader.read().then(({done, value}) => {
-            if(done) {
+            console.log(`Read chunk: doneDetected=${doneDetected}`);
+
+            const chunk = decoder.decode(value, {stream: true});
+            const lines = chunk.split('\n').filter(line => line.trim() !== '');
+            console.log("Lines")
+            console.log(lines)
+            for(const line of lines) {
+              if(line.startsWith('data: ')) {
+                console.log("Line starts with data.")
+                const data = line.slice(6);
+                console.log(data)
+                if(data === '[DONE]') {
+                  // Stream completed - handled above
+                  console.log("Done detected.")
+                  doneDetected = true;
+                  return;
+                }
+
+                try {
+                  const parsed = JSON.parse(data);
+                  const content = parsed.choices?.[0]?.delta?.content || '';
+                  if(content) {
+                    fullContent += content;
+                    streamingResponse.innerHTML = `<div class="assistant-response" data-role="assistant"><div class="markdown-body">${renderMd(fullContent)}</div></div>`;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    highlightWithin(streamingResponse);
+                  }
+                } catch(e) {
+                  console.debug('Parsing error',e)
+                  // Ignore parsing errors
+                }
+              }
+            }
+
+            readStream();
+          }).catch(error => {
+            if (error.name === 'AbortError') {
+              streamingResponse.classList.remove('streaming');
+              streamingResponse.innerHTML += `<br><div class="text-yellow-400 text-sm">Generation stopped</div>`;
+            } else {
+              streamingResponse.classList.remove('streaming');
+              streamingResponse.innerHTML += `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}</div>`;
+            }
+            resetSendButton();
+          });
+          if(!doneHandled) {
               // Finalize the message
+              console.log(`Done detected by either reader or custom detector, (done,doneDetected,doneHandled) = (undefined,${doneDetected},${doneHandled})`)
               streamingResponse.classList.remove('streaming');
               streamingResponse.innerHTML = `
               <div class='assistant-response' data-role='assistant'>
-                <div class="markdown-body">${marked.parse(fullContent || '*No response received*')}</div>
+                <div class="markdown-body">${renderMd(fullContent || '*No response received*')}</div>
               </div>
                 <div class="message-actions">
                   <button class="action-btn" onclick="regenerateMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Regenerate">
@@ -2607,7 +2789,9 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                   </button>
                 </div>
               `;
-              streamingResponse.dataset.role = 'assistant-container';              // Save to chat history
+              streamingResponse.dataset.role = 'assistant-container';
+              highlightWithin(streamingResponse);
+              // Save to chat history
               if(fullContent) {
                 const currentBranch = chat.branches[chat.currentBranch || 0];
                 if(!currentBranch.some(m => m.content === fullContent && m.role === 'assistant')) {
@@ -2616,46 +2800,9 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                 }
               }
               resetSendButton();
-              return;
+              doneHandled = true;
             }
 
-            const chunk = decoder.decode(value, {stream: true});
-            const lines = chunk.split('\n').filter(line => line.trim() !== '');
-
-            for(const line of lines) {
-              if(line.startsWith('data: ')) {
-                const data = line.slice(6);
-                if(data === '[DONE]') {
-                  // Stream completed - handled above
-                  return;
-                }
-
-                try {
-                  const parsed = JSON.parse(data);
-                  const content = parsed.choices?.[0]?.delta?.content || '';
-                  if(content) {
-                    fullContent += content;
-                    streamingResponse.innerHTML = `<div class="assistant-response" data-role="assistant"><div class="markdown-body">${marked.parse(fullContent)}</div></div>`;
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                  }
-                } catch(e) {
-                  console.debug('Parsing error',e)
-                  // Ignore parsing errors
-                }
-              }
-            }
-
-            readStream();
-          }).catch(error => {
-            if (error.name === 'AbortError') {
-              streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm">Generation stopped</div>`;
-            } else {
-              streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}</div>`;
-            }
-            resetSendButton();
-          });
         }
 
         readStream();
@@ -2692,8 +2839,8 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       if(!chat) return;
 
       // Create streaming container for regeneration
-      const streamingResponse = document.createElement('div');
-      streamingResponse.className = 'assistant-response streaming';
+      const streamingResponse = document.createElement('span');
+      streamingResponse.className = 'bubble-container streaming';
       streamingResponse.innerHTML = '<div class="text-sm text-indigo-300">Regenerating response...</div>';
       chatBox.appendChild(streamingResponse);
       chatBox.scrollTop = chatBox.scrollHeight;
@@ -2742,43 +2889,6 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
 
         function readStream() {
           reader.read().then(({done, value}) => {
-            if(done) {
-              streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `
-              <div class='assistant-response' data-role='assistant'>
-                <div class="markdown-body">${marked.parse(fullContent || '*No response received*')}</div>
-              </div>
-                <div class="message-actions">
-                  <button class="action-btn" onclick="regenerateMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Regenerate">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="23,4 23,10 17,10"></polyline>
-                      <polyline points="1,20 1,14 7,14"></polyline>
-                      <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
-                    </svg>
-                  </button>
-                  <button class="action-btn" onclick="copyMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Copy">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                  </button>
-                  <button class="action-btn" onclick="deleteMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Delete">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3,6 5,6 21,6"></polyline>
-                      <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
-                    </svg>
-                  </button>
-                </div>
-              `;
-              streamingResponse.dataset.role = 'assistant';              if(fullContent) {
-                const currentBranch = chat.branches[chat.currentBranch || 0];
-                if(!currentBranch.some(m => m.content === fullContent && m.role === 'assistant')) {
-                  currentBranch.push({role: 'assistant', content: fullContent});
-                  localStorage.setItem('chat_history', JSON.stringify(chats));
-                }
-              }
-              return;
-            }
 
             const chunk = decoder.decode(value, {stream: true});
             const lines = chunk.split('\n').filter(line => line.trim() !== '');
@@ -2795,8 +2905,9 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                   const content = parsed.choices?.[0]?.delta?.content || '';
                   if(content) {
                     fullContent += content;
-                    streamingResponse.innerHTML = `<div class='assistant-response' data-role='assistant'><div class="markdown-body">${marked.parse(fullContent)}</div></div>`;
+                    streamingResponse.innerHTML = `<div class='assistant-response' data-role='assistant'><div class="markdown-body">${renderMd(fullContent)}</div></div>`;
                     chatBox.scrollTop = chatBox.scrollHeight;
+                    highlightWithin(streamingResponse);
                   }
                 } catch(e) {
                   // Ignore parsing errors
@@ -2809,6 +2920,45 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
             streamingResponse.classList.remove('streaming');
             streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}</div>`;
           });
+          
+          streamingResponse.classList.remove('streaming');
+          streamingResponse.innerHTML = `
+          <div class='assistant-response' data-role='assistant'>
+            <div class="markdown-body">${renderMd(fullContent || '*No response received*')}</div>
+          </div>
+            <div class="message-actions">
+              <button class="action-btn" onclick="regenerateMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Regenerate">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23,4 23,10 17,10"></polyline>
+                  <polyline points="1,20 1,14 7,14"></polyline>
+                  <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
+                </svg>
+              </button>
+              <button class="action-btn" onclick="copyMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Copy">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+              <button class="action-btn" onclick="deleteMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Delete">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3,6 5,6 21,6"></polyline>
+                  <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
+                </svg>
+              </button>
+            </div>
+          `;
+          streamingResponse.dataset.role = 'assistant';
+          if(fullContent) {
+            const currentBranch = chat.branches[chat.currentBranch || 0];
+            if(!currentBranch.some(m => m.content === fullContent && m.role === 'assistant')) {
+              currentBranch.push({role: 'assistant', content: fullContent});
+              localStorage.setItem('chat_history', JSON.stringify(chats));
+              resetSendButton();
+            }
+          }
+          return;
+        
         }
 
         readStream();
@@ -2984,9 +3134,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
     });
 
     // Initialize
-    if (typeof hljs !== 'undefined') {
-      hljs.highlightAll();
-    }
+    try { if (window.Prism && chatBox) Prism.highlightAllUnder(chatBox); } catch(_){}
 
     loadChatHistory();
     if(!chats.length) createNewChat();
