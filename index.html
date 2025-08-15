@@ -342,7 +342,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
       padding: 16px 20px 8px 20px;
       position: relative;
       word-wrap: break-word;
-      max-width: 85%;
+      width: fit-content;
       background: rgba(30, 41, 59, 0.6);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(99, 102, 241, 0.2);
@@ -457,7 +457,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
     }
 
     .inline-edit-btn.save-only {
-      background: rgba(81, 83, 163, 0);
+      background: rgb(60 255 130 / 58%);
       margin-right: auto
     }
 
@@ -1030,7 +1030,6 @@ Prism.plugins.toolbar.registerButton("download", env => {
         top: 0;
         z-index: 10;
         background: rgba(30, 41, 59, 0.9);
-        backdrop-filter: blur(20px);
       }
 
       .chat-bubble {
@@ -1098,7 +1097,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
       width: 24px;
       height: 24px;
       background: rgba(99, 102, 241, 0.2);
-      border: 1px solid rgba(99, 102, 241, 0.3);
+      border: 0px solid rgba(99, 102, 241, 0.3);
       border-radius: 4px;
       display: flex;
       align-items: center;
@@ -1574,6 +1573,14 @@ Prism.plugins.toolbar.registerButton("download", env => {
     const DEFAULT_API_BASE = 'https://tanjim.ddns.net';
     let API_BASE = (localStorage.getItem('api_base')||DEFAULT_API_BASE||'').trim();
     if(API_BASE.endsWith('/')) API_BASE = API_BASE.slice(0,-1);
+
+    // Add small helpers early in the IIFE scope
+    function highlightWithin(root){
+      try { if (window.Prism && root) Prism.highlightAllUnder(root); } catch(_) {}
+    }
+    if(typeof renderMd === 'undefined'){
+      window.renderMd = (text) => (window.renderMarkdown ? window.renderMarkdown(text || '') : (text || ''));
+    }
 
     // DOM Elements
     const loginPage = document.getElementById('loginPage');
@@ -2079,7 +2086,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
 
         const del=document.createElement('button');
         del.className='text-red-400 ml-2 font-bold del-btn';
-        del.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"></polyline><path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path></svg>';
+        del.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"></polyline><path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4"></path></svg>';
         del.addEventListener('click',e=>{ e.stopPropagation(); deleteChat(chat.id); });
 
         const dragHandle = document.createElement('div');
@@ -2224,7 +2231,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                 <button class="action-btn" onclick="deleteMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Delete">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="3,6 5,6 21,6"></polyline>
-                    <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
+                    <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4"></path>
                   </svg>
                 </button>
                 ${renderBranchNavigation(chat, messageIndex)}
@@ -2258,7 +2265,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                 <button class="action-btn" onclick="deleteMessage(this.closest('.bubble-container').querySelector('.assistant-response'),this)" title="Delete">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="3,6 5,6 21,6"></polyline>
-                    <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
+                    <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4"></path>
                   </svg>
                 </button>
                 ${renderBranchNavigation(chat, messageIndex)}
@@ -2351,7 +2358,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
           <button class="action-btn" onclick="deleteMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Delete">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="3,6 5,6 21,6"></polyline>
-              <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
+              <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4"></path>
             </svg>
           </button>
         </div>
@@ -2403,7 +2410,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
           <button class="action-btn" onclick="deleteMessage(this.closest('.bubble-container').querySelector('.assistant-response'),this)" title="Delete">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="3,6 5,6 21,6"></polyline>
-              <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
+              <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4"></path>
             </svg>
           </button>
         </div>
@@ -2428,194 +2435,46 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
     systemPromptToggle?.addEventListener('click',()=> systemPromptEditor?.classList.toggle('show'));
 
     // Message actions (global functions)
-    window.copyMessage = (bubble,btn)=>{
-      const container = bubble.closest('.user-bubble, .assistant-response');
+    window.copyMessage = (bubble, btn)=>{
+      const buttonEl = btn || bubble; // support old and new call sites
+      const root = buttonEl?.closest?.('.bubble-container');
+      const container = root?.querySelector?.('.user-bubble, .assistant-response') || bubble?.closest?.('.user-bubble, .assistant-response');
       if(!container) return;
-      const txt = container.querySelector('.markdown-body').innerText.trim();
+      const txt = container.querySelector('.markdown-body')?.innerText?.trim() || '';
+      if(!txt) return;
       navigator.clipboard.writeText(txt).then(() => {
-        btn.style.color = '#10b981';
-        icon=btn.querySelector('svg')
-        old_icon=icon.innerHTML + ""
-        // Change icon to checkmark
-        icon.innerHTML = `<polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></polyline>`;
-        
-        setTimeout(() => {btn.style.color = '';
-                          icon.innerHTML=old_icon}, 1000);
-      });
+        if(!buttonEl) return;
+        buttonEl.style.color = '#10b981';
+        const icon = buttonEl.querySelector('svg');
+        const oldIcon = icon ? icon.innerHTML+'' : '';
+        if(icon){ icon.innerHTML = `<polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></polyline>`; }
+        setTimeout(()=>{ if(buttonEl) buttonEl.style.color = ''; if(icon) icon.innerHTML = oldIcon; }, 1000);
+      }).catch(()=>{});
     };
 
-    window.deleteMessage = (bubble,btn)=>{
-      const container = bubble.closest('.user-bubble, .assistant-response');
-      const messageActions = bubble.closest('.message-actions');
-      if(!container) return;
-      container.remove();
+    window.deleteMessage = (bubble, btn)=>{
+      const buttonEl = btn || bubble;
+      const root = buttonEl?.closest?.('.bubble-container');
+      // Prefer explicit bubble if valid; else locate within the bubble-container
+      const target = bubble?.closest?.('.user-bubble, .assistant-response') || root?.querySelector?.('.user-bubble, .assistant-response');
+      if(!target) return;
+      const messageActions = root?.querySelector?.('.message-actions');
+      target.remove();
       if(messageActions) messageActions.remove();
       rebuildMessagesFromDOM();
     };
-    window.editMessage = (bubble,btn)=>{
-      const container = bubble.closest('.user-bubble');
-      if(!container || container.dataset.role !== 'user' || container.querySelector('.inline-edit-container')) return;
-      const markdownBody = container.querySelector('.markdown-body');
-      const orig = markdownBody.innerText.trim();
 
-      // Create inline edit container
-      const editContainer = document.createElement('div');
-      editContainer.className = 'inline-edit-container';
-      
-      // Create textarea that matches bubble styling
-      const textarea = document.createElement('textarea');
-      textarea.className = 'inline-edit-textarea';
-      textarea.value = orig;
-      
-      // Match the original text height
-      textarea.style.minHeight = markdownBody.offsetHeight + 'px';
-      
-      // Create action buttons
-      const actionsDiv = document.createElement('div');
-      actionsDiv.className = 'inline-edit-actions';
-      
-      const saveBtn = document.createElement('button');
-      saveBtn.className = 'inline-edit-btn save';
-      saveBtn.textContent = 'Send';
-      saveBtn.title = 'Ctrl+Enter';
-      
-      const saveOnlyBtn = document.createElement('button');
-      saveOnlyBtn.className = 'inline-edit-btn save-only';
-      saveOnlyBtn.textContent = 'Save';
-      
-      const cancelBtn = document.createElement('button');
-      cancelBtn.className = 'inline-edit-btn cancel';
-      cancelBtn.textContent = 'Cancel';
-      cancelBtn.title = 'Escape';
-      
-      
-      actionsDiv.appendChild(saveOnlyBtn);
-      actionsDiv.appendChild(cancelBtn);
-      actionsDiv.appendChild(saveBtn);
-      
-      editContainer.appendChild(textarea);
-      editContainer.appendChild(actionsDiv);
-      
-      // Replace markdown content with edit container
-      markdownBody.style.display = 'none';
-      container.insertBefore(editContainer, markdownBody);
-      textarea.focus();
-      
-      // Auto-resize textarea
-      const autoResize = () => {
-        textarea.style.height = 'auto';
-        textarea.style.height = Math.max(textarea.scrollHeight, markdownBody.offsetHeight) + 'px';
-      };
-      textarea.addEventListener('input', autoResize);
-      autoResize();
-        // Save and regenerate (Send button - creates new branch)
-      const saveAndRegenerate = () => {
-        const newValue = textarea.value.trim();
-        if(newValue && newValue !== orig) {
-          // Create new branch before editing
-          createBranchFromEdit(container, newValue);
-          regenerateAfterEdit();
-        }
-        cancelEdit();
-      };
-      
-      // Save only (Save button - no branching, just update in place)
-      const saveOnly = () => {
-        const newValue = textarea.value.trim();
-        if(newValue && newValue !== orig) {
-          markdownBody.innerHTML = renderMd(newValue);
-          rebuildMessagesFromDOM();
-        }
-        cancelEdit();
-      };
-      
-      // Cancel edit
-      const cancelEdit = () => {
-        editContainer.remove();
-        markdownBody.style.display = 'block';
-      };
-      
-      // Event listeners
-      saveBtn.addEventListener('click', saveAndRegenerate);
-      saveOnlyBtn.addEventListener('click', saveOnly);
-      cancelBtn.addEventListener('click', cancelEdit);
-      
-      textarea.addEventListener('keydown', e => {
-        if(e.key === 'Escape') {
-          e.preventDefault();
-          cancelEdit();
-        }
-        if(e.key === 'Enter' && e.ctrlKey) {
-          e.preventDefault();
-          saveAndRegenerate();
-        }
-      });
-    };
-      // Helper function to create branch from edit
-    function createBranchFromEdit(editedContainer, newContent) {
-      const chat = chats.find(c => c.id === currentChatId);
-      if(!chat) return;
-      
-      // Find the index of the edited message
-      const allContainers = chatBox.querySelectorAll('.user-bubble, .assistant-response');
-      let editIndex = -1;
-      allContainers.forEach((container, idx) => {
-        if(container === editedContainer) editIndex = idx;
-      });
-      
-      if(editIndex === -1) return;
-      
-      // Get current branch
-      const currentBranch = chat.branches[chat.currentBranch || 0];
-      
-      // Create new branch with messages up to (and including) the edited message with new content
-      const newBranch = [];
-      for(let i = 0; i <= editIndex; i++) {
-        const container = allContainers[i];
-        const role = container.dataset.role;
-        if(role) {
-          if(i === editIndex) {
-            // Use the new content for the edited message
-            newBranch.push({role, content: newContent});
-          } else {
-            // Use existing content for other messages
-            const text = container.querySelector('.markdown-body').innerText.trim();
-            newBranch.push({role, content: text});
-          }
-        }
-      }
-      
-      // Add the new branch
-      chat.branches.push(newBranch);
-      chat.currentBranch = chat.branches.length - 1;
-      
-      localStorage.setItem('chat_history', JSON.stringify(chats));
-      
-      // Update the edited message content in the current view
-      const markdownBody = editedContainer.querySelector('.markdown-body');
-      markdownBody.innerHTML = renderMd(newContent);
-      // Load the new branch with the edit
-      loadChat(currentChatId)
-      // Remove all messages after the edited one
-      /*
-      for(let i = allContainers.length - 1; i > editIndex; i--) {
-        allContainers[i].remove();
-      }*/
-    }
-    
-    // Helper function to regenerate after edit
-    function regenerateAfterEdit() {
-      // Simply trigger regeneration for the last user message
-      generateAssistantForLastUser();
-    }
-
-    window.regenerateMessage = (btn)=>{
-      const container = btn.closest('.assistant-response');
-      if(!container) return;
-      container.remove();
+    window.regenerateMessage = function(){
+      const args = Array.from(arguments);
+      const buttonEl = args.length > 1 ? args[1] : args[0];
+      const root = buttonEl?.closest?.('.bubble-container') || (args[0]?.closest ? args[0].closest('.bubble-container') : null);
+      const assistant = root?.querySelector?.('.assistant-response');
+      if(!assistant) return;
+      assistant.remove();
       rebuildMessagesFromDOM();
       generateAssistantForLastUser();
     };
+
     function rebuildMessagesFromDOM(){
       const containers = chatBox.querySelectorAll('.user-bubble, .assistant-response');
       const rebuilt = [];
@@ -2709,47 +2568,73 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let fullContent = '';
-        
-        function readStream() {
-          var doneDetected = false; // If the reader does not detect done
-          var doneHandled = false
-          reader.read().then(({done, value}) => {
-            console.log(`Read chunk: doneDetected=${doneDetected}`);
-
-            const chunk = decoder.decode(value, {stream: true});
-            const lines = chunk.split('\n').filter(line => line.trim() !== '');
-            console.log("Lines")
-            console.log(lines)
-            for(const line of lines) {
-              if(line.startsWith('data: ')) {
-                console.log("Line starts with data.")
-                const data = line.slice(6);
-                console.log(data)
-                if(data === '[DONE]') {
-                  // Stream completed - handled above
-                  console.log("Done detected.")
-                  doneDetected = true;
-                  return;
-                }
-
-                try {
-                  const parsed = JSON.parse(data);
-                  const content = parsed.choices?.[0]?.delta?.content || '';
-                  if(content) {
-                    fullContent += content;
-                    streamingResponse.innerHTML = `<div class="assistant-response" data-role="assistant"><div class="markdown-body">${renderMd(fullContent)}</div></div>`;
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                    highlightWithin(streamingResponse);
-                  }
-                } catch(e) {
-                  console.debug('Parsing error',e)
-                  // Ignore parsing errors
-                }
-              }
+        let buffer = '';
+        let doneHandled = false;
+        function finalize(){
+          if(doneHandled) return;
+          doneHandled = true;
+          streamingResponse.classList.remove('streaming');
+          streamingResponse.innerHTML = `
+              <div class='assistant-response' data-role='assistant'>
+                <div class="markdown-body">${renderMd(fullContent || '*No response received*')}</div>
+              </div>
+                <div class="message-actions">
+                  <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="23,4 23,10 17,10"></polyline>
+                      <polyline points="1,20 1,14 7,14"></polyline>
+                      <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
+                    </svg>
+                  </button>
+                  <button class="action-btn" onclick="copyMessage(this)" title="Copy">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </button>
+                  <button class="action-btn" onclick="deleteMessage(null,this)" title="Delete">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3,6 5,6 21,6"></polyline>
+                      <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4"></path>
+                    </svg>
+                  </button>
+                </div>`;
+          streamingResponse.dataset.role = 'assistant-container';
+          highlightWithin(streamingResponse);
+          if(fullContent){
+            const currentBranch = chat.branches[chat.currentBranch || 0];
+            if(!currentBranch.some(m=> m.content===fullContent && m.role==='assistant')){
+              currentBranch.push({role:'assistant', content: fullContent});
+              localStorage.setItem('chat_history', JSON.stringify(chats));
             }
-
+          }
+          resetSendButton();
+        }
+        function readStream(){
+          reader.read().then(({done, value})=>{
+            if(done){ finalize(); return; }
+            buffer += decoder.decode(value, {stream:true});
+            const parts = buffer.split('\n');
+            buffer = parts.pop() || '';
+            for(const raw of parts){
+              const line = raw.trim();
+              if(!line) continue;
+              if(!line.startsWith('data:')) continue;
+              const data = line.slice(5).trim().replace(/^:\s*/, '');
+              if(data === '[DONE]'){ finalize(); return; }
+              try{
+                const parsed = JSON.parse(data);
+                const content = parsed.choices?.[0]?.delta?.content || '';
+                if(content){
+                  fullContent += content;
+                  streamingResponse.innerHTML = `<div class="assistant-response" data-role="assistant"><div class="markdown-body">${renderMd(fullContent)}</div></div>`;
+                  chatBox.scrollTop = chatBox.scrollHeight;
+                  highlightWithin(streamingResponse);
+                }
+              }catch(_){ /* ignore */ }
+            }
             readStream();
-          }).catch(error => {
+          }).catch(error=>{
             if (error.name === 'AbortError') {
               streamingResponse.classList.remove('streaming');
               streamingResponse.innerHTML += `<br><div class="text-yellow-400 text-sm">Generation stopped</div>`;
@@ -2759,52 +2644,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
             }
             resetSendButton();
           });
-          if(!doneHandled) {
-              // Finalize the message
-              console.log(`Done detected by either reader or custom detector, (done,doneDetected,doneHandled) = (undefined,${doneDetected},${doneHandled})`)
-              streamingResponse.classList.remove('streaming');
-              streamingResponse.innerHTML = `
-              <div class='assistant-response' data-role='assistant'>
-                <div class="markdown-body">${renderMd(fullContent || '*No response received*')}</div>
-              </div>
-                <div class="message-actions">
-                  <button class="action-btn" onclick="regenerateMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Regenerate">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="23,4 23,10 17,10"></polyline>
-                      <polyline points="1,20 1,14 7,14"></polyline>
-                      <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
-                    </svg>
-                  </button>
-                  <button class="action-btn" onclick="copyMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Copy">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                  </button>
-                  <button class="action-btn" onclick="deleteMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Delete">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3,6 5,6 21,6"></polyline>
-                      <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
-                    </svg>
-                  </button>
-                </div>
-              `;
-              streamingResponse.dataset.role = 'assistant-container';
-              highlightWithin(streamingResponse);
-              // Save to chat history
-              if(fullContent) {
-                const currentBranch = chat.branches[chat.currentBranch || 0];
-                if(!currentBranch.some(m => m.content === fullContent && m.role === 'assistant')) {
-                  currentBranch.push({role: 'assistant', content: fullContent});
-                  localStorage.setItem('chat_history', JSON.stringify(chats));
-                }
-              }
-              resetSendButton();
-              doneHandled = true;
-            }
-
         }
-
         readStream();
       })
       .catch(error => {
@@ -2886,81 +2726,75 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let fullContent = '';
-
-        function readStream() {
-          reader.read().then(({done, value}) => {
-
-            const chunk = decoder.decode(value, {stream: true});
-            const lines = chunk.split('\n').filter(line => line.trim() !== '');
-
-            for(const line of lines) {
-              if(line.startsWith('data: ')) {
-                const data = line.slice(6);
-                if(data === '[DONE]') {
-                  return;
-                }
-
-                try {
-                  const parsed = JSON.parse(data);
-                  const content = parsed.choices?.[0]?.delta?.content || '';
-                  if(content) {
-                    fullContent += content;
-                    streamingResponse.innerHTML = `<div class='assistant-response' data-role='assistant'><div class="markdown-body">${renderMd(fullContent)}</div></div>`;
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                    highlightWithin(streamingResponse);
-                  }
-                } catch(e) {
-                  // Ignore parsing errors
-                }
-              }
-            }
-
-            readStream();
-          }).catch(error => {
-            streamingResponse.classList.remove('streaming');
-            streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}</div>`;
-          });
-          
+        let buffer = '';
+        let doneHandled = false;
+        function finalize(){
+          if(doneHandled) return; doneHandled = true;
           streamingResponse.classList.remove('streaming');
           streamingResponse.innerHTML = `
           <div class='assistant-response' data-role='assistant'>
             <div class="markdown-body">${renderMd(fullContent || '*No response received*')}</div>
           </div>
             <div class="message-actions">
-              <button class="action-btn" onclick="regenerateMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Regenerate">
+              <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="23,4 23,10 17,10"></polyline>
                   <polyline points="1,20 1,14 7,14"></polyline>
                   <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
                 </svg>
               </button>
-              <button class="action-btn" onclick="copyMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Copy">
+              <button class="action-btn" onclick="copyMessage(this)" title="Copy">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                 </svg>
               </button>
-              <button class="action-btn" onclick="deleteMessage(this.closest('.bubble-container').querySelector('.user-bubble'),this)" title="Delete">
+              <button class="action-btn" onclick="deleteMessage(null,this)" title="Delete">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="3,6 5,6 21,6"></polyline>
-                  <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4c1,0,2,1,2,2v2"></path>
+                  <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4"></path>
                 </svg>
               </button>
-            </div>
-          `;
-          streamingResponse.dataset.role = 'assistant';
-          if(fullContent) {
+            </div>`;
+          streamingResponse.dataset.role = 'assistant-container';
+          highlightWithin(streamingResponse);
+          if(fullContent){
             const currentBranch = chat.branches[chat.currentBranch || 0];
-            if(!currentBranch.some(m => m.content === fullContent && m.role === 'assistant')) {
-              currentBranch.push({role: 'assistant', content: fullContent});
+            if(!currentBranch.some(m => m.content === fullContent && m.role === 'assistant')){
+              currentBranch.push({role:'assistant', content: fullContent});
               localStorage.setItem('chat_history', JSON.stringify(chats));
-              resetSendButton();
             }
           }
-          return;
-        
         }
-
+        function readStream(){
+          reader.read().then(({done, value})=>{
+            if(done){ finalize(); return; }
+            buffer += decoder.decode(value, {stream:true});
+            const parts = buffer.split('\n');
+            buffer = parts.pop() || '';
+            for(const raw of parts){
+              const line = raw.trim();
+              if(!line) continue;
+              if(!line.startsWith('data:')) continue;
+              const data = line.slice(5).trim().replace(/^:\s*/, '');
+              if(data === '[DONE]'){ finalize(); return; }
+              try{
+                const parsed = JSON.parse(data);
+                const content = parsed.choices?.[0]?.delta?.content || '';
+                if(content){
+                  fullContent += content;
+                  streamingResponse.innerHTML = `<div class='assistant-response' data-role='assistant'><div class="markdown-body">${renderMd(fullContent)}</div></div>`;
+                  chatBox.scrollTop = chatBox.scrollHeight;
+                  highlightWithin(streamingResponse);
+                }
+              }catch(_){ /* ignore */ }
+            }
+            readStream();
+          }).catch(error=>{
+            streamingResponse.classList.remove('streaming');
+            streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Stream error: ${error.message}</div>`;
+          });
+        }
         readStream();
       })
       .catch(error => {
