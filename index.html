@@ -33,6 +33,7 @@ Prism.plugins.toolbar.registerButton("copy", env => {
   button.title = 'Copy';
   button.style.height = '26px'
 	button.addEventListener("click", (e) => {
+    console.log(env)
     const codeEl = (env.element && env.element.tagName && env.element.tagName.toLowerCase() === 'code')
       ? env.element
       : (env.element && env.element.querySelector ? env.element.querySelector('code') : null) || env.element;
@@ -173,35 +174,6 @@ Prism.plugins.toolbar.registerButton("download", env => {
     const suggestedName = `${baseName}${ext}`;
 
     const blob = new Blob([textToDownload], { type: mime });
-
-    // Prefer File System Access API when available (better UX, no fake-click)
-    if (window.showSaveFilePicker) {
-      try {
-      const opts = {
-        suggestedName,
-        types: [
-        {
-          description: 'File',
-          accept: { [mime.split(';')[0]]: [ext] }
-        }
-        ]
-      };
-      const handle = await window.showSaveFilePicker(opts);
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      showSuccess();
-      return;
-
-      } catch (err) {
-      // If user cancels (AbortError), return
-      if (typeof err === "AbortError" || `${err}`.includes("AbortError")){return}
-      // If the API fails, fall back to anchor download
-      console.debug('showSaveFilePicker failed:', err);
-      }
-    }
-
-    // Fallback: create object URL and download via anchor (widely supported)
     const url = URL.createObjectURL(blob);
     const aelem = document.createElement('a');
     aelem.href = url;
@@ -212,7 +184,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
     aelem.click();
     aelem.remove();
     // revoke after a short delay to ensure download started in all browsers
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setTimeout(() => URL.revokeObjectURL(url), 500);
     showSuccess();
     });
 
@@ -2217,7 +2189,8 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       localStorage.setItem('chat_history', JSON.stringify(chats));
       loadChatHistory();
       if(currentChatId===id) createNewChat();
-    }    function loadChat(id){
+    }
+    function loadChat(id){
       const chat = chats.find(c=>c.id===id);
       if(!chat) return;
       currentChatId = id;
@@ -2277,6 +2250,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
               
             `;
             bubble.dataset.role = 'user-container';
+            bubble.dataset.raw = m.content; // .dataset.raw is the raw markdown
             chatBox.appendChild(bubble);
             highlightWithin(bubble);
           } else if(m.role === 'assistant') {
@@ -2311,6 +2285,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
             
             `;
             response.dataset.role = 'assistant-container';
+            response.dataset.raw = m.content; // .dataset.raw is the raw markdown
             chatBox.appendChild(response);
             highlightWithin(response);
           }
@@ -2402,6 +2377,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
         </div>
       `;
       bubble.dataset.role = 'user-container';
+      bubble.dataset.raw = content; // Store raw content for editing
       chatBox.appendChild(bubble);
       chatBox.scrollTop = chatBox.scrollHeight;
       highlightWithin(bubble);
@@ -2454,6 +2430,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
         </div>
       `;
       response.dataset.role = 'assistant-container';
+      response.dataset.raw = content; // Store raw content for editing
       chatBox.appendChild(response);
       chatBox.scrollTop = chatBox.scrollHeight;
       highlightWithin(response);
@@ -2506,7 +2483,11 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       const container = bubble?.closest?.('.user-bubble') || null;
       if(!container || container.dataset.role !== 'user' || container.querySelector('.inline-edit-container')) return;
       const markdownBody = container.querySelector('.markdown-body');
-      const orig = (markdownBody?.innerText || '').trim();
+      const orig = container.closest('.bubble-container').dataset.raw
+      if (!orig){ 
+        console.error('No raw content found for editing', container,bubble,btn,markdownBody);
+        
+      }
 
       const editContainer = document.createElement('div');
       editContainer.className = 'inline-edit-container';
@@ -2570,6 +2551,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
         const newValue = textarea.value.trim();
         if(newValue && newValue !== orig) {
           if(markdownBody) markdownBody.innerHTML = renderMd(newValue);
+          markdownBody.closest("bubble-container").dataset.raw= newValue; // Update raw content
           rebuildMessagesFromDOM();
         }
         cancelEdit();
@@ -2637,7 +2619,8 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
       containers.forEach(container => {
         const role = container.dataset.role;
         if(!role) return;
-        const text = container.querySelector('.markdown-body').innerText.trim();
+        const text = container.closest(".bubble-container").dataset.raw.trim();
+        console.debug(text)
         rebuilt.push({role, content: text});
       });
       const chat = chats.find(c => c.id === currentChatId);
@@ -2756,6 +2739,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                   </button>
                 </div>`;
           streamingResponse.dataset.role = 'assistant-container';
+          streamingResponse.dataset.raw = fullContent || '*No response received*'; // Store raw content for editing
           highlightWithin(streamingResponse);
           if(fullContent){
             const currentBranch = chat.branches[chat.currentBranch || 0];
@@ -2784,6 +2768,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                 if(content){
                   fullContent += content;
                   streamingResponse.innerHTML = `<div class="assistant-response" data-role="assistant"><div class="markdown-body">${renderMd(fullContent)}</div></div>`;
+                  streamingResponse.dataset.raw = fullContent; // Update raw content
                   chatBox.scrollTop = chatBox.scrollHeight;
                   highlightWithin(streamingResponse);
                 }
@@ -2913,6 +2898,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
               </button>
             </div>`;
           streamingResponse.dataset.role = 'assistant-container';
+          streamingResponse.dataset.raw = fullContent || '*No response received*'; // Store raw content for editing
           highlightWithin(streamingResponse);
           if(fullContent){
             const currentBranch = chat.branches[chat.currentBranch || 0];
@@ -2940,6 +2926,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                 if(content){
                   fullContent += content;
                   streamingResponse.innerHTML = `<div class='assistant-response' data-role='assistant'><div class="markdown-body">${renderMd(fullContent)}</div></div>`;
+                  streamingResponse.dataset.raw = fullContent; // Update raw content
                   chatBox.scrollTop = chatBox.scrollHeight;
                   highlightWithin(streamingResponse);
                 }
