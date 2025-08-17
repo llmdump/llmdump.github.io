@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LLM Dump</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script type="module">
-    import { Octokit } from "https://esm.sh/@octokit/core";
-  </script>
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/prism.min.js"></script>
 <link href="/prism_theme.css" rel="stylesheet"> <!-- VSCode Dark+-->
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js"></script>
@@ -1725,7 +1722,6 @@ Prism.plugins.toolbar.registerButton("download", env => {
     document.getElementById('usePat')?.addEventListener('click', () => {
       const token = patInput.value.trim();
       if (token.startsWith('github_pat_')) {
-        const octokit = new Octokit({ auth: token });
         localStorage.setItem('gh_token', token);
         fetchModels();
         loadUserProfile();
@@ -2992,7 +2988,6 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
         .then(data=>{
           if(!data.access_token){ throw new Error('No access token in response'); }
           localStorage.setItem('gh_token', data.access_token);
-const octokit = new Octokit({ auth: data.access_token });
           history.replaceState({}, document.title, OAUTH_REDIRECT_URI);
           fetchModels(); loadUserProfile(); showChatPage();
         })
@@ -3140,3 +3135,4 @@ const octokit = new Octokit({ auth: data.access_token });
 </body>
 
 </html>
+
