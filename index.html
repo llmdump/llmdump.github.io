@@ -916,11 +916,11 @@ Prism.plugins.toolbar.registerButton("download", env => {
     }
 
     /* System prompt styling */
-    .system-prompt-container {
+    .button-container {
       margin-bottom: 4px;
     }
 
-    .system-prompt-toggle {
+    .system-prompt-toggle, .websearch-toggle {
       font-size: 12px;
       color: #64748b;
       cursor: pointer;
@@ -1460,20 +1460,21 @@ Prism.plugins.toolbar.registerButton("download", env => {
       <div class="p-4">
         <div class="max-w-3xl mx-auto">
           <!-- System Prompt Section -->
-          <div class="system-prompt-container">
+          <div class="button-container">
+          <div class="websearch-toggle" id="webSearchToggle" onclick="toggleWebSearch()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12" stroke-width="2" style="vertical-align:middle;fill:#ffffff;display: inline-block;">
+                <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM5.78 8.75a9.64 9.64 0 0 0 1.363 4.177c.255.426.542.832.857 1.215.245-.296.551-.705.857-1.215A9.64 9.64 0 0 0 10.22 8.75Zm4.44-1.5a9.64 9.64 0 0 0-1.363-4.177c-.307-.51-.612-.919-.857-1.215a9.927 9.927 0 0 0-.857 1.215A9.64 9.64 0 0 0 5.78 7.25Zm-5.944 1.5H1.543a6.507 6.507 0 0 0 4.666 5.5c-.123-.181-.24-.365-.352-.552-.715-1.192-1.437-2.874-1.581-4.948Zm-2.733-1.5h2.733c.144-2.074.866-3.756 1.58-4.948.12-.197.237-.381.353-.552a6.507 6.507 0 0 0-4.666 5.5Zm10.181 1.5c-.144 2.074-.866 3.756-1.58 4.948-.12.197-.237.381-.353.552a6.507 6.507 0 0 0 4.666-5.5Zm2.733-1.5a6.507 6.507 0 0 0-4.666-5.5c.123.181.24.365.353.552.714 1.192 1.436 2.874 1.58 4.948Z"></path>
+              </svg> <!--From Octicons, a globe icon--><span style="color:#ffffff; margin-left:6px; vertical-align:middle;">Web Search</span>
+            </div>
             <div class="system-prompt-toggle" id="systemPromptToggle">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; margin-right: 6px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="display: inline; margin-right: 6px;">
                 <circle cx="12" cy="12" r="3"></circle>
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
               </svg>
-              System Prompt
+              <span style="vertical-align:middle; color:#ffffff;">System Prompt</span>
             </div>
             <div class="system-prompt-editor" id="systemPromptEditor">
-              <textarea
-                id="systemPromptText"
-                class="system-prompt-textarea"
-                placeholder="Enter system prompt..."
-              >You are a helpful AI assistant. Be concise, accurate, and helpful in your responses.</textarea>
+              <textarea id="systemPromptText" class="system-prompt-textarea" placeholder="Enter system prompt...">You are a helpful AI assistant. Be concise, accurate, and helpful in your responses.</textarea>
             </div>
           </div>
           <!-- Input Textarea -->
@@ -1623,6 +1624,18 @@ Prism.plugins.toolbar.registerButton("download", env => {
     let currentChatId = null;
     let models = [];
     let currentAbortController = null;
+    let webSearch = false
+    // Web search toggler
+    function toggleWebSearch() {
+      const webSearchToggle = document.getElementById('webSearchToggle');
+      if (webSearchToggle.classList.contains('active')) {
+        webSearchToggle.classList.remove('active');
+        webSearchToggle.querySelector('span').textContent = 'Web Search';
+      } else {
+        webSearchToggle.classList.add('active');
+        webSearchToggle.querySelector('span').textContent = 'Web Search (Active)';
+      }
+    }
 
     // Initialize branching system for existing chats
     function migrateToBranches() {
