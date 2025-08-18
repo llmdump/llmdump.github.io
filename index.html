@@ -1623,6 +1623,25 @@ Prism.plugins.toolbar.registerButton("download", env => {
         const rateLimitInfo = document.getElementById('rateLimitInfo');
         const sidebarSettings = document.getElementById('sidebarSettings');
         const webSearchToggle = document.getElementById('webSearchToggle');
+        const tools = [
+      {
+        type: 'function',
+        function: {
+          name: 'web_search',
+          description: 'Search the web using DuckDuckGo. Use this when you need accurate, up-to-date information.',
+          parameters: {
+            type: 'object',
+            properties: {
+              query: {
+                type: 'string',
+                description: 'The search query to use for the web search. This will be used to find relevant information on the web.'
+              }
+            },
+            required: ['query']
+          }
+        }
+      }
+    ];
 
         // State
         let chats = JSON.parse(localStorage.getItem('chat_history') || '[]');
@@ -2741,6 +2760,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
             // Create abort controller for stopping
             currentAbortController = new AbortController();
 
+            // Enhanced: enable tool-calling and handle streamed tool_calls
             fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
@@ -2751,6 +2771,8 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                     messages,
                     model: model.id,
                     stream: true,
+                    tools,
+                    tool_choice: 'auto',
 //TODO The token limit should be adjustable, but it does not matter for Github Models as they have no TPM/TPD limits
                 }),
                 signal: currentAbortController.signal
@@ -2762,16 +2784,182 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
-                let fullContent = '';
+                let planningBuffer = '';
                 let buffer = '';
                 let doneHandled = false;
+                let toolsDetected = false;
+                const accumulatedToolCalls = [];
+                const searchNotices = [];
+
+                function normalizeToolCallsDelta(delta){
+                    if(!delta || !Array.isArray(delta.tool_calls)) return;
+                    toolsDetected = true;
+                    // Once tools start, remove planning text from UI
+                    try { streamingResponse.innerHTML = ''; } catch(_){}
+                    streamingResponse.classList.add('streaming');
+                    delta.tool_calls.forEach(tc => {
+                        const idx = (typeof tc.index === 'number') ? tc.index : accumulatedToolCalls.length;
+                        if(!accumulatedToolCalls[idx]){
+                            accumulatedToolCalls[idx] = { id: tc.id || '', type: 'function', function: { name: tc.function?.name || '', arguments: '' } };
+                        }
+                        if(tc.id) accumulatedToolCalls[idx].id = tc.id;
+                        if(tc.function?.name) accumulatedToolCalls[idx].function.name = tc.function.name;
+                        if(tc.function?.arguments) accumulatedToolCalls[idx].function.arguments += tc.function.arguments;
+                    });
+                }
+
                 function finalize(){
-                    if(doneHandled) return;
-                    doneHandled = true;
+                    if(doneHandled) return; doneHandled = true;
+
+                    if(toolsDetected){
+                        (async ()=>{
+                            const assistantToolMsg = {
+                                role: 'assistant',
+                                content: null,
+                                tool_calls: accumulatedToolCalls.map(tc => ({ id: tc.id, type: 'function', function: { name: tc.function?.name || '', arguments: tc.function?.arguments || '' } }))
+                            };
+                            const toolResults = [];
+                            for(const tc of accumulatedToolCalls){
+                                const fname = tc.function?.name || '';
+                                if(fname === 'web_search'){
+                                    let query = '';
+                                    try { const a = JSON.parse(tc.function?.arguments || '{}'); query = a.query || ''; } catch(_){ query = ''; }
+                                    try {
+                                        const result = await searchToolAsync(query);
+                                        searchNotices.push(`###### Searched "${query}"`);
+                                        toolResults.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
+                                    } catch(err){
+                                        toolResults.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify({ error: String(err?.message || err) }) });
+                                    }
+                                } else {
+                                    toolResults.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify({ error: `Unsupported tool ${fname}` }) });
+                                }
+                            }
+
+                            // Support repeated tool calls up to 2 extra rounds
+                            async function runRound(curMessages, roundLeft){
+                                const resp = await fetch('https://models.github.ai/inference/chat/completions', {
+                                    method: 'POST',
+                                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ model: model.id, messages: curMessages, stream: true, tools, tool_choice: 'auto' })
+                                });
+                                if(!resp.ok){ const txt = await resp.text().catch(()=> ''); throw new Error(`HTTP ${resp.status}: ${txt || resp.statusText}`); }
+                                const rdr = resp.body.getReader();
+                                let buf = '';
+                                let out = '';
+                                let roundToolCalls = [];
+                                let roundHasTools = false;
+                                function norm(delta){
+                                    if(delta?.tool_calls){
+                                        roundHasTools = true;
+                                        delta.tool_calls.forEach(tc => {
+                                            const idx = (typeof tc.index === 'number') ? tc.index : roundToolCalls.length;
+                                            if(!roundToolCalls[idx]) roundToolCalls[idx] = { id: tc.id || '', type: 'function', function: { name: tc.function?.name || '', arguments: '' } };
+                                            if(tc.id) roundToolCalls[idx].id = tc.id;
+                                            if(tc.function?.name) roundToolCalls[idx].function.name = tc.function.name;
+                                            if(tc.function?.arguments) roundToolCalls[idx].function.arguments += tc.function.arguments;
+                                        });
+                                    }
+                                }
+                                while(true){
+                                    const {done, value} = await rdr.read();
+                                    if(done) break;
+                                    buf += new TextDecoder().decode(value, {stream:true});
+                                    const parts = buf.split('\n');
+                                    buf = parts.pop() || '';
+                                    for(const raw of parts){
+                                        const line = raw.trim();
+                                        if(!line || !line.startsWith('data:')) continue;
+                                        const data = line.slice(5).trim().replace(/^:\s*/, '');
+                                        if(data === '[DONE]') break;
+                                        try{
+                                            const parsed = JSON.parse(data);
+                                            const delta = parsed.choices?.[0]?.delta || {};
+                                            norm(delta);
+                                            const c = delta.content || '';
+                                            if(c){
+                                                out += c;
+                                                const preview = (searchNotices.join('\n') + (searchNotices.length?'\n':'') + out);
+                                                streamingResponse.innerHTML = `<div class='assistant-response' data-role='assistant'><div class="markdown-body">${renderMd(preview)}</div></div>`;
+                                                streamingResponse.dataset.raw = preview;
+                                                chatBox.scrollTop = chatBox.scrollHeight;
+                                                highlightWithin(streamingResponse);
+                                            }
+                                        }catch(_){ /* ignore */ }
+                                    }
+                                }
+                                if(roundHasTools && roundLeft > 0){
+                                    const followAssistant = { role: 'assistant', content: null, tool_calls: roundToolCalls.map(tc => ({ id: tc.id, type:'function', function:{ name: tc.function?.name || '', arguments: tc.function?.arguments || '' } })) };
+                                    const followToolResults = [];
+                                    for(const tc of roundToolCalls){
+                                        const fname = tc.function?.name || '';
+                                        if(fname === 'web_search'){
+                                            let query = '';
+                                            try { const a = JSON.parse(tc.function?.arguments || '{}'); query = a.query || ''; } catch(_){ query = ''; }
+                                            try { const result = await searchToolAsync(query); searchNotices.push(`###### Searched "${query}"`); followToolResults.push({ role:'tool', tool_call_id: tc.id, content: JSON.stringify(result) }); }
+                                            catch(err){ followToolResults.push({ role:'tool', tool_call_id: tc.id, content: JSON.stringify({ error: String(err?.message || err) }) }); }
+                                        } else {
+                                            followToolResults.push({ role:'tool', tool_call_id: tc.id, content: JSON.stringify({ error: `Unsupported tool ${fname}` }) });
+                                        }
+                                    }
+                                    return runRound([...curMessages, followAssistant, ...followToolResults], roundLeft - 1);
+                                }
+                                return out;
+                            }
+
+                            try {
+                                const finalOut = await runRound([...messages, assistantToolMsg, ...toolResults], 2);
+                                const finalText = (searchNotices.join('\n') + (searchNotices.length?'\n':'') + (finalOut || '*No response received*'));
+                                streamingResponse.classList.remove('streaming');
+                                streamingResponse.innerHTML = `
+                            <div class='assistant-response' data-role='assistant'>
+                                <div class="markdown-body">${renderMd(finalText)}</div>
+                            </div>
+                                <div class="message-actions">
+                                    <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="23,4 23,10 17,10"></polyline>
+                                            <polyline points="1,20 1,14 7,14"></polyline>
+                                            <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="action-btn" onclick="copyMessage(this)" title="Copy">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="action-btn" onclick="deleteMessage(null,this)" title="Delete">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3,6 5,6 21,6"></polyline>
+                                            <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4"></path>
+                                        </svg>
+                                    </button>
+                                </div>`;
+                                streamingResponse.dataset.role = 'assistant-container';
+                                streamingResponse.dataset.raw = finalText;
+                                highlightWithin(streamingResponse);
+                                if(finalOut){
+                                    const currentBranch = chat.branches[chat.currentBranch || 0];
+                                    currentBranch.push({role:'assistant', content: finalText});
+                                    localStorage.setItem('chat_history', JSON.stringify(chats));
+                                }
+                                resetSendButton();
+                            } catch(err){
+                                streamingResponse.classList.remove('streaming');
+                                streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Tool run failed: ${String(err?.message || err)}</div>`;
+                                resetSendButton();
+                            }
+                        })();
+                        return;
+                    }
+
+                    // No tools used path: show the planning content as the answer
                     streamingResponse.classList.remove('streaming');
+                    const finalContent = planningBuffer;
                     streamingResponse.innerHTML = `
                             <div class='assistant-response' data-role='assistant'>
-                                <div class="markdown-body">${renderMd(fullContent || '*No response received*')}</div>
+                                <div class="markdown-body">${renderMd(finalContent || '*No response received*')}</div>
                             </div>
                                 <div class="message-actions">
                                     <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
@@ -2795,12 +2983,12 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                                     </button>
                                 </div>`;
                     streamingResponse.dataset.role = 'assistant-container';
-                    streamingResponse.dataset.raw = fullContent || '*No response received*'; // Store raw content for editing
+                    streamingResponse.dataset.raw = finalContent || '*No response received*';
                     highlightWithin(streamingResponse);
-                    if(fullContent){
+                    if(finalContent){
                         const currentBranch = chat.branches[chat.currentBranch || 0];
-                        if(!currentBranch.some(m=> m.content===fullContent && m.role==='assistant')){
-                            currentBranch.push({role:'assistant', content: fullContent});
+                        if(!currentBranch.some(m => m.content === finalContent && m.role === 'assistant')){
+                            currentBranch.push({role:'assistant', content: finalContent});
                             localStorage.setItem('chat_history', JSON.stringify(chats));
                         }
                     }
@@ -2820,11 +3008,13 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                             if(data === '[DONE]'){ finalize(); return; }
                             try{
                                 const parsed = JSON.parse(data);
-                                const content = parsed.choices?.[0]?.delta?.content || '';
-                                if(content){
-                                    fullContent += content;
-                                    streamingResponse.innerHTML = `<div class="assistant-response" data-role="assistant"><div class="markdown-body">${renderMd(fullContent)}</div></div>`;
-                                    streamingResponse.dataset.raw = fullContent; // Update raw content
+                                const delta = parsed.choices?.[0]?.delta || {};
+                                if(delta.tool_calls){ normalizeToolCallsDelta(delta); }
+                                const content = delta.content || '';
+                                if(content && !toolsDetected){
+                                    planningBuffer += content;
+                                    streamingResponse.innerHTML = `<div class='assistant-response' data-role='assistant'><div class="markdown-body">${renderMd(planningBuffer)}</div></div>`;
+                                    streamingResponse.dataset.raw = planningBuffer; // Update raw content
                                     chatBox.scrollTop = chatBox.scrollHeight;
                                     highlightWithin(streamingResponse);
                                 }
@@ -2903,6 +3093,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                 messages.unshift({role: 'system', content: sys});
             }
 
+            // Enhanced: enable tool-calling and handle streamed tool_calls for regeneration
             fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
@@ -2912,7 +3103,9 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                 body: JSON.stringify({
                     messages,
                     model: model.id,
-                    stream: true
+                    stream: true,
+                    tools,
+                    tool_choice: 'auto'
                 })
             })
             .then(response => {
@@ -2922,15 +3115,119 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
-                let fullContent = '';
+                let planningBuffer = '';
                 let buffer = '';
                 let doneHandled = false;
+                let toolsDetected = false;
+                const accumulatedToolCalls = [];
+                const searchNotices = [];
+
+                function normalizeToolCallsDelta(delta){
+                    if(!delta || !Array.isArray(delta.tool_calls)) return;
+                    toolsDetected = true;
+                    try { streamingResponse.innerHTML = ''; } catch(_){}
+                    streamingResponse.classList.add('streaming');
+                    delta.tool_calls.forEach(tc => {
+                        const idx = (typeof tc.index === 'number') ? tc.index : accumulatedToolCalls.length;
+                        if(!accumulatedToolCalls[idx]){
+                            accumulatedToolCalls[idx] = { id: tc.id || '', type: 'function', function: { name: tc.function?.name || '', arguments: '' } };
+                        }
+                        if(tc.id) accumulatedToolCalls[idx].id = tc.id;
+                        if(tc.function?.name) accumulatedToolCalls[idx].function.name = tc.function.name;
+                        if(tc.function?.arguments) accumulatedToolCalls[idx].function.arguments += tc.function.arguments;
+                    });
+                }
+
                 function finalize(){
                     if(doneHandled) return; doneHandled = true;
+                    if(toolsDetected){
+                        (async ()=>{
+                            const assistantToolMsg = { role:'assistant', content:null, tool_calls: accumulatedToolCalls.map(tc => ({ id: tc.id, type:'function', function:{ name: tc.function?.name || '', arguments: tc.function?.arguments || '' } })) };
+                            const toolResults = [];
+                            for(const tc of accumulatedToolCalls){
+                                const fname = tc.function?.name || '';
+                                if(fname === 'web_search'){
+                                    let query = '';
+                                    try { const a = JSON.parse(tc.function?.arguments || '{}'); query = a.query || ''; } catch(_){ query = ''; }
+                                    try { const result = await searchToolAsync(query); searchNotices.push(`###### Searched "${query}"`); toolResults.push({ role:'tool', tool_call_id: tc.id, content: JSON.stringify(result) }); }
+                                    catch(err){ toolResults.push({ role:'tool', tool_call_id: tc.id, content: JSON.stringify({ error: String(err?.message || err) }) }); }
+                                } else {
+                                    toolResults.push({ role:'tool', tool_call_id: tc.id, content: JSON.stringify({ error: `Unsupported tool ${fname}` }) });
+                                }
+                            }
+
+                            async function runRound(curMessages, roundLeft){
+                                const resp = await fetch('https://models.github.ai/inference/chat/completions', { method:'POST', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: model.id, messages: curMessages, stream: true, tools, tool_choice: 'auto' }) });
+                                if(!resp.ok){ const txt = await resp.text().catch(()=> ''); throw new Error(`HTTP ${resp.status}: ${txt || resp.statusText}`); }
+                                const rdr = resp.body.getReader();
+                                let buf=''; let out=''; let roundToolCalls=[]; let roundHasTools=false;
+                                function norm(delta){ if(delta?.tool_calls){ roundHasTools=true; delta.tool_calls.forEach(tc=>{ const idx = (typeof tc.index === 'number') ? tc.index : roundToolCalls.length; if(!roundToolCalls[idx]) roundToolCalls[idx] = { id: tc.id || '', type:'function', function:{ name: tc.function?.name || '', arguments:'' } }; if(tc.id) roundToolCalls[idx].id = tc.id; if(tc.function?.name) roundToolCalls[idx].function.name = tc.function.name; if(tc.function?.arguments) roundToolCalls[idx].function.arguments += tc.function.arguments; }); } }
+                                while(true){ const {done, value} = await rdr.read(); if(done) break; buf += new TextDecoder().decode(value,{stream:true}); const parts = buf.split('\n'); buf = parts.pop() || ''; for(const raw of parts){ const line = raw.trim(); if(!line || !line.startsWith('data:')) continue; const data = line.slice(5).trim().replace(/^:\s*/, ''); if(data === '[DONE]') break; try{ const parsed = JSON.parse(data); const delta = parsed.choices?.[0]?.delta || {}; norm(delta); const c = delta.content || ''; if(c){ out += c; const preview = (searchNotices.join('\n') + (searchNotices.length?'\n':'') + out); streamingResponse.innerHTML = `<div class='assistant-response' data-role='assistant'><div class=\"markdown-body\">${renderMd(preview)}</div></div>`; streamingResponse.dataset.raw = preview; chatBox.scrollTop = chatBox.scrollHeight; highlightWithin(streamingResponse); } }catch(_){ /* ignore */ } } }
+                                if(roundHasTools && roundLeft>0){
+                                    const followAssistant = { role:'assistant', content:null, tool_calls: roundToolCalls.map(tc => ({ id: tc.id, type:'function', function:{ name: tc.function?.name || '', arguments: tc.function?.arguments || '' } })) };
+                                    const followToolResults = [];
+                                    for(const tc of roundToolCalls){
+                                        const fname = tc.function?.name || '';
+                                        if(fname === 'web_search'){
+                                            let query = '';
+                                            try { const a = JSON.parse(tc.function?.arguments || '{}'); query = a.query || ''; } catch(_){ query = ''; }
+                                            try { const result = await searchToolAsync(query); searchNotices.push(`###### Searched "${query}"`); followToolResults.push({ role:'tool', tool_call_id: tc.id, content: JSON.stringify(result) }); } catch(err){ followToolResults.push({ role:'tool', tool_call_id: tc.id, content: JSON.stringify({ error: String(err?.message || err) }) }); }
+                                        } else {
+                                            followToolResults.push({ role:'tool', tool_call_id: tc.id, content: JSON.stringify({ error: `Unsupported tool ${fname}` }) });
+                                        }
+                                    }
+                                    return runRound([...curMessages, followAssistant, ...followToolResults], roundLeft - 1);
+                                }
+                                return out;
+                            }
+
+                            try{
+                                const finalOut = await runRound([...messages, assistantToolMsg, ...toolResults], 2);
+                                const finalText = (searchNotices.join('\n') + (searchNotices.length?'\n':'') + (finalOut || '*No response received*'));
+                                streamingResponse.classList.remove('streaming');
+                                streamingResponse.innerHTML = `
+                    <div class='assistant-response' data-role='assistant'>
+                        <div class="markdown-body">${renderMd(finalText)}</div>
+                    </div>
+                        <div class="message-actions">
+                            <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23,4 23,10 17,10"></polyline>
+                                    <polyline points="1,20 1,14 7,14"></polyline>
+                                    <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"></path>
+                                </svg>
+                            </button>
+                            <button class="action-btn" onclick="copyMessage(this)" title="Copy">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </button>
+                            <button class="action-btn" onclick="deleteMessage(null,this)" title="Delete">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3,6 5,6 21,6"></polyline>
+                                    <path d="m19,6v14c0,1-1,2-2,2H7c-1,0-2-1-2-2V6m3,0V4c0-1,1-2,2-2h4"></path>
+                                </svg>
+                            </button>
+                        </div>`;
+                                streamingResponse.dataset.role = 'assistant-container';
+                                streamingResponse.dataset.raw = finalText;
+                                highlightWithin(streamingResponse);
+                                if(finalOut){ const currentBranch = chat.branches[chat.currentBranch || 0]; currentBranch.push({role:'assistant', content: finalText}); localStorage.setItem('chat_history', JSON.stringify(chats)); }
+                            }catch(err){
+                                streamingResponse.classList.remove('streaming');
+                                streamingResponse.innerHTML = `<div class="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">❌ Tool run failed: ${String(err?.message || err)}</div>`;
+                            }
+                        })();
+                        return;
+                    }
+
+                    // No tools used path for regeneration
                     streamingResponse.classList.remove('streaming');
+                    const finalContent = planningBuffer;
                     streamingResponse.innerHTML = `
                     <div class='assistant-response' data-role='assistant'>
-                        <div class="markdown-body">${renderMd(fullContent || '*No response received*')}</div>
+                        <div class="markdown-body">${renderMd(finalContent || '*No response received*')}</div>
                     </div>
                         <div class="message-actions">
                             <button class="action-btn" onclick="regenerateMessage(this)" title="Regenerate">
@@ -2954,15 +3251,9 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                             </button>
                         </div>`;
                     streamingResponse.dataset.role = 'assistant-container';
-                    streamingResponse.dataset.raw = fullContent || '*No response received*'; // Store raw content for editing
+                    streamingResponse.dataset.raw = finalContent || '*No response received*';
                     highlightWithin(streamingResponse);
-                    if(fullContent){
-                        const currentBranch = chat.branches[chat.currentBranch || 0];
-                        if(!currentBranch.some(m => m.content === fullContent && m.role === 'assistant')){
-                            currentBranch.push({role:'assistant', content: fullContent});
-                            localStorage.setItem('chat_history', JSON.stringify(chats));
-                        }
-                    }
+                    if(finalContent){ const currentBranch = chat.branches[chat.currentBranch || 0]; if(!currentBranch.some(m => m.content === finalContent && m.role === 'assistant')){ currentBranch.push({role:'assistant', content: finalContent}); localStorage.setItem('chat_history', JSON.stringify(chats)); } }
                 }
                 function readStream(){
                     reader.read().then(({done, value})=>{
@@ -2971,22 +3262,8 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                         const parts = buffer.split('\n');
                         buffer = parts.pop() || '';
                         for(const raw of parts){
-                            const line = raw.trim();
-                            if(!line) continue;
-                            if(!line.startsWith('data:')) continue;
-                            const data = line.slice(5).trim().replace(/^:\s*/, '');
-                            if(data === '[DONE]'){ finalize(); return; }
-                            try{
-                                const parsed = JSON.parse(data);
-                                const content = parsed.choices?.[0]?.delta?.content || '';
-                                if(content){
-                                    fullContent += content;
-                                    streamingResponse.innerHTML = `<div class='assistant-response' data-role='assistant'><div class="markdown-body">${renderMd(fullContent)}</div></div>`;
-                                    streamingResponse.dataset.raw = fullContent; // Update raw content
-                                    chatBox.scrollTop = chatBox.scrollHeight;
-                                    highlightWithin(streamingResponse);
-                                }
-                            }catch(_){ /* ignore */ }
+                            const line = raw.trim(); if(!line) continue; if(!line.startsWith('data:')) continue; const data = line.slice(5).trim().replace(/^:\s*/, ''); if(data === '[DONE]'){ finalize(); return; }
+                            try{ const parsed = JSON.parse(data); const delta = parsed.choices?.[0]?.delta || {}; if(delta.tool_calls){ normalizeToolCallsDelta(delta); } const content = delta.content || ''; if(content && !toolsDetected){ planningBuffer += content; streamingResponse.innerHTML = `<div class='assistant-response' data-role='assistant'><div class=\"markdown-body\">${renderMd(planningBuffer)}</div></div>`; streamingResponse.dataset.raw = planningBuffer; chatBox.scrollTop = chatBox.scrollHeight; highlightWithin(streamingResponse); } }catch(_){ /* ignore */ }
                         }
                         readStream();
                     }).catch(error=>{
