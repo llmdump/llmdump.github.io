@@ -1457,7 +1457,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
                 <div class="max-w-3xl mx-auto">
                     <div id="welcomeMessage" class="text-center py-10 text-gray-500" style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;">
                         <h2 class="text-2xl mb-4">How can I help you today?</h2>
-                        <p class="text-sm">Start a conversation by typing a message below</p>
+                        <p class="text-sm">Start a conversation by typing a message below<br><strong>All chats are saved locally. You can export them in Account > Settings</strong></p>
                     </div>
                 </div>
             </div>
@@ -2035,7 +2035,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
                 return `${rpds[0]} RPD`;
                 }
                 else {
-                        return `${rpds[1]} RPD (Copilot Pro)`
+                        return `${rpds[1]} RPD (⚠️Copilot Pro or more needed)`
                 }
         }
         function renderDropdownItems(items) {
@@ -2287,7 +2287,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
             if (messages.length === 0) {
                 const chatBoxContainer = chatBox.querySelector('.max-w-3xl');
                 if (chatBoxContainer) {
-                    chatBoxContainer.innerHTML = '<div id="welcomeMessage" class="text-center py-10 text-gray-500" style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;"><h2 class="text-2xl mb-4">How can I help you today?</h2><p class="text-sm">Start a conversation by typing a message below</p></div>';
+                    chatBoxContainer.innerHTML = '<div id="welcomeMessage" class="text-center py-10 text-gray-500" style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;"><h2 class="text-2xl mb-4">How can I help you today?</h2><p class="text-sm">Start a conversation by typing a message below<br><strong>All chats are saved locally. You can export them in Account > Settings</strong></p></div>';
                 }
             } else {
                 // Recreate message container without welcome message
@@ -2392,7 +2392,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
             };
             chats.push(newChat);
             localStorage.setItem('chat_history', JSON.stringify(chats));
-            chatBox.innerHTML=`<div class="max-w-3xl mx-auto"><div id="welcomeMessage" class="text-center py-10 text-gray-500" style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;"><h2 class="text-2xl mb-4">How can I help you today?</h2><p class="text-sm">Start a conversation by typing a message below</p></div></div>`;
+            chatBox.innerHTML=`<div class="max-w-3xl mx-auto"><div id="welcomeMessage" class="text-center py-10 text-gray-500" style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;"><h2 class="text-2xl mb-4">How can I help you today?</h2><p class="text-sm">Start a conversation by typing a message below<br><strong>All chats are saved locally. You can export them in Account > Settings</strong></p></div></div>`;
             loadChatHistory();
         }
 
