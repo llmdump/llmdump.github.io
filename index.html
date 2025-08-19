@@ -14,6 +14,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/diff-highlight/prism-diff-highlight.min.css">
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/diff-highlight/prism-diff-highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.28.1/full/pyodide.js"></script>
+
 <script>
 // Prism JS config
 Prism.plugins.autoloader.languages_path = 'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/';
@@ -1583,10 +1585,10 @@ Prism.plugins.toolbar.registerButton("download", env => {
         let default_response_from_backend = '';
         (async () => {
             try {
-            const resp = await fetch(API_BASE, { method: 'GET' });
-            const text = await resp.text();
-            default_response_from_backend = text;
-            if (!text.toLowerCase().includes('llm dump backend ok')) {
+            const resp = await fetch(API_BASE+"/health", { method: 'GET' });
+            const resp_json = await resp.json();
+            default_response_from_backend = resp_json;
+            if (!resp_json.status == "ok") {
                 alert(`Backend check failed: expected "LLM dump backend OK" in response from ${API_BASE}.\nYou may not be able to use Sign In with Github, use PAT (with read:models) for login.\nAll other features will work fine (they are frontend-only).\nWe are sorry for the inconvenience.`);
             }
             } catch (err) {
@@ -1660,16 +1662,20 @@ Prism.plugins.toolbar.registerButton("download", env => {
             }
         }
         window.toggleWebSearch = toggleWebSearch;
-        async function searchAsync(query) {
-            const url = new URL("https://api.duckduckgo.com/");
-            url.searchParams.set("q", query);
-            url.searchParams.set("format", "json");
+        async function searchAsync(query,page=1) {
+            const url = new URL(`${API_BASE}/search`);
+            url.searchParams.set('query', query);
+            url.searchParams.set('page', page);
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            return response.json()
 
-            const res = await fetch(url.toString());
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            return res.json();
         }
-        async function searchToolAsync(query){
+        async function searchToolAsync(query,page=1){
             if(webSearch){return await searchAsync(query)}
             else{ 
                 confirmation = confirm("The web search tool has been requested by the AI. Do you want to enable it?")
@@ -2888,7 +2894,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                                         }catch(_){ /* ignore */ }
                                     }
                                 }
-                                if(roundHasTools && roundLeft > 0){
+                                if(roundHasTools){
                                     const followAssistant = { role: 'assistant', content: null, tool_calls: roundToolCalls.map(tc => ({ id: tc.id, type:'function', function:{ name: tc.function?.name || '', arguments: tc.function?.arguments || '' } })) };
                                     const followToolResults = [];
                                     for(const tc of roundToolCalls){
@@ -2902,7 +2908,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                                             followToolResults.push({ role:'tool', tool_call_id: tc.id, content: JSON.stringify({ error: `Unsupported tool ${fname}` }) });
                                         }
                                     }
-                                    return runRound([...curMessages, followAssistant, ...followToolResults], roundLeft - 1);
+                                    return runRound([...curMessages, followAssistant, ...followToolResults], roundLeft);
                                 }
                                 return out;
                             }
@@ -3163,7 +3169,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                                 let buf=''; let out=''; let roundToolCalls=[]; let roundHasTools=false;
                                 function norm(delta){ if(delta?.tool_calls){ roundHasTools=true; delta.tool_calls.forEach(tc=>{ const idx = (typeof tc.index === 'number') ? tc.index : roundToolCalls.length; if(!roundToolCalls[idx]) roundToolCalls[idx] = { id: tc.id || '', type:'function', function:{ name: tc.function?.name || '', arguments:'' } }; if(tc.id) roundToolCalls[idx].id = tc.id; if(tc.function?.name) roundToolCalls[idx].function.name = tc.function.name; if(tc.function?.arguments) roundToolCalls[idx].function.arguments += tc.function.arguments; }); } }
                                 while(true){ const {done, value} = await rdr.read(); if(done) break; buf += new TextDecoder().decode(value,{stream:true}); const parts = buf.split('\n'); buf = parts.pop() || ''; for(const raw of parts){ const line = raw.trim(); if(!line || !line.startsWith('data:')) continue; const data = line.slice(5).trim().replace(/^:\s*/, ''); if(data === '[DONE]') break; try{ const parsed = JSON.parse(data); const delta = parsed.choices?.[0]?.delta || {}; norm(delta); const c = delta.content || ''; if(c){ out += c; const preview = (searchNotices.join('\n') + (searchNotices.length?'\n':'') + out); streamingResponse.innerHTML = `<div class='assistant-response' data-role='assistant'><div class=\"markdown-body\">${renderMd(preview)}</div></div>`; streamingResponse.dataset.raw = preview; chatBox.scrollTop = chatBox.scrollHeight; highlightWithin(streamingResponse); } }catch(_){ /* ignore */ } } }
-                                if(roundHasTools && roundLeft>0){
+                                if(roundHasTools){
                                     const followAssistant = { role:'assistant', content:null, tool_calls: roundToolCalls.map(tc => ({ id: tc.id, type:'function', function:{ name: tc.function?.name || '', arguments: tc.function?.arguments || '' } })) };
                                     const followToolResults = [];
                                     for(const tc of roundToolCalls){
@@ -3176,7 +3182,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                                             followToolResults.push({ role:'tool', tool_call_id: tc.id, content: JSON.stringify({ error: `Unsupported tool ${fname}` }) });
                                         }
                                     }
-                                    return runRound([...curMessages, followAssistant, ...followToolResults], roundLeft - 1);
+                                    return runRound([...curMessages, followAssistant, ...followToolResults], roundLeft);
                                 }
                                 return out;
                             }
