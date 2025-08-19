@@ -2078,7 +2078,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
             if( getModelRPDString(model).includes("Copilot Pro")){
                 tag+='<span class="model-tag">Copilot Pro</span>'
             }
-            if( model.rate_limit_tier || model.tier == "embeddings"){
+            if( (model.rate_limit_tier || model.tier) == "embeddings"){
                 tag+='<span class="model-tag">embedding</span>'
             }
             
@@ -3715,4 +3715,5 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
 </body>
 
 </html>
+
 
