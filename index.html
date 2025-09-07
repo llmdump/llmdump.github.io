@@ -3117,12 +3117,13 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                     });
                 }
                 readStream();
-            })            .catch(error => {
+            })
+            .catch(error => {
                 if (error.name === 'AbortError') {
                     streamingResponse.classList.remove('streaming');
                     streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">⚠️ Generation stopped</div>`;
                     resetSendButton();
-                } else if (error.message.includes('HTTP 422') && !currentAbortController.retryWithoutTools) {
+                } else if (error.message.includes('HTTP') && !currentAbortController.retryWithoutTools) {
                     // Mark to prevent infinite retries
                     currentAbortController.retryWithoutTools = true;
                     
@@ -3257,7 +3258,9 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
         function resetSendButton() {
             sendBtn.classList.remove('hidden');
             stopBtn.classList.add('hidden');
+            currentAbortController.retryWithoutTools = false;
             currentAbortController = null;
+            
         }
 
         function stopGeneration() {
