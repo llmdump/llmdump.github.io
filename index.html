@@ -1592,7 +1592,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
     <script>
     (()=>{
         // Backend configuration
-        const DEFAULT_API_BASE = 'https://tanjim.ddns.net';
+        const DEFAULT_API_BASE = 'https://llmdump.duckdns.org';
         let API_BASE = (localStorage.getItem('api_base')||DEFAULT_API_BASE||'').trim();
         if(API_BASE.endsWith('/')) API_BASE = API_BASE.slice(0,-1);
         let default_response_from_backend = '';
@@ -3715,5 +3715,6 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
 </body>
 
 </html>
+
 
 
