@@ -1639,6 +1639,35 @@ Prism.plugins.toolbar.registerButton("download", env => {
         const sidebarSettings = document.getElementById('sidebarSettings');
         const webSearchToggle = document.getElementById('webSearchToggle');
         const limitIndicatorSpan = document.getElementById('limitIndicatorSpan');
+        // Function to set the gh_token cookie
+function setGhToken(token, days = 30) {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+  const expiresString = expires.toUTCString();
+  
+  document.cookie = `gh_token=${encodeURIComponent(token)}; expires=${expiresString}; path=/; secure; samesite=strict`;
+}
+
+// Function to get the gh_token cookie
+function getGhToken() {
+  const name = "gh_token=";
+  const decodedCookie = decodeURIComponent(document.cookie);
+  const cookies = decodedCookie.split(';');
+  
+  for (let cookie of cookies) {
+    cookie = cookie.trim();
+    if (cookie.indexOf(name) === 0) {
+      return cookie.substring(name.length);
+    }
+  }
+  
+  return null; // Cookie not found
+}
+
+// Function to delete the gh_token cookie
+function deleteGhToken() {
+  document.cookie = "gh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}
         const tools = [
       {
         type: 'function',
@@ -1658,6 +1687,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
         }
       }
     ];
+
 
         // State
         let chats = JSON.parse(localStorage.getItem('chat_history') || '[]');
@@ -1773,7 +1803,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
 
         // Helper functions
         function loadUserProfile(){
-            const token=localStorage.getItem('gh_token');
+            const token=getGhToken();
             if(!token || !token.trim() || token.trim()=="" || token == "") return;
             fetch('https://api.github.com/user',{headers:{Authorization:`Bearer ${token}`}})
                 .then(r=> r.ok ? r.json(): Promise.reject())
@@ -1801,7 +1831,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
         document.getElementById('usePat')?.addEventListener('click', () => {
             const token = patInput.value.trim();
             if (token.startsWith('github_pat_')) {
-                localStorage.setItem('gh_token', token);
+                setGhToken( token);
                 fetchModels();
                 loadUserProfile();
                 showChatPage();
@@ -1812,7 +1842,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
         });
 
         // Auth init
-        const storedToken = localStorage.getItem('gh_token');
+        const storedToken = getGhToken();
         if (storedToken) {
             fetchModels();
             loadUserProfile();
@@ -1891,7 +1921,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
         document.getElementById('saveToken')?.addEventListener('click', () => {
             const newToken = document.getElementById('settingsPat').value.trim();
             if (newToken.startsWith('github_pat_')) {
-                localStorage.setItem('gh_token', newToken);
+                setGhToken( newToken);
                 location.reload();
             } else {
                 alert('Token must start with github_pat_');
@@ -2040,7 +2070,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
                 }
                 const tier = model.rate_limit_tier || model.tier || 'Unknown';
                 var rpds = RPDLookupTable[tier] || ['Unknown', 'Unknown', 'Unknown', 'Unknown'];
-                localStorage.getItem('gh_token')
+                getGhToken()
                 const github_copilot_subscription = localStorage.getItem('github_subscription') || 'Free';  // TODO make it adjustable
                 if (rpds[0] == "custom") {
                     var crpds = CustomLookupTable[model.id] || ['Unknown', 'Unknown', 'Unknown', 'Unknown'];
@@ -2259,7 +2289,7 @@ Prism.plugins.toolbar.registerButton("download", env => {
         // TODO: Replace GPT-4.1 mini with Cerebras models (especially less used ones like llama 70B)
         // when external API keys get added due to per-model rate limits
         function generateChatTitle(firstUserMessage) {
-            const token = localStorage.getItem('gh_token');
+            const token = getGhToken();
             if (!token || !token.trim() || token.trim()=="" || token == "" || !firstUserMessage) return Promise.resolve(null);
 
             // Use selected title generation model or default to GPT-4.1 Mini
@@ -2783,7 +2813,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
             streamingResponse.innerHTML = '<div class="text-sm text-indigo-300">Planning Response...</div>';
             chatBox.appendChild(streamingResponse);
             chatBox.scrollTop = chatBox.scrollHeight;
-            const token = localStorage.getItem('gh_token');
+            const token = getGhToken();
             const selectedModelElement = document.getElementById('selectedModelName');
             const modelId = selectedModelElement?.dataset.modelId;
             const model = models.find(m => m.id === modelId);
@@ -3247,7 +3277,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
             chatBox.appendChild(streamingResponse);
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            const token = localStorage.getItem('gh_token');
+            const token = getGhToken();
             const selectedModelElement = document.getElementById('selectedModelName');
             const modelId = selectedModelElement?.dataset.modelId;
             const model = models.find(m => m.id === modelId);
@@ -3567,7 +3597,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                 .then(r=>{ if(!r.ok) throw new Error('Exchange failed'); return r.json(); })
                 .then(data=>{
                     if(!data.access_token){ throw new Error('No access token in response'); }
-                    localStorage.setItem('gh_token', data.access_token);
+                    setGhToken( data.access_token);
                     history.replaceState({}, document.title, OAUTH_REDIRECT_URI);
                     fetchModels(); loadUserProfile(); showChatPage();
                 })
@@ -3575,7 +3605,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
         }
 
         function fetchModels(){
-            const token = localStorage.getItem('gh_token');
+            const token = getGhToken();
             if(!token || !token.trim() || token.trim()=="" || token == "") return;
             const statusEl = document.getElementById('networkStatus');
 
