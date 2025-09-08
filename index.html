@@ -3123,7 +3123,7 @@ User: "What is the best way to learn JavaScript?" → "Learning JavaScript"`;
                     streamingResponse.classList.remove('streaming');
                     streamingResponse.innerHTML = `<div class="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">⚠️ Generation stopped</div>`;
                     resetSendButton();
-                } else if (error.message.includes('HTTP') && !currentAbortController.retryWithoutTools) {
+                } else if (!currentAbortController.retryWithoutTools) {
                     // Mark to prevent infinite retries
                     currentAbortController.retryWithoutTools = true;
                     
